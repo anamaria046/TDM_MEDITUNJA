@@ -15,6 +15,5 @@ export function manejarErrores(err, req, res, next) {
     mensaje = 'Ocurrió un error en el servidor, intenta de nuevo más tarde';
   }
 
-  res.locals.error = err.message;
   res.status(estado).json({ ok: false, mensaje: mensaje });
 }

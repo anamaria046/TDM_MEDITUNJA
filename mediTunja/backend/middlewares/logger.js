@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const carpeta = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'logs');
-const archivo = path.join(carpeta, 'app.log');
+const archivo = process.env.LOG_PATH || path.join(carpeta, 'app.log');
 
 export function escribirLog(usuario, accion, resultado) {
   if (!fs.existsSync(carpeta)) {
@@ -15,15 +15,9 @@ export function escribirLog(usuario, accion, resultado) {
 
 export function logger(req, res, next) {
   res.on('finish', () => {
-    const usuario = req.usuario && req.usuario.id ? req.usuario.id : 'anonimo';
-    const accion = req.method + ' ' + req.originalUrl;
-    let resultado = 'exitoso ' + res.statusCode;
-    if (res.statusCode >= 400) {
-      resultado = 'fallido ' + res.statusCode;
-      if (res.locals.error) {
-        resultado = resultado + ': ' + res.locals.error;
-      }
-    }
+    const usuario = req.usuario && req.usuario.id_usuario ? req.usuario.id_usuario : 'anonimo';
+    const accion = req.method + ' ' + new URL(req.originalUrl, 'http://localhost').pathname;
+    const resultado = (res.statusCode >= 400 ? 'fallido ' : 'exitoso ') + res.statusCode;
     escribirLog(usuario, accion, resultado);
   });
   next();

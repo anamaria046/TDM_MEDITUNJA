@@ -7,7 +7,8 @@ function crearError(mensaje) {
 export function limpiarEntradas(req, res, next) {
   if (req.body && typeof req.body === 'object') {
     for (const clave in req.body) {
-      if (typeof req.body[clave] === 'string') {
+      if (typeof req.body[clave] === 'string' &&
+          !['contrasena', 'password'].includes(clave.toLowerCase())) {
         req.body[clave] = req.body[clave].trim();
       }
     }
