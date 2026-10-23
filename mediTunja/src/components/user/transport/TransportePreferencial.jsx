@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import "./TransportePreferencial.css";
+import "./TransportePreferencial.module.css";
 
 function TransportePreferencial() {
     // Estado para accesibilidad (tamaño de texto y alto contraste)

@@ -1,4 +1,4 @@
-import Link from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Login() {
     return (
@@ -17,12 +17,12 @@ function Login() {
 
                 <div>
                     <label>Número de Documento:</label>
-                        <input 
-                            type="text" 
-                            id="docNumber" 
-                            name="docNumber" 
-                            placeholder="Ej: 1020304050" 
-                        />
+                    <input 
+                        type="text" 
+                        id="docNumber" 
+                        name="docNumber" 
+                        placeholder="Ej: 1020304050" 
+                    />
                 </div>
 
                 <div>
@@ -50,11 +50,20 @@ function Login() {
             </div>
 
             <p>
-                ¿No tienes cuenta? <Link to="/Register">Regístrate aquí
+                ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
             </p>
-        </div>
 
-    )
+            <hr style={{ margin: "1.5rem 0" }} />
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <Link to="/transporte" style={{ color: "#0056b3", textDecoration: "underline" }}>
+                    🚐 Ir a Transporte Preferencial
+                </Link>
+                <Link to="/pagos" style={{ color: "#0056b3", textDecoration: "underline" }}>
+                    💳 Ir a Módulo de Pagos
+                </Link>
+            </div>
+        </div>
+    );
 }
 
-export default Login
+export default Login;

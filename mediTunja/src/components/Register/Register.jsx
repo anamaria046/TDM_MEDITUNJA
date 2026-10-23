@@ -1,11 +1,10 @@
-import Link from "react-router-dom";
+import { Link } from "react-router-dom";
 
-function Register () {
+function Register() {
     return (
         <div>
             <h2>Registrate</h2>
             <form>
-
                 <div>
                     <label htmlFor="fullName">Nombres y Apellidos:</label>
                     <input 
@@ -109,10 +108,10 @@ function Register () {
             </form>
 
             <p>
-                ¿Ya tienes cuenta? <link to="/Login">Inicia sesión aquí
+                ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
             </p>
         </div>
-    )
+    );
 }
 
-export default Register
+export default Register;
