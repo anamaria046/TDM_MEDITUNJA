@@ -67,6 +67,9 @@ function Login() {
                 <Link to="/perfilUsuario">
                     Ir a Módulo de perfil de usuario
                 </Link>
+                <Link to="/perfilAdministrador">
+                    Ir a Módulo de perfil de administrador
+                </Link>
             </div>
         </div>
     );

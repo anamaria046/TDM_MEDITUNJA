@@ -6,6 +6,7 @@ import Pay from "./components/user/pay/pay.jsx";
 import TransportePreferencial from "./components/user/transport/TransportePreferencial.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
+import ProfileAdministrador from "./pages/AdministraitorPages/ProfileAdministraitor.jsx";
 
 function App() {
     return (
@@ -16,8 +17,9 @@ function App() {
                 <Route path="/registro" element={<Register />} />
                 <Route path="/pagos" element={<Pay />} />
                 <Route path="/transporte" element={<TransportePreferencial />} />
-                <Route path="/citas" element={<AppointmentModule />}></Route>
-                <Route path="/perfilUsuario" element={<ProfileUser />}></Route>
+                <Route path="/citas" element={<AppointmentModule />} />
+                <Route path="/perfilUsuario" element={<ProfileUser />} />
+                <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
             </Routes>
         </BrowserRouter>
     );
