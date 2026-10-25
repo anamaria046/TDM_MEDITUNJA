@@ -12,10 +12,10 @@ function App() {
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Register />} />
-                <Route path="/pagos" element={<Pay />} />
                 <Route path="/pay" element={<Pay />} />
                 <Route path="/transporte" element={<TransportePreferencial />} />
                 <Route path="/transport" element={<TransportePreferencial />} />
+                <Route path=""></Route>
             </Routes>
         </BrowserRouter>
     );

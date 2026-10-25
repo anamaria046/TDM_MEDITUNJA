@@ -1,7 +1,6 @@
-// src/components/catalogo/CatalogoServicios.jsx
 import { Link } from 'react-router-dom';
 
-export function CatalogServices() {
+function CatalogServices() {
   return (
     <div>
         <h2>Catálogo de Servicios Médicos e IPS</h2>
@@ -15,7 +14,9 @@ export function CatalogServices() {
                     <option value="particular">Particular (Sin EPS/Convenio)</option>
                     <option value="eps-sura">EPS Sura</option>
                     <option value="eps-sanitas">EPS Sanitas</option>
-                    <option value="poliza-seguros">Póliza / Medicina Prepagada</option>
+                    <option value="eps-nuevaeps">EPS Nueva EPS</option>
+                    <option value="eps-famisanar">EPS FAMISANAR</option>
+                    <option value="eps-saludtotal">EPS Salud total</option>
                 </select>
             </div>
 
@@ -54,12 +55,12 @@ export function CatalogServices() {
                     <h5>IPS Prestadoras Disponibles:</h5>
                     <ul>
                         <li>
-                            <strong>Clínica Cardiovascular del Norte</strong> - Calle 100 #15-20
+                            <strong>Hospital San Rafael</strong>
                             <br />
                             <small>Horarios: Lunes a Viernes (7:00 AM - 5:00 PM)</small>
                         </li>
                         <li>
-                            <strong>Centro Médico San Rafael</strong> - Cra 45 #80-12
+                            <strong>Clínica Medilaser</strong>
                             <br />
                             <small>Horarios: Lunes a Sábados (8:00 AM - 1:00 PM)</small>
                         </li>
@@ -87,13 +88,13 @@ export function CatalogServices() {
                     <h5>IPS Prestadoras Disponibles:</h5>
                     <ul>
                         <li>
-                            <strong>IPS Odontológica DentalPlus Sede Centro</strong> - Calle 34 #12-45
+                            <strong>Clínica de Chía S.A</strong> 
                             <br />
                             <small>Horarios: Lunes a Sábado (8:00 AM - 6:00 PM)</small>
                         </li>
                     </ul>
                 </div>
-                
+
                 <Link to="/citas/agendar">
                     <button type="button">Seleccionar y Agendar Cita</button>
                 </Link>
@@ -102,3 +103,5 @@ export function CatalogServices() {
     </div>
   );
 }
+
+export default CatalogServices
