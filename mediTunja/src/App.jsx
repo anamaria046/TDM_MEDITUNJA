@@ -7,6 +7,7 @@ import TransportePreferencial from "./components/user/transport/TransportePrefer
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
 import ProfileAdministrador from "./pages/AdministraitorPages/ProfileAdministraitor.jsx";
+import AppointmentManagementModule from "./pages/AdministraitorPages/AppointmentManagementModule.jsx";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                 <Route path="/citas" element={<AppointmentModule />} />
                 <Route path="/perfilUsuario" element={<ProfileUser />} />
                 <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
+                <Route path="/gestionCitas" element={<AppointmentManagementModule />} />
             </Routes>
         </BrowserRouter>
     );

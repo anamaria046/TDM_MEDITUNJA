@@ -70,6 +70,9 @@ function Login() {
                 <Link to="/perfilAdministrador">
                     Ir a Módulo de perfil de administrador
                 </Link>
+                <Link to="/gestionCitas">
+                    Ir a Módulo de gestion de citas del administrador
+                </Link>
             </div>
         </div>
     );
