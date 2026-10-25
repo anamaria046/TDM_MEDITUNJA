@@ -64,6 +64,9 @@ function Login() {
                 <Link to="/citas">
                     Ir a Módulo de citas
                 </Link>
+                <Link to="/perfilUsuario">
+                    Ir a Módulo de perfil de usuario
+                </Link>
             </div>
         </div>
     );
