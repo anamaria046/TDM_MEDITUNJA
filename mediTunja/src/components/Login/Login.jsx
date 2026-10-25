@@ -61,6 +61,9 @@ function Login() {
                 <Link to="/pagos" style={{ color: "#0056b3", textDecoration: "underline" }}>
                     💳 Ir a Módulo de Pagos
                 </Link>
+                <Link to="/citas">
+                    Ir a Módulo de citas
+                </Link>
             </div>
         </div>
     );

@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
-
-export function ScheduleAppointment() {
+function ScheduleAppointment() {
     return (
         <div>
             <h2>Reserva de Cita Médica</h2>
@@ -90,10 +88,6 @@ export function ScheduleAppointment() {
                     <strong>Comprobación:</strong> Horario verificado en la agenda sin duplicados.
                 </p>
             </section>
-
-            <p>
-                <Link to="/Appointment/MyAppointments">Ir a Administrar Mis Citas</Link> | <Link to="/Catalog">Volver al Catálogo</Link>
-            </p>
         </div>
     );
 }

@@ -4,6 +4,7 @@ import Login from "./components/Login/Login.jsx";
 import Register from "./components/Register/Register.jsx";
 import Pay from "./components/user/pay/pay.jsx";
 import TransportePreferencial from "./components/user/transport/TransportePreferencial.jsx";
+import AppointmentModule from "./pages/AppointmentModule.jsx";
 
 function App() {
     return (
@@ -12,10 +13,9 @@ function App() {
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Register />} />
-                <Route path="/pay" element={<Pay />} />
+                <Route path="/pagos" element={<Pay />} />
                 <Route path="/transporte" element={<TransportePreferencial />} />
-                <Route path="/transport" element={<TransportePreferencial />} />
-                <Route path=""></Route>
+                <Route path="/citas" element={<AppointmentModule />}></Route>
             </Routes>
         </BrowserRouter>
     );

@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 function CatalogServices() {
   return (
     <div>
@@ -66,9 +64,6 @@ function CatalogServices() {
                         </li>
                     </ul>
                 </div>
-                <Link to="/citas/agendar">
-                    <button type="button">Seleccionar y Agendar Cita</button>
-                </Link>
             </article>
 
             <article>
@@ -94,10 +89,6 @@ function CatalogServices() {
                         </li>
                     </ul>
                 </div>
-
-                <Link to="/citas/agendar">
-                    <button type="button">Seleccionar y Agendar Cita</button>
-                </Link>
             </article>
         </section>
     </div>
