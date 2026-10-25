@@ -41,7 +41,7 @@ function CatalogServices() {
                     <strong>Categoría:</strong> Especialidades Médicas
                 </p>
 
-                <div className="info-servicio">
+                <div>
                     <p>
                         <strong>Requisitos:</strong> Requiere orden médica previa y electrocardiograma reciente (si aplica).
                     </p>
@@ -49,7 +49,7 @@ function CatalogServices() {
                         <strong>Costo Estimado:</strong> $120.000 COP (Particular) | Copago EPS: $4.500 COP
                     </p>
                 </div>
-                <div className="ips-disponibles">
+                <div>
                     <h5>IPS Prestadoras Disponibles:</h5>
                     <ul>
                         <li>
@@ -71,7 +71,7 @@ function CatalogServices() {
                 <p>
                     <strong>Categoría:</strong> Odontología
                 </p>
-                <div className="info-servicio">
+                <div>
                     <p>
                         <strong>Requisitos:</strong> Ninguno. Apto para mayores de 6 años.
                     </p>
@@ -79,7 +79,7 @@ function CatalogServices() {
                         <strong>Costo Estimado:</strong> $60.000 COP (Tarifa particular)
                     </p>
                 </div>
-                <div className="ips-disponibles">
+                <div>
                     <h5>IPS Prestadoras Disponibles:</h5>
                     <ul>
                         <li>

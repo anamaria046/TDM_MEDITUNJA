@@ -143,7 +143,7 @@ function TransportePreferencial() {
                                         <option value="TI">Tarjeta de Identidad (T.I.)</option>
                                         <option value="RC">Registro Civil (R.C.)</option>
                                         <option value="CE">Cédula de Extranjería (C.E.)</option>
-                                        <option value="PPT">Permiso por Protección Temporal (PPT)</option>
+                                        <option value="PP">Permiso por Protección Temporal (PP)</option>
                                     </select>
                                 </div>
 

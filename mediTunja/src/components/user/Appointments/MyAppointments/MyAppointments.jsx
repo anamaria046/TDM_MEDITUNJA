@@ -13,7 +13,7 @@ function MyAppointments() {
                         <th>Fecha y Hora</th>
                         <th>Modalidad</th>
                         <th>Estado</th>
-                        <th>Condición / Acciones</th>
+                        <th>Condición</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -24,10 +24,6 @@ function MyAppointments() {
                         <td>2026-11-10 08:00 AM</td>
                         <td>Presencial</td>
                         <td><span>Confirmada</span></td>
-                        <td>
-                        <button type="button">Reprogramar</button>
-                        <button type="button">Cancelar</button>
-                        </td>
                     </tr>
 
                     <tr>
@@ -55,14 +51,6 @@ function MyAppointments() {
                 </tr>
                 </tbody>
             </table>
-
-            <div>
-                <strong>Condiciones de reprogramación y cancelación:</strong>
-                <ul>
-                    <li>Puedes cancelar o reprogramar tu cita hasta con <strong>24 horas de anticipación</strong> sin costo.</li>
-                    <li>En caso de citas particulares canceladas a tiempo, el reembolso se procesa en 3 días hábiles.</li>
-                </ul>
-            </div>
         </div>
     );
 }

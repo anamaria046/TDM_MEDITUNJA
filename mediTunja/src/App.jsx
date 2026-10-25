@@ -16,7 +16,7 @@ function App() {
                 <Route path="/registro" element={<Register />} />
                 <Route path="/pagos" element={<Pay />} />
                 <Route path="/transporte" element={<TransportePreferencial />} />
-                <Route path="/citast" element={<AppointmentModule />}></Route>
+                <Route path="/citas" element={<AppointmentModule />}></Route>
                 <Route path="/perfilUsuario" element={<ProfileUser />}></Route>
             </Routes>
         </BrowserRouter>

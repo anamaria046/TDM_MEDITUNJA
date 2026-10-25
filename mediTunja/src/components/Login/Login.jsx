@@ -11,7 +11,7 @@ function Login() {
                         <option value="CC">Cédula de Ciudadanía</option>
                         <option value="CE">Cédula de Extranjería</option>
                         <option value="TI">Tarjeta de Identidad</option>
-                        <option value="PAS">Pasaporte</option>
+                        <option value="PP">Pasaporte</option>
                     </select>
                 </div>
 

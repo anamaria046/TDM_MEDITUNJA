@@ -43,7 +43,7 @@ function Register() {
                         <option value="CC">Cédula de Ciudadanía (C.C.)</option>
                         <option value="CE">Cédula de Extranjería (C.E.)</option>
                         <option value="TI">Tarjeta de Identidad (T.I.)</option>
-                        <option value="PAS">Pasaporte</option>
+                        <option value="PP">Pasaporte</option>
                     </select>
                 </div>
 
