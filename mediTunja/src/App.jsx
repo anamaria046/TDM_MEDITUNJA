@@ -4,6 +4,7 @@ import Login from "./components/Login/Login.jsx";
 import Register from "./components/Register/Register.jsx";
 import Pay from "./components/user/pay/pay.jsx";
 import TransportePreferencial from "./components/user/transport/TransportePreferencial.jsx";
+import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
 import ProfileAdministrador from "./pages/AdministraitorPages/ProfileAdministraitor.jsx";
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/registro" element={<Register />} />
                 <Route path="/pagos" element={<Pay />} />
                 <Route path="/transporte" element={<TransportePreferencial />} />
+                <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
                 <Route path="/citas" element={<AppointmentModule />} />
                 <Route path="/perfilUsuario" element={<ProfileUser />} />
                 <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
