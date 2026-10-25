@@ -64,6 +64,9 @@ function Login() {
                 <Link to="/resultados-procedimientos">
                     Ir a Resultados de procedimientos
                 </Link>
+                <Link to="/resultados-administrador">
+                    Ir a Resultados de administrador
+                </Link>
                 <Link to="/citas">
                     Ir a Módulo de citas
                 </Link>
