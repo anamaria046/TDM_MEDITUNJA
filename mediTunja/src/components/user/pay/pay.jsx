@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./pay.modules.css";
 
@@ -474,11 +474,40 @@ function Pay() {
                 </div>
             </aside>
 
+            {/* Barra de Secuencia Visual del Flujo de Usuario */}
+            <nav style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.75rem 1.25rem", marginBottom: "1.25rem", maxWidth: "1000px", margin: "0 auto 1.25rem auto" }} aria-label="Ruta y pasos del proceso">
+                <ol style={{ display: "flex", alignItems: "center", listStyle: "none", margin: "0", padding: "0", flexWrap: "wrap", gap: "0.25rem" }}>
+                    <li style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <Link to="/citas" style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#38a169", textDecoration: "none", fontWeight: "600", fontSize: "0.88em" }} title="Paso 1: Agendamiento de citas">
+                            <span style={{ background: "#38a169", color: "#fff", borderRadius: "50%", width: "22px", height: "22px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.8em", fontWeight: "700" }}>✓</span>
+                            Agendamiento de citas
+                        </Link>
+                    </li>
+                    <span style={{ margin: "0 0.5rem", color: "#a0aec0" }}>→</span>
+                    <li style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <Link to="/transporte" style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#38a169", textDecoration: "none", fontWeight: "600", fontSize: "0.88em" }} title="Paso 2: Transporte Preferencial">
+                            <span style={{ background: "#38a169", color: "#fff", borderRadius: "50%", width: "22px", height: "22px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.8em", fontWeight: "700" }}>✓</span>
+                            Transporte Preferencial
+                        </Link>
+                    </li>
+                    <span style={{ margin: "0 0.5rem", color: "#a0aec0" }}>→</span>
+                    <li style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#0056b3", fontWeight: "700", fontSize: "0.88em" }} aria-current="step">
+                        <span style={{ background: "#0056b3", color: "#fff", borderRadius: "50%", width: "22px", height: "22px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.8em", fontWeight: "700" }}>3</span>
+                        Módulo de Pagos
+                    </li>
+                    <span style={{ margin: "0 0.5rem", color: "#a0aec0" }}>→</span>
+                    <li style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#a0aec0", fontWeight: "600", fontSize: "0.88em" }}>
+                        <span style={{ background: "#e2e8f0", color: "#718096", borderRadius: "50%", width: "22px", height: "22px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.8em", fontWeight: "700" }}>4</span>
+                        Mapa
+                    </li>
+                </ol>
+            </nav>
+
             {/* Cabecera */}
             <header className="cabecera-pagos">
                 <nav aria-label="Navegación secundaria">
-                    <Link to="/login" className="enlace-volver">
-                        ← Volver al inicio
+                    <Link to="/citas" className="enlace-volver">
+                        ← Volver a Agendamiento de Citas
                     </Link>
                 </nav>
                 <div className="encabezado-info">
@@ -568,20 +597,23 @@ function Pay() {
                         {/* PASO 1: DATOS DE LA CITA MÉDICA A PAGAR */}
                         <fieldset className="seccion-formulario">
                             <legend className="titulo-seccion">
-                                <span className="numero-paso">1</span> Cita Médica a Cancelar
+                                <span className="numero-paso">1</span> Cita Médica a Pagar
                             </legend>
                             <p className="ayuda-seccion">
-                                Datos fundamentales de la cita médica programada en el sistema.
+                                <span style={{ background: "#ebf8ff", color: "#2b6cb0", border: "1px solid #bee3f8", borderRadius: "6px", padding: "0.15rem 0.6rem", fontWeight: "600", fontSize: "0.85em", marginRight: "0.5rem" }}>Información precargada</span>
+                                Datos verificados automáticamente desde tu agendamiento y transporte. No editables para garantizar la trazabilidad del pago.
                             </p>
-
+                            <div style={{ background: "#fffaf0", border: "1px solid #fbd38d", borderRadius: "8px", padding: "0.6rem 1rem", marginBottom: "1rem", fontSize: "0.88em", color: "#744210" }}>
+                                Los datos no son correctos? Vuelve a Agendamiento de Citas (haz clic en la barra de pasos arriba).
+                            </div>
                             <div className="fila-formulario">
                                 <div className="campo-formulario">
                                     <label htmlFor="documentoPaciente">Documento del Paciente:</label>
                                     <div style={{ display: "flex", gap: "0.5rem" }}>
                                         <select 
                                             value={tipoDocumento} 
-                                            onChange={(e) => setTipoDocumento(e.target.value)}
-                                            style={{ width: "90px" }}
+                                            disabled
+                                            style={{ width: "90px", cursor: "not-allowed", background: "#f7fafc", color: "#4a5568" }}
                                         >
                                             <option value="CC">C.C.</option>
                                             <option value="TI">T.I.</option>
@@ -591,9 +623,9 @@ function Pay() {
                                             type="text" 
                                             id="documentoPaciente" 
                                             value={documentoPaciente} 
-                                            onChange={(e) => setDocumentoPaciente(e.target.value)}
-                                            placeholder="Número de documento"
-                                            required 
+                                            disabled
+                                            readOnly
+                                            style={{ cursor: "not-allowed", background: "#f7fafc", color: "#4a5568" }} 
                                         />
                                     </div>
                                 </div>
@@ -604,9 +636,9 @@ function Pay() {
                                         type="text" 
                                         id="nombrePaciente" 
                                         value={nombrePaciente} 
-                                        onChange={(e) => setNombrePaciente(e.target.value)}
-                                        placeholder="Nombre del paciente"
-                                        required 
+                                        disabled
+                                        readOnly
+                                        style={{ cursor: "not-allowed", background: "#f7fafc", color: "#4a5568" }} 
                                     />
                                 </div>
                             </div>
@@ -617,8 +649,8 @@ function Pay() {
                                     <select 
                                         id="ipsCita" 
                                         value={ipsCita} 
-                                        onChange={(e) => setIpsCita(e.target.value)}
-                                        required
+                                        disabled
+                                        style={{ cursor: "not-allowed", background: "#f7fafc", color: "#4a5568" }}
                                     >
                                         <option value="Hospital Universitario San Rafael de Tunja">Hospital Universitario San Rafael de Tunja</option>
                                         <option value="Clínica Medilaser Tunja">Clínica Medilaser Tunja</option>
@@ -633,8 +665,8 @@ function Pay() {
                                     <select 
                                         id="tipoCita" 
                                         value={tipoCita} 
-                                        onChange={(e) => setTipoCita(e.target.value)}
-                                        required
+                                        disabled
+                                        style={{ cursor: "not-allowed", background: "#f7fafc", color: "#4a5568" }}
                                     >
                                         <option value="general">Consulta Medicina General / Odontología ($4.500 COP)</option>
                                         <option value="especialista">Consulta Médico Especialista ($18.200 COP)</option>
@@ -650,8 +682,9 @@ function Pay() {
                                         type="date" 
                                         id="fechaCita" 
                                         value={fechaCita} 
-                                        onChange={(e) => setFechaCita(e.target.value)} 
-                                        required 
+                                        disabled
+                                        readOnly
+                                        style={{ cursor: "not-allowed", background: "#f7fafc" }} 
                                     />
                                 </div>
                                 <div className="campo-formulario">
@@ -660,8 +693,9 @@ function Pay() {
                                         type="time" 
                                         id="horaCita" 
                                         value={horaCita} 
-                                        onChange={(e) => setHoraCita(e.target.value)} 
-                                        required 
+                                        disabled
+                                        readOnly
+                                        style={{ cursor: "not-allowed", background: "#f7fafc" }} 
                                     />
                                 </div>
                             </div>
