@@ -9,8 +9,9 @@ import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
 import ResultadosAdministrador from "./components/administrator/resultados_administrador.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
-import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministraitor.jsx";
+import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrator.jsx";
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
+import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
 
 function App() {
     return (
@@ -28,6 +29,7 @@ function App() {
                 <Route path="/perfilUsuario" element={<ProfileUser />} />
                 <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
                 <Route path="/gestionCitas" element={<AppointmentManagementModule />} />
+                <Route path="/gestionUsuarios" element={<UserGestor />} />
             </Routes>
         </BrowserRouter>
     );

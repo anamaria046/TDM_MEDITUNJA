@@ -82,6 +82,9 @@ function Login() {
                 <Link to="/gestionCitas">
                     Ir a Módulo de gestion de citas del administrador
                 </Link>
+                <Link to="/gestionUsuarios">
+                    Ir a Gestión de usuarios del administrador
+                </Link>
             </div>
         </div>
     );
