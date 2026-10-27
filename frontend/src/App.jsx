@@ -8,8 +8,8 @@ import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
 import ResultadosAdministrador from "./components/administrator/resultados_administrador.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
-import ProfileAdministrador from "./pages/AdministraitorPages/ProfileAdministraitor.jsx";
-import AppointmentManagementModule from "./pages/AdministraitorPages/AppointmentManagementModule.jsx";
+import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministraitor.jsx";
+import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
 
 function App() {
     return (
