@@ -1,116 +1,163 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/useAuth.js";
+import { mensajeError } from "../../auth/api.js";
 
 function Register() {
+    const { sesion, registrar } = useAuth();
+    const navigate = useNavigate();
+    const [error, setError] = useState("");
+    const [enviando, setEnviando] = useState(false);
+    const [mostrarContrasena, setMostrarContrasena] = useState(false);
+    const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+
+    if (sesion) {
+        return <Navigate to="/citas" replace />;
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        setError("");
+
+        const formulario = event.currentTarget;
+        const datos = new FormData(formulario);
+        const contrasena = datos.get("contrasena");
+        if (contrasena !== datos.get("confirmarContrasena")) {
+            setError("Las contraseñas no coinciden.");
+            return;
+        }
+
+        setEnviando(true);
+        try {
+            await registrar({
+                email: datos.get("email").trim(),
+                contrasena,
+                nombre: `${datos.get("nombres").trim()} ${datos.get("apellidos").trim()}`,
+                documento: datos.get("documento").trim(),
+                perfil: datos.get("perfil"),
+                descuento: 0,
+            });
+            navigate("/citas", { replace: true });
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        } finally {
+            setEnviando(false);
+        }
+    }
+
     return (
-        <div>
-            <h2>Registrate</h2>
-            <form>
+        <main>
+            <h1>Crear cuenta</h1>
+            <form onSubmit={handleSubmit}>
                 <div>
-                    <label htmlFor="fullName">Nombres y Apellidos:</label>
-                    <input 
-                        type="text" 
-                        id="fullName" 
-                        name="fullName" 
-                        placeholder="Ej: Juan Andrés Pérez Gómez" 
-                        required 
+                    <label htmlFor="nombres">Nombres</label>
+                    <input
+                        type="text"
+                        id="nombres"
+                        name="nombres"
+                        autoComplete="given-name"
+                        maxLength="50"
+                        required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="birthDate">Fecha de Nacimiento:</label>
-                    <input 
-                        type="date" 
-                        id="birthDate" 
-                        name="birthDate" 
-                        required 
+                    <label htmlFor="apellidos">Apellidos</label>
+                    <input
+                        type="text"
+                        id="apellidos"
+                        name="apellidos"
+                        autoComplete="family-name"
+                        maxLength="50"
+                        required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="gender">Sexo:</label>
-                    <select id="gender" name="gender" required>
-                        <option value="">Seleccione una opción</option>
-                        <option value="M">Masculino</option>
-                        <option value="F">Femenino</option>
-                        <option value="otro">Otro / Prefiero no decir</option>
+                    <label htmlFor="documento">Número de documento</label>
+                    <input
+                        type="text"
+                        id="documento"
+                        name="documento"
+                        autoComplete="off"
+                        maxLength="40"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="perfil">Perfil</label>
+                    <select id="perfil" name="perfil" defaultValue="general" required>
+                        <option value="general">General</option>
+                        <option value="estudiante">Estudiante</option>
+                        <option value="adulto_mayor">Adulto mayor</option>
+                        <option value="empleado">Empleado</option>
                     </select>
                 </div>
 
                 <div>
-                    <label htmlFor="docType">Tipo de Documento:</label>
-                    <select id="docType" name="docType" required>
-                        <option value="">Seleccione un tipo</option>
-                        <option value="CC">Cédula de Ciudadanía (C.C.)</option>
-                        <option value="CE">Cédula de Extranjería (C.E.)</option>
-                        <option value="TI">Tarjeta de Identidad (T.I.)</option>
-                        <option value="PP">Pasaporte</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label htmlFor="docNumber">Número de Documento:</label>
-                    <input 
-                        type="text" 
-                        id="docNumber" 
-                        name="docNumber" 
-                        placeholder="Ej: 1020304050" 
-                        required 
+                    <label htmlFor="email-registro">Correo electrónico</label>
+                    <input
+                        type="email"
+                        id="email-registro"
+                        name="email"
+                        autoComplete="email"
+                        maxLength="254"
+                        required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="email">Correo Electrónico:</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        placeholder="ejemplo@correo.com" 
-                        required 
+                    <label htmlFor="contrasena-registro">Contraseña (mínimo 8 caracteres)</label>
+                    <input
+                        type={mostrarContrasena ? "text" : "password"}
+                        id="contrasena-registro"
+                        name="contrasena"
+                        autoComplete="new-password"
+                        minLength="8"
+                        maxLength="128"
+                        required
                     />
+                    <button
+                        type="button"
+                        aria-pressed={mostrarContrasena}
+                        onClick={() => setMostrarContrasena((actual) => !actual)}
+                    >
+                        {mostrarContrasena ? "Ocultar" : "Mostrar"}
+                    </button>
                 </div>
 
                 <div>
-                    <label htmlFor="phone">Teléfono / Celular:</label>
-                    <input 
-                        type="tel" 
-                        id="phone" 
-                        name="phone" 
-                        placeholder="Ej: 3001234567" 
-                        required 
+                    <label htmlFor="confirmar-contrasena">Confirmar contraseña</label>
+                    <input
+                        type={mostrarConfirmacion ? "text" : "password"}
+                        id="confirmar-contrasena"
+                        name="confirmarContrasena"
+                        autoComplete="new-password"
+                        minLength="8"
+                        maxLength="128"
+                        required
                     />
+                    <button
+                        type="button"
+                        aria-pressed={mostrarConfirmacion}
+                        onClick={() => setMostrarConfirmacion((actual) => !actual)}
+                    >
+                        {mostrarConfirmacion ? "Ocultar" : "Mostrar"}
+                    </button>
                 </div>
 
-                <div>
-                    <label htmlFor="password">Contraseña:</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        placeholder="Crea una contraseña segura" 
-                        required 
-                    />
-                    <button type="button">Mostrar</button>
-                </div>
+                {error && <p role="alert">{error}</p>}
 
-                <div>
-                    <label htmlFor="confirmPassword">Confirmar Contraseña:</label>
-                    <input 
-                        type="password" 
-                        id="confirmPassword" 
-                        name="confirmPassword" 
-                        placeholder="Repite tu contraseña" 
-                        required 
-                    />
-                    <button type="button">Mostrar</button>
-                </div>
-
-                <button type="submit">Registrarse</button>
+                <button type="submit" disabled={enviando}>
+                    {enviando ? "Creando cuenta..." : "Registrarse"}
+                </button>
             </form>
 
             <p>
                 ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
             </p>
-        </div>
+        </main>
     );
 }
 

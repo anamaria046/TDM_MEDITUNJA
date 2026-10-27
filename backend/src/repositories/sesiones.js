@@ -9,6 +9,17 @@ export async function crear(idUsuario, tokenHash, ahora, expira) {
   );
 }
 
+export async function revocar(tokenHash, ahora) {
+  const resultado = await ejecutar(
+    'run',
+    `UPDATE sesiones
+     SET revocada_en = ?
+     WHERE token_hash = ? AND revocada_en IS NULL`,
+    [ahora, tokenHash]
+  );
+  return resultado.changes === 1;
+}
+
 export async function renovarSiActiva(tokenHash, ahora, nuevaExpiracion) {
   const resultado = await ejecutar(
     'run',

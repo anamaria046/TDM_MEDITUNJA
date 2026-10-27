@@ -1,92 +1,86 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/useAuth.js";
+import { mensajeError } from "../../auth/api.js";
 
 function Login() {
+    const { sesion, iniciarSesion } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [error, setError] = useState("");
+    const [enviando, setEnviando] = useState(false);
+    const [mostrarContrasena, setMostrarContrasena] = useState(false);
+
+    if (sesion) {
+        return <Navigate to="/citas" replace />;
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        setError("");
+        setEnviando(true);
+
+        const datos = new FormData(event.currentTarget);
+        try {
+            await iniciarSesion({
+                email: datos.get("email").trim(),
+                contrasena: datos.get("contrasena"),
+            });
+            navigate(location.state?.from?.pathname || "/citas", { replace: true });
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        } finally {
+            setEnviando(false);
+        }
+    }
+
     return (
-        <div>
-            <h2>Inicia Sesión</h2>
-            <form action="">
+        <main>
+            <h1>Inicia sesión</h1>
+            <form onSubmit={handleSubmit}>
                 <div>
-                    <label>Tipo de Documento:</label>
-                    <select id="docType" name="docType">
-                        <option value="CC">Cédula de Ciudadanía</option>
-                        <option value="CE">Cédula de Extranjería</option>
-                        <option value="TI">Tarjeta de Identidad</option>
-                        <option value="PP">Pasaporte</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Número de Documento:</label>
-                    <input 
-                        type="text" 
-                        id="docNumber" 
-                        name="docNumber" 
-                        placeholder="Ej: 1020304050" 
+                    <label htmlFor="email">Correo electrónico</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        autoComplete="username"
+                        maxLength="254"
+                        placeholder="nombre@correo.com"
+                        required
                     />
                 </div>
 
                 <div>
-                    <label>Contraseña:</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        placeholder="Ingresa tu contraseña" 
+                    <label htmlFor="contrasena">Contraseña</label>
+                    <input
+                        type={mostrarContrasena ? "text" : "password"}
+                        id="contrasena"
+                        name="contrasena"
+                        autoComplete="current-password"
+                        maxLength="128"
+                        required
                     />
-                    <button type="button">Mostrar</button>
+                    <button
+                        type="button"
+                        aria-pressed={mostrarContrasena}
+                        onClick={() => setMostrarContrasena((actual) => !actual)}
+                    >
+                        {mostrarContrasena ? "Ocultar" : "Mostrar"}
+                    </button>
                 </div>
 
-                <button type="submit">Ingresar</button>
+                {error && <p role="alert">{error}</p>}
+
+                <button type="submit" disabled={enviando}>
+                    {enviando ? "Ingresando..." : "Ingresar"}
+                </button>
             </form>
-      
-            {/* Sección Tarjeta NFC */}
-            <div>
-                <h3>Acceso con NFC</h3>
-
-                <button type="button" disabled>Iniciar sesión con tarjeta NFC</button>
-                <p> 
-                    Esta función no está disponible. Debes iniciar sesión con tus credenciales y vincular tu tarjeta NFC primero.
-                </p>
-            </div>
 
             <p>
                 ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
             </p>
-
-            <hr style={{ margin: "1.5rem 0" }} />
-            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                <Link to="/transporte" style={{ color: "#0056b3", textDecoration: "underline" }}>
-                    🚐 Ir a Transporte Preferencial
-                </Link>
-                <Link to="/mapa">
-                    Ir al Mapa
-                </Link>
-                <Link to="/pagos" style={{ color: "#0056b3", textDecoration: "underline" }}>
-                    💳 Ir a Módulo de Pagos
-                </Link>
-                <Link to="/resultados-procedimientos">
-                    Ir a Resultados de procedimientos
-                </Link>
-                <Link to="/resultados-administrador">
-                    Ir a Resultados de administrador
-                </Link>
-                <Link to="/citas">
-                    Ir a Módulo de citas
-                </Link>
-                <Link to="/perfilUsuario">
-                    Ir a Módulo de perfil de usuario
-                </Link>
-                <Link to="/perfilAdministrador">
-                    Ir a Módulo de perfil de administrador
-                </Link>
-                <Link to="/gestionCitas">
-                    Ir a Módulo de gestion de citas del administrador
-                </Link>
-                <Link to="/gestionUsuarios">
-                    Ir a Gestión de usuarios del administrador
-                </Link>
-            </div>
-        </div>
+        </main>
     );
 }
 

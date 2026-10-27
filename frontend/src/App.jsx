@@ -1,7 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Login from "./components/Login/Login.jsx";
-import Register from "./components/Register/Register.jsx";
 import Pay from "./components/user/pay/pay.jsx";
 import TransportePreferencial from "./components/user/transport/TransportePreferencial.jsx";
 import Map from "./components/Map/map.jsx";
@@ -17,9 +15,10 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Navigate to="/login" replace />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/registro" element={<Register />} />
+                <Route path="/" element={<Navigate to="/citas" replace />} />
+                {/* TunjaAPI login/registration stay implemented but inactive until the API key is configured. */}
+                <Route path="/login" element={<Navigate to="/citas" replace />} />
+                <Route path="/registro" element={<Navigate to="/citas" replace />} />
                 <Route path="/pagos" element={<Pay />} />
                 <Route path="/transporte" element={<TransportePreferencial />} />
                 <Route path="/mapa" element={<Map />} />

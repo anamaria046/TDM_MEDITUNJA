@@ -32,8 +32,8 @@ export async function crearPendiente(datos) {
     'run',
     `INSERT INTO usuarios (
        tipo_documento, numero_documento, nombres, apellidos, email, telefono,
-       password_hash, estado_registro
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente')`,
+       fecha_nacimiento, sexo, eps, password_hash, estado_registro
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente')`,
     [
       datos.tipo_documento,
       datos.numero_documento,
@@ -41,6 +41,9 @@ export async function crearPendiente(datos) {
       datos.apellidos,
       datos.email,
       datos.telefono,
+      datos.fecha_nacimiento,
+      datos.sexo,
+      datos.eps,
       datos.password_hash
     ]
   );

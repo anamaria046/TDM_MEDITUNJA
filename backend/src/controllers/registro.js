@@ -4,6 +4,7 @@ import * as usuarios from '../repositories/usuarios.js';
 
 const scrypt = promisify(crypto.scrypt);
 const tiposDocumentoPermitidos = new Set(['CC', 'TI', 'CE', 'PAS']);
+const sexosPermitidos = new Set(['M', 'F', 'O']);
 
 const responderError = (res, status, error, mensaje) =>
   res.status(status).json({ error, mensaje });
@@ -25,6 +26,9 @@ export async function registrarUsuario(req, res) {
     apellidos,
     email,
     telefono,
+    fecha_nacimiento,
+    sexo,
+    eps,
     contrasena
   } = req.body || {};
 
@@ -37,6 +41,17 @@ export async function registrarUsuario(req, res) {
   if (telefono !== undefined && telefono !== null &&
       (typeof telefono !== 'string' || telefono.length > 30)) {
     return responderError(res, 400, 'Datos inválidos', 'El teléfono debe ser texto de máximo 30 caracteres.');
+  }
+
+  if ((fecha_nacimiento !== undefined && fecha_nacimiento !== null &&
+       (typeof fecha_nacimiento !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fecha_nacimiento) ||
+        Number.isNaN(Date.parse(`${fecha_nacimiento}T00:00:00Z`)) ||
+        new Date(`${fecha_nacimiento}T00:00:00Z`).toISOString().slice(0, 10) !== fecha_nacimiento ||
+        fecha_nacimiento > new Date().toISOString().slice(0, 10))) ||
+      (sexo !== undefined && sexo !== null &&
+       (typeof sexo !== 'string' || !sexosPermitidos.has(sexo))) ||
+      (eps !== undefined && eps !== null && !esTexto(eps, 100))) {
+    return responderError(res, 400, 'Datos inválidos', 'Revisa la fecha de nacimiento, el sexo y la EPS.');
   }
 
   const tipoDocumento = typeof tipo_documento === 'string' ? tipo_documento.trim().toUpperCase() : '';
@@ -66,6 +81,9 @@ export async function registrarUsuario(req, res) {
       apellidos: apellidos.trim(),
       email: correo,
       telefono: telefonoNormalizado || null,
+      fecha_nacimiento: fecha_nacimiento || null,
+      sexo: sexo || null,
+      eps: typeof eps === 'string' ? eps.trim() : null,
       password_hash: await crearHashContrasena(contrasena)
     });
 

@@ -43,6 +43,7 @@ export async function autenticarSesion(req, res, next) {
       numero_documento: usuario.numero_documento,
       estado_registro: usuario.estado_registro
     };
+    req.sesionTokenHash = tokenHash;
     req.sesionExpiraEn = nuevaExpiracion;
     return next();
   } catch (error) {

@@ -9,6 +9,8 @@ import test from 'node:test';
 const carpetaTemporal = fs.mkdtempSync(path.join(os.tmpdir(), 'meditunja-auth-'));
 process.env.DB_PATH = path.join(carpetaTemporal, 'test.db');
 process.env.LOG_PATH = path.join(carpetaTemporal, 'app.log');
+process.env.TUNJA_API = 'https://tunja-api.test/api/v1';
+process.env.TUNJA_CLAVE = 'clave-de-prueba';
 
 const [{ default: app }, { ready }, { ejecutar }] = await Promise.all([
   import('../server.js'),
@@ -21,9 +23,10 @@ const servidor = app.listen(0);
 await once(servidor, 'listening');
 const baseUrl = `http://127.0.0.1:${servidor.address().port}`;
 const contrasena = '  clave privada  ';
+const fetchLocal = globalThis.fetch;
 
 async function post(ruta, cuerpo) {
-  return fetch(`${baseUrl}${ruta}`, {
+  return fetchLocal(`${baseUrl}${ruta}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(cuerpo)
@@ -38,6 +41,9 @@ async function registrar(numeroDocumento, email = `ana${numeroDocumento}@example
     apellidos: 'Pérez Gómez',
     email,
     telefono: '3001234567',
+    fecha_nacimiento: '1995-08-14',
+    sexo: 'F',
+    eps: 'EPS Sura',
     contrasena
   });
 }
@@ -53,6 +59,42 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
     assert.equal(datosRegistro.data.estado_registro, 'pendiente');
     assert.equal('password_hash' in datosRegistro.data, false);
     assert.equal('contrasena' in datosRegistro.data, false);
+    const datosAfiliacion = await ejecutar(
+      'get',
+      'SELECT fecha_nacimiento, sexo, eps FROM usuarios WHERE numero_documento = ?',
+      ['1020304050']
+    );
+    assert.deepEqual(datosAfiliacion, {
+      fecha_nacimiento: '1995-08-14',
+      sexo: 'F',
+      eps: 'EPS Sura'
+    });
+
+    const fechaInvalida = await post('/api/registro', {
+      tipo_documento: 'CC',
+      numero_documento: '1020304052',
+      nombres: 'Ana',
+      apellidos: 'Pérez',
+      email: 'fecha-invalida@example.com',
+      contrasena,
+      fecha_nacimiento: '2026-02-31',
+      sexo: 'F',
+      eps: 'EPS Sura'
+    });
+    assert.equal(fechaInvalida.status, 400);
+
+    const sexoInvalido = await post('/api/registro', {
+      tipo_documento: 'CC',
+      numero_documento: '1020304053',
+      nombres: 'Ana',
+      apellidos: 'Pérez',
+      email: 'sexo-invalido@example.com',
+      contrasena,
+      fecha_nacimiento: '1995-08-14',
+      sexo: 'X',
+      eps: 'EPS Sura'
+    });
+    assert.equal(sexoInvalido.status, 400);
 
     const duplicado = await registrar('1020304050');
     assert.equal(duplicado.status, 409);
@@ -123,16 +165,16 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
     );
     assert.equal(sesion.expira_en, new Date(tokenPersistido.expira_en).toISOString());
 
-    const tokenAusente = await fetch(`${baseUrl}/api/sesion`);
+    const tokenAusente = await fetchLocal(`${baseUrl}/api/sesion`);
     assert.equal(tokenAusente.status, 401);
-    const tokenMalformado = await fetch(`${baseUrl}/api/sesion`, {
+    const tokenMalformado = await fetchLocal(`${baseUrl}/api/sesion`, {
       headers: { Authorization: 'Bearer token-invalido' }
     });
     assert.equal(tokenMalformado.status, 401);
 
     await new Promise((resolve) => setTimeout(resolve, 10));
     const inicioActividad = Date.now();
-    const actividad = await fetch(`${baseUrl}/api/sesion`, {
+    const actividad = await fetchLocal(`${baseUrl}/api/sesion`, {
       headers: { Authorization: `Bearer ${sesion.token}` }
     });
     assert.equal(actividad.status, 200);
@@ -167,7 +209,7 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
       "UPDATE usuarios SET estado_registro = 'rechazado' WHERE id_usuario = ?",
       [usuario.id_usuario]
     );
-    const sesionNoAprobada = await fetch(`${baseUrl}/api/sesion`, {
+    const sesionNoAprobada = await fetchLocal(`${baseUrl}/api/sesion`, {
       headers: { Authorization: `Bearer ${sesion.token}` }
     });
     assert.equal(sesionNoAprobada.status, 401);
@@ -197,13 +239,134 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
       'UPDATE sesiones SET expira_en = ? WHERE token_hash = ?',
       [Date.now() - 1, hashTokenExpirado]
     );
-    const respuestaSesionExpirada = await fetch(`${baseUrl}/api/sesion`, {
+    const respuestaSesionExpirada = await fetchLocal(`${baseUrl}/api/sesion`, {
       headers: { Authorization: `Bearer ${sesionExpirada.token}` }
     });
     assert.equal(respuestaSesionExpirada.status, 401);
 
-    const respuestaRutaInexistente = await fetch(`${baseUrl}/no-existe`);
+    const ultimoRegistro = await registrar('3040506070');
+    assert.equal(ultimoRegistro.status, 201);
+    await ejecutar(
+      'run',
+      "UPDATE usuarios SET estado_registro = 'aprobado' WHERE numero_documento = ?",
+      ['3040506070']
+    );
+    const ultimoLogin = await post('/api/login', {
+      tipo_documento: 'CC',
+      numero_documento: '3040506070',
+      contrasena
+    });
+    assert.equal(ultimoLogin.status, 200);
+    const sesionParaCerrar = await ultimoLogin.json();
+    const cierreSesion = await fetchLocal(`${baseUrl}/api/logout`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${sesionParaCerrar.token}` }
+    });
+    assert.equal(cierreSesion.status, 200);
+    const tokenRevocado = await fetchLocal(`${baseUrl}/api/sesion`, {
+      headers: { Authorization: `Bearer ${sesionParaCerrar.token}` }
+    });
+    assert.equal(tokenRevocado.status, 401);
+
+    const respuestaRutaInexistente = await fetchLocal(`${baseUrl}/no-existe`);
     assert.equal(respuestaRutaInexistente.status, 404);
+
+    const fetchTunjaOriginal = globalThis.fetch;
+    const peticionesTunja = [];
+    globalThis.fetch = async (url, opciones) => {
+      peticionesTunja.push({ url, opciones });
+      if (url.endsWith('/auth/logout')) return new Response(null, { status: 204 });
+      const resultado = {
+        usuario: {
+          id: 99,
+          nombre: 'Ana Pérez',
+          perfil: 'general',
+          activo: true,
+          email: 'ana@example.com',
+          documento: '3040506071'
+        },
+        acceso: 'tunja-access-token',
+        refresco: 'tunja-refresh-token',
+        expira_en: 900
+      };
+      return new Response(JSON.stringify(resultado), {
+        status: url.endsWith('/auth/register') ? 201 : 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    };
+
+    try {
+      const tunjaRegistro = await post('/api/tunja/auth/register', {
+        email: 'ANA@example.com',
+        contrasena: 'clave Tunja segura',
+        nombre: 'Ana Pérez',
+        documento: '3040506071',
+        perfil: 'general',
+        descuento: 0
+      });
+      assert.equal(tunjaRegistro.status, 201);
+      assert.equal((await tunjaRegistro.json()).refresco, 'tunja-refresh-token');
+      const peticionRegistro = peticionesTunja.at(-1);
+      assert.equal(peticionRegistro.url, 'https://tunja-api.test/api/v1/auth/register');
+      assert.equal(peticionRegistro.opciones.headers['X-API-Key'], process.env.TUNJA_CLAVE);
+      assert.deepEqual(JSON.parse(peticionRegistro.opciones.body), {
+        email: 'ana@example.com',
+        contrasena: 'clave Tunja segura',
+        nombre: 'Ana Pérez',
+        documento: '3040506071',
+        perfil: 'general',
+        descuento: 0
+      });
+
+      const tunjaLogin = await post('/api/tunja/auth/login', {
+        email: 'ANA@example.com',
+        contrasena: 'clave Tunja segura'
+      });
+      assert.equal(tunjaLogin.status, 200);
+      assert.equal((await tunjaLogin.json()).acceso, 'tunja-access-token');
+      const peticionLogin = peticionesTunja.at(-1);
+      assert.equal(peticionLogin.opciones.headers['X-API-Key'], undefined);
+      assert.deepEqual(JSON.parse(peticionLogin.opciones.body), {
+        email: 'ana@example.com',
+        contrasena: 'clave Tunja segura'
+      });
+
+      const tunjaMe = await fetchLocal(`${baseUrl}/api/tunja/auth/me`, {
+        headers: { Authorization: 'Bearer tunja-access-token' }
+      });
+      assert.equal(tunjaMe.status, 200);
+      assert.equal(peticionesTunja.at(-1).opciones.headers.Authorization, 'Bearer tunja-access-token');
+
+      const tunjaRefresh = await post('/api/tunja/auth/refresh', {
+        refresco: 'tunja-refresh-token'
+      });
+      assert.equal(tunjaRefresh.status, 200);
+      assert.equal((await tunjaRefresh.json()).acceso, 'tunja-access-token');
+      assert.deepEqual(JSON.parse(peticionesTunja.at(-1).opciones.body), {
+        refresco: 'tunja-refresh-token'
+      });
+
+      const tunjaLogout = await post('/api/tunja/auth/logout', {
+        refresco: 'tunja-refresh-token'
+      });
+      assert.equal(tunjaLogout.status, 204);
+      assert.deepEqual(JSON.parse(peticionesTunja.at(-1).opciones.body), {
+        refresco: 'tunja-refresh-token'
+      });
+    } finally {
+      globalThis.fetch = fetchTunjaOriginal;
+    }
+
+    const claveTunjaOriginal = process.env.TUNJA_CLAVE;
+    delete process.env.TUNJA_CLAVE;
+    const registroSinClave = await post('/api/tunja/auth/register', {
+      email: 'sin-clave@example.com',
+      contrasena: 'clave Tunja segura',
+      nombre: 'Persona Prueba',
+      documento: '3040506072'
+    });
+    assert.equal(registroSinClave.status, 503);
+    process.env.TUNJA_CLAVE = claveTunjaOriginal;
 
     const log = fs.readFileSync(process.env.LOG_PATH, 'utf8');
     assert.equal(log.includes(contrasena), false);

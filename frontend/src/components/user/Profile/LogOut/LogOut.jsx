@@ -1,7 +1,13 @@
+import { useNavigate } from "react-router-dom";
+
 function LogOut() {
+    const navigate = useNavigate();
+
     return (
         <section>
-            Cerrar Sesión
+            <button type="button" onClick={() => navigate("/citas", { replace: true })}>
+                Volver a citas
+            </button>
         </section>
     );
 }

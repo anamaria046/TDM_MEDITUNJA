@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
     apellidos VARCHAR(100) NOT NULL,
     email VARCHAR(254) NOT NULL UNIQUE,
     telefono VARCHAR(30),
+    fecha_nacimiento TEXT,
+    sexo TEXT CHECK (sexo IS NULL OR sexo IN ('M', 'F', 'O')),
+    eps TEXT,
     password_hash TEXT NOT NULL CHECK (
         length(password_hash) = 161 AND
         substr(password_hash, 33, 1) = ':' AND

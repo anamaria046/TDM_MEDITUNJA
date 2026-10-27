@@ -2,10 +2,13 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": ">=22.9.0"
+  },
   "main": "server.js",
   "scripts": {
     "test": "node --test",
-    "start": "node server.js"
+    "start": "node --env-file-if-exists=.env server.js"
   },
   "keywords": [],
   "author": "",
