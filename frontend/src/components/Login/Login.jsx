@@ -58,6 +58,9 @@ function Login() {
                 <Link to="/transporte" style={{ color: "#0056b3", textDecoration: "underline" }}>
                     🚐 Ir a Transporte Preferencial
                 </Link>
+                <Link to="/mapa">
+                    Ir al Mapa
+                </Link>
                 <Link to="/pagos" style={{ color: "#0056b3", textDecoration: "underline" }}>
                     💳 Ir a Módulo de Pagos
                 </Link>
