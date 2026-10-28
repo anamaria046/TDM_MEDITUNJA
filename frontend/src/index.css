@@ -1,0 +1,40 @@
+@font-face {
+    font-family: "Sugerna";
+    src: url("./assets/fonts/Sugerna.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Sora";
+    src: url("./assets/fonts/Sora.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Gilroy";
+    src: url("./assets/fonts/Gilroy.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: url("./assets/fonts/Roboto-Regular.ttf") format("truetype");
+}
+
+/*Variables globales*/
+:root {
+    --color-bg: #fcfcfc;
+    --color-primary: #6045f4;
+    --color-secundary: #26fff0;
+    --color-tertiary: #70ff9e;
+    --color-text: #000f54;
+
+    --display: "Sugerna", sans-serif;
+    --heading: "Sora", sans-serif;
+    --sm: "Gilroy", sans-serif;
+    --text: "Roboto", sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    background: var(--color-bg);
+    box-sizing: border-box;
+}

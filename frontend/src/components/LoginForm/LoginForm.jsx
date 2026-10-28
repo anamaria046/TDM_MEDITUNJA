@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth.js";
 import { mensajeError } from "../../auth/api.js";
 
-function Login() {
+function LoginForm() {
     const { sesion, iniciarSesion } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -84,4 +84,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default LoginForm;

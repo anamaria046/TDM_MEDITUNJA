@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth.js";
 import { mensajeError } from "../../auth/api.js";
 
-function Register() {
+function RegisterForm() {
     const { sesion, registrar } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState("");
@@ -161,4 +161,4 @@ function Register() {
     );
 }
 
-export default Register;
+export default RegisterForm;
