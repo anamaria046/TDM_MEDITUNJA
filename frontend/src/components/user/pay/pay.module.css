@@ -1,0 +1,618 @@
+/* Estilos CSS Modules para el Módulo de Pagos */
+/* MediTunja - Separación estricta de Estilos y Maquetación JSX */
+
+.moduloPagos {
+  --color-primario: #0056b3;
+  --color-primario-oscuro: #003d82;
+  --color-fondo: #f8f9fa;
+  --color-texto: #333333;
+  --color-borde: #dcdcdc;
+  --color-exito: #28a745;
+  --color-exito-bg: #c6f6d5;
+  --color-exito-texto: #22543d;
+  --color-tarjeta-activa: #ebf8ff;
+  --color-tarjeta-borde-activa: #3182ce;
+
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  min-height: 100vh;
+  padding: 1rem 1.5rem 3rem 1.5rem;
+}
+
+/* Modos de accesibilidad */
+.fuenteNormal { font-size: 16px; }
+.fuenteLarge { font-size: 19px; }
+.fuenteXlarge { font-size: 22px; }
+
+.modoAltoContraste {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+}
+
+.modoAltoContraste * {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+  border-color: #ffff00 !important;
+}
+
+.modoAltoContraste a,
+.modoAltoContraste button {
+  color: #00ffff !important;
+  border: 2px solid #00ffff !important;
+}
+
+/* Barra superior de accesibilidad */
+.barraAccesibilidad {
+  background-color: #ffffff;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.accesibilidadContenedor {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.accesibilidadTitulo {
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.accesibilidadBotones {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btnAccesibilidad {
+  background-color: #edf2f7;
+  color: #2d3748;
+  border: 1px solid #cbd5e0;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnAudio {
+  background-color: #feebc8;
+  border-color: #fbd38d;
+  color: #744210;
+}
+
+/* Barra de Secuencia Visual del Flujo de Usuario */
+.barraSecuencia {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  margin: 0 auto 1.25rem auto;
+  max-width: 1000px;
+}
+
+.listaSecuencia {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.pasoSecuencia {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88em;
+}
+
+.enlacePasoSecuencia {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #38a169;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.separadorPaso {
+  margin: 0 0.5rem;
+  color: #a0aec0;
+}
+
+.pasoCompletado {
+  color: #38a169;
+  font-weight: 600;
+}
+
+.pasoActivo {
+  color: #0056b3;
+  font-weight: 700;
+}
+
+.pasoPendiente {
+  color: #a0aec0;
+  font-weight: 600;
+}
+
+.iconoPaso {
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+.pasoCompletado .iconoPaso {
+  background: #38a169;
+  color: #ffffff;
+}
+
+.pasoActivo .iconoPaso {
+  background: #0056b3;
+  color: #ffffff;
+}
+
+.pasoPendiente .iconoPaso {
+  background: #e2e8f0;
+  color: #718096;
+}
+
+/* Cabecera */
+.cabeceraPagos {
+  max-width: 1000px;
+  margin: 0 auto 1.5rem auto;
+  background-color: #ffffff;
+  border: 1px solid var(--color-borde);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.navFlujo {
+  margin-bottom: 0.75rem;
+}
+
+.enlaceVolver {
+  display: inline-block;
+  color: var(--color-primario);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.encabezadoInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.iconoPrincipal {
+  font-size: 2.5rem;
+}
+
+.descripcionCabecera {
+  margin-top: 0.5rem;
+  color: #4a5568;
+  line-height: 1.5;
+}
+
+/* Contenido Principal */
+.contenidoPrincipal {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Formulario */
+.formularioPagos {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.seccionFormulario {
+  background-color: #ffffff;
+  border: 1px solid var(--color-borde);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.tituloSeccion {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: var(--color-primario-oscuro);
+  padding: 0 0.5rem;
+}
+
+.numeroPaso {
+  background-color: var(--color-primario);
+  color: #ffffff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  margin-right: 0.4rem;
+}
+
+.ayudaSeccion {
+  color: #718096;
+  font-size: 0.9em;
+  margin-bottom: 1rem;
+}
+
+.insigniaPrecargada {
+  background: #ebf8ff;
+  color: #2b6cb0;
+  border: 1px solid #bee3f8;
+  border-radius: 6px;
+  padding: 0.15rem 0.6rem;
+  font-weight: 600;
+  font-size: 0.85em;
+  margin-right: 0.5rem;
+}
+
+.avisoVerificacion {
+  background: #fffaf0;
+  border: 1px solid #fbd38d;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.88em;
+  color: #744210;
+}
+
+.filaFormulario {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.campoFormulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.campoFormulario label {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.campoFormulario input,
+.campoFormulario select {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+.grupoDocumento {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.selectDocumento {
+  width: 90px;
+}
+
+.inputBloqueado,
+.selectBloqueado {
+  cursor: not-allowed;
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+/* Sección Transporte en Pago */
+.tarjetaServicioTransporte {
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: #f7fafc;
+}
+
+.controlTransporteDestacado {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.checkTransporte {
+  width: 20px;
+  height: 20px;
+  margin-top: 0.2rem;
+  cursor: pointer;
+}
+
+.infoTransporteDestacado {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.tituloTransporteLinea {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.precioEtiquetaTransporte {
+  background-color: #feebc8;
+  color: #744210;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+.opcionesAdicionalesTransporte {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #cbd5e0;
+}
+
+/* Métodos de Pago */
+.rejillaMetodosPago {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.opcionTarjetaPago {
+  border: 2px solid var(--color-borde);
+  border-radius: 10px;
+  padding: 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  background-color: #fafafa;
+  transition: all 0.2s;
+}
+
+.opcionSeleccionada {
+  background-color: var(--color-tarjeta-activa);
+  border-color: var(--color-tarjeta-borde-activa);
+}
+
+.opcionContenidoPago {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.iconoMetodo {
+  font-size: 1.4rem;
+}
+
+.detallesMetodoEspecifico {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f7fafc;
+  border: 1px dashed var(--color-tarjeta-borde-activa);
+}
+
+.cajaNfcInteractiva {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #ebf8ff;
+  border: 1px solid #bee3f8;
+  padding: 1rem;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.iconoNfcOnda {
+  font-size: 2rem;
+}
+
+.infoNfcTarjeta {
+  flex: 1;
+}
+
+.btnEscanearNfc {
+  background-color: #3182ce;
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1.1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Resumen Liquidación */
+.cajaLiquidacion {
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+}
+
+.tablaLiquidacion {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tablaLiquidacion td {
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.tablaLiquidacion td:last-child {
+  text-align: right;
+  font-weight: 600;
+}
+
+.filaDestacada td {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: var(--color-primario-oscuro);
+  border-top: 2px solid var(--color-primario);
+  border-bottom: none;
+  padding-top: 0.85rem;
+}
+
+.totalPrecio {
+  font-size: 1.35em;
+  color: var(--color-primario-oscuro);
+}
+
+.botonesFormulario {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.btnPagarSeguro {
+  background-color: var(--color-primario);
+  color: #ffffff;
+  border: none;
+  padding: 0.85rem 1.75rem;
+  font-size: 1.05em;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Tarjeta de Confirmación y Recibo */
+.tarjetaConfirmacion {
+  background-color: #ffffff;
+  border: 2px solid var(--color-exito-bg);
+  border-radius: 12px;
+  padding: 2.25rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.iconoExito {
+  font-size: 3.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.resumenExito {
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+}
+
+.detallesResumen {
+  text-align: left;
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cabeceraRecibo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.detallesResumen ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.etiquetaEstado {
+  background-color: var(--color-exito-bg);
+  color: var(--color-exito-texto);
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85em;
+}
+
+.etiquetaTransporteRecibo {
+  background-color: #e2e8f0;
+  color: #2d3748;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.filaTotalRecibo {
+  border-top: 2px solid #e2e8f0;
+  padding-top: 0.75rem;
+  font-size: 1.1em;
+}
+
+.accionesConfirmacion {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btnAccionPrincipal {
+  background-color: var(--color-primario);
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnAccionDescargar {
+  background-color: #2b6cb0;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnAccionSecundario {
+  background-color: #edf2f7;
+  color: #2d3748;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Pie de página */
+.piePagos {
+  max-width: 1000px;
+  margin: 3rem auto 0 auto;
+  border-top: 1px solid var(--color-borde);
+  padding-top: 1.5rem;
+  text-align: center;
+  font-size: 0.85em;
+  color: #718096;
+}
+
+.pieAclaracion {
+  margin-top: 0.5rem;
+}

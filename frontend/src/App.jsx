@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Login from "./pages/Login.jsx"
+import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import Pay from "./components/user/pay/pay.jsx";
-import TransportePreferencial from "./components/user/transport/TransportePreferencial.jsx";
+import PaymentModule from "./pages/UserPages/PaymentModule.jsx";
+import TransportModule from "./pages/UserPages/TransportModule.jsx";
 import Map from "./components/Map/map.jsx";
 import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
 import ResultadosAdministrador from "./components/administrator/resultados_administrador.jsx";
@@ -21,8 +21,8 @@ function App() {
                 {/* TunjaAPI login/registration stay implemented but inactive until the API key is configured. */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Register />} />
-                <Route path="/pagos" element={<Pay />} />
-                <Route path="/transporte" element={<TransportePreferencial />} />
+                <Route path="/pagos" element={<PaymentModule />} />
+                <Route path="/transporte" element={<TransportModule />} />
                 <Route path="/mapa" element={<Map />} />
                 <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
                 <Route path="/resultados-administrador" element={<ResultadosAdministrador />} />
