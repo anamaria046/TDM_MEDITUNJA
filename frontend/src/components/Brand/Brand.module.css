@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 30px;
+  padding: 30px 60px;
 }
 
 .brand img {
