@@ -1,21 +1,21 @@
 @font-face {
-    font-family: "Sugerna";
-    src: url("./assets/fonts/Sugerna.ttf") format("truetype");
+    font-family: "Surgena";
+    src: url("./fonts/Surgena.ttf") format("truetype");
 }
 
 @font-face {
     font-family: "Sora";
-    src: url("./assets/fonts/Sora.ttf") format("truetype");
+    src: url("./fonts/Sora.ttf") format("truetype");
 }
 
 @font-face {
     font-family: "Gilroy";
-    src: url("./assets/fonts/Gilroy.otf") format("opentype");
+    src: url("./fonts/Gilroy.otf") format("opentype");
 }
 
 @font-face {
     font-family: "Roboto";
-    src: url("./assets/fonts/Roboto-Regular.ttf") format("truetype");
+    src: url("./fonts/Roboto-Regular.ttf") format("truetype");
 }
 
 /*Variables globales*/
@@ -28,7 +28,7 @@
     --color-border: #DBDBDB;
     --hover-primary: #300EF1;
 
-    --display: "Sugerna", sans-serif;
+    --display: "Surgena", sans-serif;
     --heading: "Sora", sans-serif;
     --sm: "Gilroy", sans-serif;
     --text: "Roboto", sans-serif;

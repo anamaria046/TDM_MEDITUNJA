@@ -12,6 +12,7 @@ import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
 import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrator.jsx";
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
+import ConveniosModule from "./pages/AdministratorPages/ConveniosModule.jsx";
 
 function App() {
     return (
@@ -31,6 +32,8 @@ function App() {
                 <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
                 <Route path="/gestionCitas" element={<AppointmentManagementModule />} />
                 <Route path="/gestionUsuarios" element={<UserGestor />} />
+                <Route path="/convenios" element={<ConveniosModule />} />
+                <Route path="/gestionConvenios" element={<ConveniosModule />} />
             </Routes>
         </BrowserRouter>
     );
