@@ -55,8 +55,14 @@
     font-family: var(--text);
     font-size: 16px;
     transition:
-        border-color var(--color-primary),
+        border-color 0.25s ease,
         box-shadow 0.2s ease;
+}
+
+.formGroup input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(149, 39, 245, 0.18);
 }
 
 .passwordWrapper {
