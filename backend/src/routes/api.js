@@ -2,6 +2,13 @@ import { Router } from 'express';
 import { iniciarSesion } from '../controllers/login.js';
 import { registrarUsuario } from '../controllers/registro.js';
 import { autenticarSesion } from '../middleware/autenticarSesion.js';
+import {
+  autenticarUsuarioTunja,
+  cancelarCita,
+  crearCita,
+  listarCitas,
+  obtenerDisponibilidad
+} from '../controllers/citas.js';
 import * as sesiones from '../repositories/sesiones.js';
 import {
   cerrarSesionTunja,
@@ -21,6 +28,11 @@ router.get('/tunja/auth/me', obtenerUsuarioTunja);
 
 router.post('/registro', registrarUsuario);
 router.post('/login', iniciarSesion);
+
+router.get('/citas/disponibilidad', autenticarUsuarioTunja, obtenerDisponibilidad);
+router.get('/citas', autenticarUsuarioTunja, listarCitas);
+router.post('/citas', autenticarUsuarioTunja, crearCita);
+router.put('/citas/:id/cancelar', autenticarUsuarioTunja, cancelarCita);
 
 router.use(autenticarSesion);
 router.get('/sesion', (req, res) => {

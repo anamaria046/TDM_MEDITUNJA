@@ -38,3 +38,27 @@ CREATE TABLE IF NOT EXISTS sesiones (
 
 CREATE INDEX IF NOT EXISTS idx_sesiones_usuario_expiracion
     ON sesiones (id_usuario, expira_en);
+
+CREATE TABLE IF NOT EXISTS citas (
+    id_cita INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo_cita TEXT NOT NULL UNIQUE,
+    usuario_id TEXT NOT NULL,
+    ips TEXT NOT NULL,
+    servicio TEXT NOT NULL,
+    especialidad TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    hora TEXT NOT NULL,
+    modalidad TEXT NOT NULL CHECK (modalidad IN ('presencial', 'telemedicina')),
+    costo INTEGER NOT NULL CHECK (costo >= 0),
+    descuento_aplicado INTEGER NOT NULL DEFAULT 0 CHECK (descuento_aplicado >= 0),
+    estado TEXT NOT NULL DEFAULT 'confirmada'
+        CHECK (estado IN ('confirmada', 'cancelada')),
+    creada_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_citas_ips_fecha_hora_confirmada
+    ON citas (ips, fecha, hora)
+    WHERE estado = 'confirmada';
+
+CREATE INDEX IF NOT EXISTS idx_citas_usuario_fecha
+    ON citas (usuario_id, fecha, hora);
