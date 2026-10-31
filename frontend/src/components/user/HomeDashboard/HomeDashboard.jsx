@@ -1,31 +1,10 @@
 import { Link } from "react-router-dom";
-import {
-    CalendarPlus,
-    CirclePlay,
-    FileText,
-    ShieldCheck,
-} from "lucide-react";
-import Logo from "../../../assets/Logo.png";
-import styles from "./Home.module.css";
+import { CalendarPlus, CirclePlay, FileText, ShieldCheck } from "lucide-react";
+import styles from "./HomeDashboard.module.css";
 
-function Home() {
+function HomeDashboard() {
     return (
         <div className={styles.home}>
-            <header className={styles.header}>
-                <Link to="/home" className={styles.brand} aria-label="MediTunja, inicio">
-                    <img src={Logo} alt="" />
-                    <span>MediTunja</span>
-                </Link>
-
-                <nav className={styles.navigation} aria-label="Navegación principal">
-                    <Link to="/home" className={styles.activeLink} aria-current="page">Inicio</Link>
-                    <Link to="/citas">Agendar citas</Link>
-                    <Link to="/mapa">Mapa de ubicaciones</Link>
-                    <Link to="/resultados-procedimientos">Resultados</Link>
-                    <Link to="/perfilUsuario">Perfil</Link>
-                </nav>
-            </header>
-
             <main className={styles.main}>
                 <section className={styles.welcome} aria-labelledby="home-title">
                     <div className={styles.welcomeCopy}>
@@ -83,4 +62,4 @@ function Home() {
     );
 }
 
-export default Home;
+export default HomeDashboard;

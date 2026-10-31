@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import HomeModule from "./pages/UserPages/HomeModule.jsx";
+import HomeUserModule from "./pages/UserPages/HomeUserModule.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import PaymentModule from "./pages/UserPages/PaymentModule.jsx";
@@ -19,17 +19,17 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<HomeModule />} />
-                <Route path="/home" element={<HomeModule />} />
+                <Route path="/" element={<AppointmentModule />} />
+                <Route path="/citas" element={<AppointmentModule />} />
                 {/* TunjaAPI login/registration stay implemented but inactive until the API key is configured. */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Register />} />
+                <Route path="/home" element={<HomeUserModule />} />
                 <Route path="/pagos" element={<PaymentModule />} />
                 <Route path="/transporte" element={<TransportModule />} />
                 <Route path="/mapa" element={<Map />} />
                 <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
                 <Route path="/resultados-administrador" element={<ResultadosAdministrador />} />
-                <Route path="/citas" element={<AppointmentModule />} />
                 <Route path="/perfilUsuario" element={<ProfileUser />} />
                 <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
                 <Route path="/gestionCitas" element={<AppointmentManagementModule />} />

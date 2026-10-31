@@ -25,8 +25,10 @@
     --color-secundary: #26fff0;
     --color-tertiary: #70ff9e;
     --color-text: #000f54;
+    --color-text-secundary: #9C9C9C;
     --color-border: #DBDBDB;
     --hover-primary: #300EF1;
+    --hover-secundary: #F4F2FF;
 
     --display: "Surgena", sans-serif;
     --heading: "Sora", sans-serif;
