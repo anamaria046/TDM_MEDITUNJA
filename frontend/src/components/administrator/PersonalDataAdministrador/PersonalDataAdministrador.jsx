@@ -1,4 +1,4 @@
-function PersonalData() {
+function PersonalDataAdministrador() {
     return (
         <section>
             <h3>Información Personal</h3>
@@ -17,16 +17,6 @@ function PersonalData() {
                 </div>
 
                 <div>
-                    <label htmlFor="perfil-sexo"><strong>Sexo:</strong></label>
-                    <br />
-                    <select id="perfil-sexo" name="sexo" defaultValue="M">
-                        <option value="M">Masculino</option>
-                        <option value="F">Femenino</option>
-                        <option value="otro">Otro / Prefiero no decir</option>
-                    </select>
-                </div>
-
-                <div>
                     <label htmlFor="perfil-correo"><strong>Correo Electrónico:</strong></label><br />
                     <input 
                         type="email" 
@@ -38,7 +28,7 @@ function PersonalData() {
                 </div>
 
                 <div>
-                    <label htmlFor="perfil-eps"><strong>EPS / Entidad de Salud Afiliada:</strong></label>
+                    <label htmlFor="perfil-eps"><strong>EPS administrada: </strong></label>
                     <br />
                     <option value="sura">EPS Sura (Ejemplo)</option>
                 </div>
@@ -62,4 +52,4 @@ function PersonalData() {
     );
 }
 
-export default PersonalData
+export default PersonalDataAdministrador;
