@@ -39,6 +39,9 @@
 * {
     margin: 0;
     padding: 0;
-    background: var(--color-bg);
     box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-bg);
 }

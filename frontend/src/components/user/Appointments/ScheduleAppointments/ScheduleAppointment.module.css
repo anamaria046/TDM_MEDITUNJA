@@ -1,0 +1,233 @@
+.appointmentContainer {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+    width: 100%;
+}
+
+.form {
+    width: 100%;
+}
+
+.summary {
+    width: 100%;
+}
+
+.form fieldset {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 20px 30px;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 30px;
+    box-sizing: border-box;
+
+    box-shadow:
+    0 24px 60px rgba(24, 39, 75, 0.08),
+    0 4px 12px rgba(24, 39, 75, 0.02);
+}
+
+.form h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    margin-bottom: 10px;
+    font-family: var(--heading);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.Number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 14px;
+    font-family: var(--sm);
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+}
+
+.formGroup label {
+    font-family: var(--sm);
+    font-size: 16px;
+    color: var(--color-text);
+}
+
+.formGroup input, .formGroup select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    box-sizing: border-box;
+    font-family: var(--text);
+}
+
+.formGroup input:focus, .formGroup select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(149, 39, 245, 0.18);
+}
+
+.gridHours {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.hour {
+    padding: 12px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--sm);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.hour:hover {
+    border-color: var(--color-primary);
+    background-color: var(--hover-secundary);
+}
+
+.select {
+    padding: 12px 8px;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+    font-family: var(--sm);
+    cursor: pointer;
+}
+
+.summaryContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 30px;
+    margin: 20px;
+    background-color: var(--color-text);
+    border-radius: 30px;
+    box-sizing: border-box;
+
+    box-shadow:
+    0 24px 60px rgba(24, 39, 75, 0.08),
+    0 4px 12px rgba(24, 39, 75, 0.02);
+}
+
+.summaryContainer h4 {
+    font-family: var(--sm);
+    font-size: 20px;
+    color: var(--color-secundary);
+}
+
+.summaryContainer span {
+    font-family: var(--heading);
+    font-size: 30px;
+    color: var(--color-bg);
+}
+
+.summaryContainer .divider {
+    display: flex;
+    align-items: center;
+    margin: 5px;
+    background-color: var(--color-border);
+}
+
+.summaryContainer button {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--color-secundary);
+    color: var(--color-text);
+    font-family: var(--sm);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.summaryContainer button:hover {
+    background-color: var(--color-tertiary);
+}
+
+.summaryDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.summaryDetails > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summaryDetails span {
+    font-family: var(--text);
+    font-size: 14px;
+    color: var(--color-border);
+}
+
+.summaryDetails strong {
+    font-family: var(--sm);
+    font-size: 16px;
+    color: var(--color-bg);
+}
+
+@media (max-width: 600px) {
+    .appointmentContainer {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        width: 100%;
+        padding: 0 16px;
+        box-sizing: border-box;
+    }
+
+    .form,
+    .summary {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .form fieldset {
+        width: 100%;
+        margin: 20px 0;
+    }
+
+    .summaryContainer {
+        width: 100%;
+        margin: 0;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
