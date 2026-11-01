@@ -1,14 +1,14 @@
 .headerContainer {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    margin: 20px 30px;
-    padding: clamp(1.25rem, 4vw, 2rem);
+    gap: 8px;
+    padding: 20px;
+    margin: 20px;
+    align-items: center;
     background-color: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: 30px;
     box-sizing: border-box;
-    align-items: center;
 
     box-shadow:
     0 24px 60px rgba(24, 39, 75, 0.08),
@@ -16,14 +16,14 @@
 }
 
 .headerContainer h2 {
-    margin: 12px 0 0;
+    margin: 10px 0 0;
     color: var(--color-text);
     font-family: var(--display);
     font-size: 30px;
 }
 
 .headerContainer p {
-    margin: 12px 0 ;
+    margin: 10px 0 ;
     color: var(--color-text-secundary);
     font-family: var(--text);
     font-size: 16px;
@@ -74,7 +74,7 @@
     padding: 12px;
     margin-top: 20px;
     border: 1px solid var(--color-primary);
-    border-radius: 30px;
+    border-radius: 10px;
     background-color: Transparent;
     color: var(--color-primary);
     font-family: var(--sm);
