@@ -11,6 +11,7 @@ function Convenios() {
   const {
     convenios,
     epsId,
+    epsDisponibles,
     handleCambiarEps,
     epsActual,
     ipsId,
@@ -25,6 +26,7 @@ function Convenios() {
     clausulaTransporte,
     setClausulaTransporte,
     notificacion,
+    cargando,
     handleToggleServicio,
     handleSeleccionarTodosCategoria,
     handleDeseleccionarCategoria,
@@ -52,10 +54,12 @@ function Convenios() {
             <span aria-hidden="true">✅</span> {notificacion}
           </div>
         )}
+        {cargando && <p role="status">Cargando convenios...</p>}
 
         {/* Formulario de formalización de convenio */}
         <FormularioConvenio
           epsId={epsId}
+          epsCatalogo={epsDisponibles}
           setEpsId={handleCambiarEps}
           epsActual={epsActual}
           ipsId={ipsId}

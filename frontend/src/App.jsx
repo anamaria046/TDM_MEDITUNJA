@@ -14,6 +14,8 @@ import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrato
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
 import ConveniosModule from "./pages/AdministratorPages/ConveniosModule.jsx";
+import AdminLogin from "./pages/AdminLogin.jsx";
+import RequireAdmin from "./auth/RequireAdmin.jsx";
 
 function App() {
     return (
@@ -29,13 +31,14 @@ function App() {
                 <Route path="/transporte" element={<TransportModule />} />
                 <Route path="/mapa" element={<Map />} />
                 <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
-                <Route path="/resultados-administrador" element={<ResultadosAdministrador />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/resultados-administrador" element={<RequireAdmin><ResultadosAdministrador /></RequireAdmin>} />
                 <Route path="/perfilUsuario" element={<ProfileUser />} />
-                <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
-                <Route path="/gestionCitas" element={<AppointmentManagementModule />} />
-                <Route path="/gestionUsuarios" element={<UserGestor />} />
-                <Route path="/convenios" element={<ConveniosModule />} />
-                <Route path="/gestionConvenios" element={<ConveniosModule />} />
+                <Route path="/perfilAdministrador" element={<RequireAdmin><ProfileAdministrador /></RequireAdmin>} />
+                <Route path="/gestionCitas" element={<RequireAdmin><AppointmentManagementModule /></RequireAdmin>} />
+                <Route path="/gestionUsuarios" element={<RequireAdmin><UserGestor /></RequireAdmin>} />
+                <Route path="/convenios" element={<RequireAdmin><ConveniosModule /></RequireAdmin>} />
+                <Route path="/gestionConvenios" element={<RequireAdmin><ConveniosModule /></RequireAdmin>} />
             </Routes>
         </BrowserRouter>
     );

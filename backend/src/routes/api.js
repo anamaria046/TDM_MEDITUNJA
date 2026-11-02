@@ -1,7 +1,16 @@
 import { Router } from 'express';
-import { iniciarSesion } from '../controllers/login.js';
+import { iniciarSesion, iniciarSesionAdministrador } from '../controllers/login.js';
 import { registrarUsuario } from '../controllers/registro.js';
 import { autenticarSesion } from '../middleware/autenticarSesion.js';
+import { exigirAdministrador } from '../middleware/exigirAdministrador.js';
+import {
+  actualizarAfiliado,
+  actualizarEstadoAfiliado,
+  crearConvenio,
+  desactivarConvenio,
+  listarAfiliados,
+  listarConvenios
+} from '../controllers/administracion.js';
 import {
   autenticarUsuarioTunja,
   cancelarCita,
@@ -28,6 +37,7 @@ router.get('/tunja/auth/me', obtenerUsuarioTunja);
 
 router.post('/registro', registrarUsuario);
 router.post('/login', iniciarSesion);
+router.post('/admin/login', iniciarSesionAdministrador);
 
 router.get('/citas/disponibilidad', autenticarUsuarioTunja, obtenerDisponibilidad);
 router.get('/citas', autenticarUsuarioTunja, listarCitas);
@@ -41,14 +51,23 @@ router.get('/sesion', (req, res) => {
     expira_en: new Date(req.sesionExpiraEn).toISOString(),
     data: req.usuario
   });
-  router.post('/logout', async (req, res, next) => {
-    try {
-      await sesiones.revocar(req.sesionTokenHash, Date.now());
-      return res.status(200).json({ mensaje: 'Sesión cerrada correctamente.' });
-    } catch (error) {
-      return next(error);
-    }
-  });
+});
+router.get('/admin/sesion', exigirAdministrador, (req, res) => {
+  res.status(200).json({ data: req.usuario });
+});
+router.get('/admin/afiliados', exigirAdministrador, listarAfiliados);
+router.put('/admin/afiliados/:id', exigirAdministrador, actualizarAfiliado);
+router.put('/admin/afiliados/:id/estado', exigirAdministrador, actualizarEstadoAfiliado);
+router.get('/admin/convenios', exigirAdministrador, listarConvenios);
+router.post('/admin/convenios', exigirAdministrador, crearConvenio);
+router.put('/admin/convenios/:id/desactivar', exigirAdministrador, desactivarConvenio);
+router.post('/logout', async (req, res, next) => {
+  try {
+    await sesiones.revocar(req.sesionTokenHash, Date.now());
+    return res.status(200).json({ mensaje: 'Sesión cerrada correctamente.' });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 export default router;

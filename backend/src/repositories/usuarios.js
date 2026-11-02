@@ -20,10 +20,64 @@ export async function buscarCredenciales(tipoDocumento, numeroDocumento) {
   return ejecutar(
     'get',
     `SELECT id_usuario, nombres, apellidos, tipo_documento, numero_documento,
-            password_hash, estado_registro
+            password_hash, estado_registro, rol, eps
      FROM usuarios
      WHERE tipo_documento = ? AND numero_documento = ?`,
     [tipoDocumento, numeroDocumento]
+  );
+}
+
+const condicionMismaEps = `(
+  lower(trim(eps)) = lower(trim(?)) OR
+  lower(trim(eps)) = lower('EPS ' || trim(?)) OR
+  lower(trim(eps)) = lower(trim(replace(lower(?), 'eps ', '')))
+)`;
+
+export async function listarAfiliados(eps) {
+  return ejecutar(
+    'all',
+    `SELECT id_usuario AS id, nombres, apellidos, tipo_documento AS tipoDocumento,
+            numero_documento AS numeroDocumento, email, telefono,
+            fecha_nacimiento AS fechaNacimiento, sexo, eps,
+            estado_registro AS estado
+     FROM usuarios
+     WHERE rol = 'afiliado' AND ${condicionMismaEps}
+     ORDER BY fecha_registro DESC, id_usuario DESC`,
+    [eps, eps, eps]
+  );
+}
+
+export async function actualizarAfiliado(eps, id, datos) {
+  return ejecutar(
+    'run',
+    `UPDATE usuarios
+     SET nombres = ?, apellidos = ?, tipo_documento = ?, numero_documento = ?,
+         email = ?, telefono = ?, fecha_nacimiento = ?, sexo = ?
+     WHERE id_usuario = ? AND rol = 'afiliado' AND ${condicionMismaEps}`,
+    [
+      datos.nombres,
+      datos.apellidos,
+      datos.tipoDocumento,
+      datos.numeroDocumento,
+      datos.email,
+      datos.telefono,
+      datos.fechaNacimiento,
+      datos.sexo,
+      id,
+      eps,
+      eps,
+      eps
+    ]
+  );
+}
+
+export async function actualizarEstadoAfiliado(eps, id, estado) {
+  return ejecutar(
+    'run',
+    `UPDATE usuarios
+     SET estado_registro = ?
+     WHERE id_usuario = ? AND rol = 'afiliado' AND ${condicionMismaEps}`,
+    [estado, id, eps, eps, eps]
   );
 }
 

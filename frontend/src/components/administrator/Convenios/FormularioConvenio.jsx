@@ -5,13 +5,13 @@
 import styles from "./Convenios.module.css";
 import {
   IPS_CATALOGO,
-  EPS_CATALOGO,
   PORTAFOLIOS_ASISTENCIALES,
   CATEGORIAS_SERVICIOS
 } from "./data/conveniosData";
 
 function FormularioConvenio({
   epsId,
+  epsCatalogo,
   setEpsId,
   ipsId,
   setIpsId,
@@ -65,7 +65,7 @@ function FormularioConvenio({
         </div>
 
         {/* Selector de EPS Gestora */}
-        {epsId && setEpsId && (
+        {epsId && setEpsId && epsCatalogo.length > 0 ? (
           <div className={styles.filaFormulario} style={{ marginTop: "1.25rem" }}>
             <div className={styles.campoFormulario}>
               <label htmlFor="epsSelect">Entidad Promotora de Salud (EPS Gestora):</label>
@@ -74,7 +74,7 @@ function FormularioConvenio({
                 value={epsId}
                 onChange={(e) => setEpsId(e.target.value)}
               >
-                {EPS_CATALOGO.map((eps) => (
+                {epsCatalogo.map((eps) => (
                   <option key={eps.id} value={eps.id}>
                     {eps.nombre} — {eps.sede}
                   </option>
@@ -82,6 +82,8 @@ function FormularioConvenio({
               </select>
             </div>
           </div>
+        ) : (
+          <p role="alert">La EPS asignada a esta cuenta no está en el catálogo disponible.</p>
         )}
       </fieldset>
 

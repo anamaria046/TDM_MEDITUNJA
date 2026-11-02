@@ -22,7 +22,7 @@ async function verificarContrasena(contrasena, passwordHash) {
   return crypto.timingSafeEqual(hashIngresado, Buffer.from(hashGuardado, 'hex'));
 }
 
-export async function iniciarSesion(req, res) {
+async function procesarInicioSesion(req, res, soloAdministrador) {
   const { tipo_documento, numero_documento, contrasena } = req.body || {};
   if (typeof tipo_documento !== 'string' ||
       typeof numero_documento !== 'string' ||
@@ -72,6 +72,12 @@ export async function iniciarSesion(req, res) {
     if (usuario.estado_registro !== 'aprobado') {
       return responderError(res, 403, 'Cuenta no disponible', 'La cuenta no está habilitada para iniciar sesión.');
     }
+    if (soloAdministrador && usuario.rol !== 'administrador') {
+      return responderError(res, 403, 'Acceso denegado', 'Esta cuenta no tiene permisos de administrador.');
+    }
+    if (soloAdministrador && (typeof usuario.eps !== 'string' || !usuario.eps.trim())) {
+      return responderError(res, 403, 'EPS no asignada', 'La cuenta administradora debe tener una EPS asignada.');
+    }
 
     const token = crypto.randomBytes(32).toString('hex');
     const ahora = Date.now();
@@ -91,11 +97,21 @@ export async function iniciarSesion(req, res) {
         apellidos: usuario.apellidos,
         tipo_documento: usuario.tipo_documento,
         numero_documento: usuario.numero_documento,
-        estado_registro: usuario.estado_registro
+        estado_registro: usuario.estado_registro,
+        rol: usuario.rol,
+        eps: usuario.eps
       }
     });
   } catch (error) {
     console.error('Error en POST /api/login:', error.code || 'ERROR_INTERNO');
     return responderError(res, 500, 'Error interno del servidor', 'Ocurrió un error al iniciar sesión.');
   }
+}
+
+export function iniciarSesion(req, res) {
+  return procesarInicioSesion(req, res, false);
+}
+
+export function iniciarSesionAdministrador(req, res) {
+  return procesarInicioSesion(req, res, true);
 }

@@ -25,7 +25,8 @@ function actualizarEsquema() {
       const migraciones = [
         ['fecha_nacimiento', 'TEXT'],
         ['sexo', "TEXT CHECK (sexo IS NULL OR sexo IN ('M', 'F', 'O'))"],
-        ['eps', 'TEXT']
+        ['eps', 'TEXT'],
+        ['rol', "TEXT NOT NULL DEFAULT 'afiliado' CHECK (rol IN ('afiliado', 'administrador'))"]
       ].filter(([nombre]) => !existentes.has(nombre));
 
       const agregarSiguiente = (indice) => {

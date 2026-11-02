@@ -40,7 +40,7 @@ export async function buscarUsuarioActiva(tokenHash) {
   return ejecutar(
     'get',
     `SELECT u.id_usuario, u.nombres, u.apellidos, u.tipo_documento,
-            u.numero_documento, u.estado_registro
+            u.numero_documento, u.estado_registro, u.rol, u.eps
      FROM sesiones AS s
      JOIN usuarios AS u ON u.id_usuario = s.id_usuario
      WHERE s.token_hash = ? AND s.revocada_en IS NULL`,

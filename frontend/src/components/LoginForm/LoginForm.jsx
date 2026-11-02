@@ -111,6 +111,9 @@ function LoginForm() {
             <p className={styles.registerLink}>
                 ¿No tienes cuenta? <Link to="/registro" className={styles.registerLinkAnchor}>Regístrate aquí</Link>
             </p>
+            <p className={styles.registerLink}>
+                <Link to="/admin/login" className={styles.registerLinkAnchor}>Acceso de administración EPS</Link>
+            </p>
         </main>
     );
 }

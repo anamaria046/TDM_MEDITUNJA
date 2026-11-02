@@ -1,92 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-
-const cuentasAdministradorDemo = [
-    { id: "admin-sura", nombre: "Administración EPS Sura", eps: "EPS Sura" },
-    { id: "admin-nueva-eps", nombre: "Administración Nueva EPS", eps: "Nueva EPS" },
-    { id: "admin-sanitas", nombre: "Administración EPS Sanitas", eps: "EPS Sanitas" },
-];
-
-const usuariosIniciales = [
-    {
-        id: 1,
-        nombres: "Valentina",
-        apellidos: "Rojas Demo",
-        tipoDocumento: "CC",
-        numeroDocumento: "1000000001",
-        email: "valentina.rojas@example.test",
-        telefono: "3000000001",
-        fechaNacimiento: "1998-04-12",
-        sexo: "F",
-        eps: "EPS Sura",
-        estado: "pendiente",
-    },
-    {
-        id: 2,
-        nombres: "Samuel",
-        apellidos: "Pérez Demo",
-        tipoDocumento: "TI",
-        numeroDocumento: "1000000002",
-        email: "samuel.perez@example.test",
-        telefono: "3000000002",
-        fechaNacimiento: "2008-09-23",
-        sexo: "M",
-        eps: "EPS Sura",
-        estado: "pendiente",
-    },
-    {
-        id: 3,
-        nombres: "Alex",
-        apellidos: "Torres Demo",
-        tipoDocumento: "CC",
-        numeroDocumento: "1000000003",
-        email: "alex.torres@example.test",
-        telefono: "3000000003",
-        fechaNacimiento: "1985-01-30",
-        sexo: "O",
-        eps: "EPS Sura",
-        estado: "aprobado",
-    },
-    {
-        id: 4,
-        nombres: "Camila",
-        apellidos: "Gómez Demo",
-        tipoDocumento: "CC",
-        numeroDocumento: "1000000004",
-        email: "camila.gomez@example.test",
-        telefono: "3000000004",
-        fechaNacimiento: "1972-06-08",
-        sexo: "F",
-        eps: "Nueva EPS",
-        estado: "pendiente",
-    },
-    {
-        id: 5,
-        nombres: "Mateo",
-        apellidos: "Díaz Demo",
-        tipoDocumento: "CC",
-        numeroDocumento: "1000000005",
-        email: "mateo.diaz@example.test",
-        telefono: "3000000005",
-        fechaNacimiento: "1992-11-17",
-        sexo: "M",
-        eps: "Nueva EPS",
-        estado: "rechazado",
-    },
-    {
-        id: 6,
-        nombres: "Noa",
-        apellidos: "Vargas Demo",
-        tipoDocumento: "CC",
-        numeroDocumento: "1000000006",
-        email: "noa.vargas@example.test",
-        telefono: "3000000006",
-        fechaNacimiento: "2001-02-05",
-        sexo: "O",
-        eps: "EPS Sanitas",
-        estado: "pendiente",
-    },
-];
+import { apiRequest, mensajeError } from "../../../auth/api.js";
+import { useAdminAuth } from "../../../auth/useAdminAuth.js";
 
 const etiquetasEstado = {
     pendiente: "Pendiente",
@@ -95,8 +10,10 @@ const etiquetasEstado = {
 };
 
 function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento) return "—";
     const hoy = new Date();
     const nacimiento = new Date(`${fechaNacimiento}T00:00:00`);
+    if (Number.isNaN(nacimiento.getTime())) return "—";
     let edad = hoy.getFullYear() - nacimiento.getFullYear();
 
     if (
@@ -111,8 +28,10 @@ function calcularEdad(fechaNacimiento) {
 }
 
 function UserGestor() {
-    const [usuarios, setUsuarios] = useState(usuariosIniciales);
-    const [cuentaAdminId, setCuentaAdminId] = useState(cuentasAdministradorDemo[0].id);
+    const { token, usuario } = useAdminAuth();
+    const [usuarios, setUsuarios] = useState([]);
+    const [cargando, setCargando] = useState(true);
+    const [errorCarga, setErrorCarga] = useState("");
     const [busqueda, setBusqueda] = useState("");
     const [sexoFiltro, setSexoFiltro] = useState("todos");
     const [estadoFiltro, setEstadoFiltro] = useState("todos");
@@ -121,78 +40,101 @@ function UserGestor() {
     const [usuarioEnEdicion, setUsuarioEnEdicion] = useState(null);
     const [mensaje, setMensaje] = useState("");
 
-    const cuentaAdmin = cuentasAdministradorDemo.find(
-        (cuenta) => cuenta.id === cuentaAdminId,
-    );
+    useEffect(() => {
+        let activo = true;
+        apiRequest("/admin/afiliados", {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((respuesta) => {
+                if (activo) setUsuarios(respuesta.data);
+            })
+            .catch((error) => {
+                if (activo) setErrorCarga(mensajeError(error));
+            })
+            .finally(() => {
+                if (activo) setCargando(false);
+            });
+
+        return () => {
+            activo = false;
+        };
+    }, [token]);
 
     const usuariosVisibles = useMemo(() => {
         const termino = busqueda.trim().toLocaleLowerCase("es");
         const minimo = edadMinima === "" ? null : Number(edadMinima);
         const maximo = edadMaxima === "" ? null : Number(edadMaxima);
 
-        return usuarios.filter((usuario) => {
-            const edad = calcularEdad(usuario.fechaNacimiento);
-            const nombreCompleto = `${usuario.nombres} ${usuario.apellidos}`;
+        return usuarios.filter((afiliado) => {
+            const edad = calcularEdad(afiliado.fechaNacimiento);
+            const nombreCompleto = `${afiliado.nombres} ${afiliado.apellidos}`;
             const coincideBusqueda =
                 !termino ||
                 nombreCompleto.toLocaleLowerCase("es").includes(termino) ||
-                usuario.numeroDocumento.toLocaleLowerCase("es").includes(termino);
+                afiliado.numeroDocumento.toLocaleLowerCase("es").includes(termino);
 
             return (
-                usuario.eps === cuentaAdmin.eps &&
                 coincideBusqueda &&
-                (sexoFiltro === "todos" || usuario.sexo === sexoFiltro) &&
-                (estadoFiltro === "todos" || usuario.estado === estadoFiltro) &&
+                (sexoFiltro === "todos" || afiliado.sexo === sexoFiltro) &&
+                (estadoFiltro === "todos" || afiliado.estado === estadoFiltro) &&
                 (minimo === null || edad >= minimo) &&
                 (maximo === null || edad <= maximo)
             );
         });
-    }, [usuarios, cuentaAdmin.eps, busqueda, sexoFiltro, estadoFiltro, edadMinima, edadMaxima]);
+    }, [usuarios, busqueda, sexoFiltro, estadoFiltro, edadMinima, edadMaxima]);
 
-    function actualizarEstado(id, estado) {
-        setUsuarios((actuales) =>
-            actuales.map((usuario) =>
-                usuario.id === id ? { ...usuario, estado } : usuario,
-            ),
-        );
-        setMensaje(`Solicitud ${etiquetasEstado[estado].toLocaleLowerCase("es")}.`);
+    async function actualizarEstado(id, estado) {
+        setMensaje("");
+        try {
+            await apiRequest(`/admin/afiliados/${id}/estado`, {
+                method: "PUT",
+                headers: { Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ estado }),
+            });
+            setUsuarios((actuales) =>
+                actuales.map((afiliado) =>
+                    afiliado.id === id ? { ...afiliado, estado } : afiliado,
+                ),
+            );
+            setMensaje(`Solicitud ${etiquetasEstado[estado].toLocaleLowerCase("es")}.`);
+        } catch (error) {
+            setMensaje(mensajeError(error));
+        }
     }
 
-    function guardarCambios(event) {
+    async function guardarCambios(event) {
         event.preventDefault();
         const datos = new FormData(event.currentTarget);
-        const numeroDocumento = datos.get("numeroDocumento").trim();
-        const documentoDuplicado = usuarios.some(
-            (usuario) =>
-                usuario.id !== usuarioEnEdicion.id &&
-                usuario.tipoDocumento === datos.get("tipoDocumento") &&
-                usuario.numeroDocumento === numeroDocumento,
-        );
+        const afiliadoActualizado = {
+            nombres: datos.get("nombres").trim(),
+            apellidos: datos.get("apellidos").trim(),
+            tipoDocumento: datos.get("tipoDocumento"),
+            numeroDocumento: datos.get("numeroDocumento").trim(),
+            email: datos.get("email").trim(),
+            telefono: datos.get("telefono").trim(),
+            fechaNacimiento: datos.get("fechaNacimiento"),
+            sexo: datos.get("sexo"),
+        };
 
-        if (documentoDuplicado) {
-            setMensaje("Ya existe otro usuario con ese tipo y número de documento.");
-            return;
+        setMensaje("");
+        try {
+            await apiRequest(`/admin/afiliados/${usuarioEnEdicion.id}`, {
+                method: "PUT",
+                headers: { Authorization: `Bearer ${token}` },
+                body: JSON.stringify(afiliadoActualizado),
+            });
+            setUsuarios((actuales) =>
+                actuales.map((afiliado) =>
+                    afiliado.id === usuarioEnEdicion.id
+                        ? { ...afiliado, ...afiliadoActualizado }
+                        : afiliado,
+                ),
+            );
+            setUsuarioEnEdicion(null);
+            setMensaje("Datos del afiliado guardados.");
+        } catch (error) {
+            setMensaje(mensajeError(error));
         }
-
-        setUsuarios((actuales) =>
-            actuales.map((usuario) =>
-                usuario.id === usuarioEnEdicion.id
-                    ? {
-                          ...usuario,
-                          nombres: datos.get("nombres").trim(),
-                          apellidos: datos.get("apellidos").trim(),
-                          tipoDocumento: datos.get("tipoDocumento"),
-                          numeroDocumento,
-                          email: datos.get("email").trim(),
-                          telefono: datos.get("telefono").trim(),
-                          fechaNacimiento: datos.get("fechaNacimiento"),
-                          sexo: datos.get("sexo"),
-                      }
-                    : usuario,
-            ),
-        );
-        setUsuarioEnEdicion(null);
-        setMensaje("Datos actualizados en esta sesión de demostración.");
     }
 
     return (
@@ -200,39 +142,18 @@ function UserGestor() {
             <header className="user-gestor__header">
                 <Link to="/perfilAdministrador">Volver al perfil de administrador</Link>
                 <p className="user-gestor__eyebrow">MediTunja · Administración</p>
-                <h1>Gestión de usuarios</h1>
-                <p>
-                    Revisa solicitudes de registro y administra los datos de las personas
-                    afiliadas a tu EPS.
-                </p>
+                <h1>Gestión de afiliados</h1>
+                <p>Administra las solicitudes y datos de afiliados de {usuario.eps}.</p>
             </header>
 
-            <aside className="user-gestor__notice" aria-label="Modo demostración">
-                <strong>Modo demostración:</strong> los registros son ficticios, los cambios
-                solo duran mientras esta página permanezca abierta y el selector de cuenta
-                no representa autenticación real.
+            <aside className="user-gestor__notice">
+                Los cambios se guardan en la base de datos y se limitan a la EPS asignada
+                a tu cuenta.
             </aside>
 
             <section className="user-gestor__panel" aria-labelledby="titulo-filtros">
-                <h2 id="titulo-filtros">Buscar y filtrar usuarios</h2>
+                <h2 id="titulo-filtros">Buscar y filtrar afiliados</h2>
                 <div className="user-gestor__filters">
-                    <div className="user-gestor__field">
-                        <label htmlFor="cuenta-admin-demo">Cuenta de administrador (demo)</label>
-                        <select
-                            id="cuenta-admin-demo"
-                            value={cuentaAdminId}
-                            onChange={(event) => {
-                                setCuentaAdminId(event.target.value);
-                                setMensaje("");
-                            }}
-                        >
-                            {cuentasAdministradorDemo.map((cuenta) => (
-                                <option key={cuenta.id} value={cuenta.id}>
-                                    {cuenta.nombre}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
                     <div className="user-gestor__field user-gestor__field--wide">
                         <label htmlFor="busqueda-usuario">Nombre o número de documento</label>
                         <input
@@ -245,11 +166,7 @@ function UserGestor() {
                     </div>
                     <div className="user-gestor__field">
                         <label htmlFor="filtro-sexo">Sexo</label>
-                        <select
-                            id="filtro-sexo"
-                            value={sexoFiltro}
-                            onChange={(event) => setSexoFiltro(event.target.value)}
-                        >
+                        <select id="filtro-sexo" value={sexoFiltro} onChange={(event) => setSexoFiltro(event.target.value)}>
                             <option value="todos">Todos</option>
                             <option value="F">Femenino</option>
                             <option value="M">Masculino</option>
@@ -258,11 +175,7 @@ function UserGestor() {
                     </div>
                     <div className="user-gestor__field">
                         <label htmlFor="filtro-estado">Estado de solicitud</label>
-                        <select
-                            id="filtro-estado"
-                            value={estadoFiltro}
-                            onChange={(event) => setEstadoFiltro(event.target.value)}
-                        >
+                        <select id="filtro-estado" value={estadoFiltro} onChange={(event) => setEstadoFiltro(event.target.value)}>
                             <option value="todos">Todos</option>
                             <option value="pendiente">Pendientes</option>
                             <option value="aprobado">Aprobados</option>
@@ -271,49 +184,28 @@ function UserGestor() {
                     </div>
                     <div className="user-gestor__field">
                         <label htmlFor="edad-minima">Edad mínima</label>
-                        <input
-                            id="edad-minima"
-                            type="number"
-                            min="0"
-                            max="120"
-                            value={edadMinima}
-                            onChange={(event) => setEdadMinima(event.target.value)}
-                            placeholder="Sin mínimo"
-                        />
+                        <input id="edad-minima" type="number" min="0" max="120" value={edadMinima} onChange={(event) => setEdadMinima(event.target.value)} placeholder="Sin mínimo" />
                     </div>
                     <div className="user-gestor__field">
                         <label htmlFor="edad-maxima">Edad máxima</label>
-                        <input
-                            id="edad-maxima"
-                            type="number"
-                            min="0"
-                            max="120"
-                            value={edadMaxima}
-                            onChange={(event) => setEdadMaxima(event.target.value)}
-                            placeholder="Sin máximo"
-                        />
+                        <input id="edad-maxima" type="number" min="0" max="120" value={edadMaxima} onChange={(event) => setEdadMaxima(event.target.value)} placeholder="Sin máximo" />
                     </div>
                 </div>
             </section>
 
-            {mensaje && (
-                <p className="user-gestor__message" role="status">
-                    {mensaje}
-                </p>
-            )}
+            {mensaje && <p className="user-gestor__message" role="status">{mensaje}</p>}
+            {errorCarga && <p role="alert">{errorCarga}</p>}
 
             <section className="user-gestor__panel" aria-labelledby="titulo-listado">
                 <div className="user-gestor__list-heading">
                     <div>
-                        <h2 id="titulo-listado">Afiliados de {cuentaAdmin.eps}</h2>
-                        <p>{usuariosVisibles.length} usuario(s) encontrados</p>
+                        <h2 id="titulo-listado">Afiliados de {usuario.eps}</h2>
+                        <p>{cargando ? "Cargando afiliados..." : `${usuariosVisibles.length} usuario(s) encontrados`}</p>
                     </div>
                 </div>
 
-                {usuariosVisibles.length === 0 ? (
-                    <p className="user-gestor__empty">
-                        No hay usuarios que coincidan con los filtros seleccionados.
-                    </p>
+                {!cargando && !errorCarga && usuariosVisibles.length === 0 ? (
+                    <p className="user-gestor__empty">No hay afiliados que coincidan con los filtros seleccionados.</p>
                 ) : (
                     <div className="user-gestor__table-wrap">
                         <table className="user-gestor__table">
@@ -328,60 +220,31 @@ function UserGestor() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {usuariosVisibles.map((usuario) => (
-                                    <tr key={usuario.id}>
+                                {usuariosVisibles.map((afiliado) => (
+                                    <tr key={afiliado.id}>
                                         <td>
-                                            <strong>{usuario.nombres} {usuario.apellidos}</strong>
-                                            <span className="user-gestor__secondary">
-                                                {usuario.email}
-                                            </span>
+                                            <strong>{afiliado.nombres} {afiliado.apellidos}</strong>
+                                            <span className="user-gestor__secondary">{afiliado.email}</span>
                                         </td>
-                                        <td>{usuario.tipoDocumento} {usuario.numeroDocumento}</td>
-                                        <td>{calcularEdad(usuario.fechaNacimiento)}</td>
+                                        <td>{afiliado.tipoDocumento} {afiliado.numeroDocumento}</td>
+                                        <td>{calcularEdad(afiliado.fechaNacimiento)}</td>
+                                        <td>{afiliado.sexo === "F" ? "Femenino" : afiliado.sexo === "M" ? "Masculino" : "Otro / Prefiere no decir"}</td>
                                         <td>
-                                            {usuario.sexo === "F"
-                                                ? "Femenino"
-                                                : usuario.sexo === "M"
-                                                  ? "Masculino"
-                                                  : "Otro / Prefiere no decir"}
-                                        </td>
-                                        <td>
-                                            <span
-                                                className={`user-gestor__status user-gestor__status--${usuario.estado}`}
-                                            >
-                                                {etiquetasEstado[usuario.estado]}
+                                            <span className={`user-gestor__status user-gestor__status--${afiliado.estado}`}>
+                                                {etiquetasEstado[afiliado.estado]}
                                             </span>
                                         </td>
                                         <td>
                                             <div className="user-gestor__actions">
-                                                <button
-                                                    type="button"
-                                                    className="user-gestor__button user-gestor__button--secondary"
-                                                    onClick={() => {
-                                                        setUsuarioEnEdicion(usuario);
-                                                        setMensaje("");
-                                                    }}
-                                                >
+                                                <button type="button" className="user-gestor__button user-gestor__button--secondary" onClick={() => { setUsuarioEnEdicion(afiliado); setMensaje(""); }}>
                                                     Editar datos
                                                 </button>
-                                                {usuario.estado === "pendiente" && (
+                                                {afiliado.estado === "pendiente" && (
                                                     <>
-                                                        <button
-                                                            type="button"
-                                                            className="user-gestor__button user-gestor__button--approve"
-                                                            onClick={() =>
-                                                                actualizarEstado(usuario.id, "aprobado")
-                                                            }
-                                                        >
+                                                        <button type="button" className="user-gestor__button user-gestor__button--approve" onClick={() => actualizarEstado(afiliado.id, "aprobado")}>
                                                             Aprobar
                                                         </button>
-                                                        <button
-                                                            type="button"
-                                                            className="user-gestor__button user-gestor__button--reject"
-                                                            onClick={() =>
-                                                                actualizarEstado(usuario.id, "rechazado")
-                                                            }
-                                                        >
+                                                        <button type="button" className="user-gestor__button user-gestor__button--reject" onClick={() => actualizarEstado(afiliado.id, "rechazado")}>
                                                             Rechazar
                                                         </button>
                                                     </>
@@ -397,13 +260,8 @@ function UserGestor() {
             </section>
 
             {usuarioEnEdicion && (
-                <section
-                    className="user-gestor__panel user-gestor__editor"
-                    aria-labelledby="titulo-edicion"
-                >
-                    <h2 id="titulo-edicion">
-                        Editar datos de {usuarioEnEdicion.nombres} {usuarioEnEdicion.apellidos}
-                    </h2>
+                <section className="user-gestor__panel user-gestor__editor" aria-labelledby="titulo-edicion">
+                    <h2 id="titulo-edicion">Editar datos de {usuarioEnEdicion.nombres} {usuarioEnEdicion.apellidos}</h2>
                     <p>EPS asignada: <strong>{usuarioEnEdicion.eps}</strong></p>
                     <form className="user-gestor__edit-form" onSubmit={guardarCambios}>
                         <div className="user-gestor__field">
@@ -433,7 +291,7 @@ function UserGestor() {
                         </div>
                         <div className="user-gestor__field">
                             <label htmlFor="editar-telefono">Teléfono</label>
-                            <input id="editar-telefono" name="telefono" type="tel" defaultValue={usuarioEnEdicion.telefono} maxLength="30" />
+                            <input id="editar-telefono" name="telefono" type="tel" defaultValue={usuarioEnEdicion.telefono || ""} maxLength="30" />
                         </div>
                         <div className="user-gestor__field">
                             <label htmlFor="editar-fecha-nacimiento">Fecha de nacimiento</label>
@@ -448,16 +306,8 @@ function UserGestor() {
                             </select>
                         </div>
                         <div className="user-gestor__edit-actions">
-                            <button type="submit" className="user-gestor__button user-gestor__button--approve">
-                                Guardar cambios
-                            </button>
-                            <button
-                                type="button"
-                                className="user-gestor__button user-gestor__button--secondary"
-                                onClick={() => setUsuarioEnEdicion(null)}
-                            >
-                                Cancelar
-                            </button>
+                            <button type="submit" className="user-gestor__button user-gestor__button--approve">Guardar cambios</button>
+                            <button type="button" className="user-gestor__button user-gestor__button--secondary" onClick={() => setUsuarioEnEdicion(null)}>Cancelar</button>
                         </div>
                     </form>
                 </section>

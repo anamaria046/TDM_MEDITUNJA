@@ -1,53 +1,36 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAdminAuth } from "../../../auth/useAdminAuth.js";
+import { mensajeError } from "../../../auth/api.js";
+
 function PersonalDataAdministrador() {
+    const { usuario, cerrarSesion } = useAdminAuth();
+    const navigate = useNavigate();
+    const [error, setError] = useState("");
+
+    async function salir() {
+        setError("");
+        try {
+            await cerrarSesion();
+            navigate("/admin/login", { replace: true });
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        }
+    }
+
     return (
         <section>
-            <h3>Información Personal</h3>
-
-            <form>
-                <div>
-                    <label htmlFor="perfil-nombre"><strong>Nombres y Apellidos:</strong></label>
-                    <br />
-                    <input 
-                        type="text" 
-                        id="perfil-nombre" 
-                        name="nombre" 
-                        defaultValue="Juan Andrés Pérez Gómez" 
-                        required 
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="perfil-correo"><strong>Correo Electrónico:</strong></label><br />
-                    <input 
-                        type="email" 
-                        id="perfil-correo" 
-                        name="correo" 
-                        defaultValue="juan.perez@correo.com" 
-                        required 
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="perfil-eps"><strong>EPS administrada: </strong></label>
-                    <br />
-                    <option value="sura">EPS Sura (Ejemplo)</option>
-                </div>
-
-                <div>
-                    <label htmlFor="perfil-password"><strong>Contraseña:</strong></label>
-                    <br />
-                    <div>
-                        <input 
-                            type="password" 
-                            id="perfil-password" 
-                            name="password" 
-                            defaultValue="password123" 
-                        />
-                        <button type="button">Mostrar</button>
-                    </div>
-                </div>
-                <button>Guardar Cambios</button>
-            </form>
+            <h3>Cuenta administradora</h3>
+            <dl>
+                <dt>Nombres y apellidos</dt>
+                <dd>{usuario.nombres} {usuario.apellidos}</dd>
+                <dt>Documento</dt>
+                <dd>{usuario.tipo_documento} {usuario.numero_documento}</dd>
+                <dt>EPS administrada</dt>
+                <dd>{usuario.eps}</dd>
+            </dl>
+            {error && <p role="alert">{error}</p>}
+            <button type="button" onClick={salir}>Cerrar sesión administrativa</button>
         </section>
     );
 }

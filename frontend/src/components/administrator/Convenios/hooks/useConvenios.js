@@ -1,21 +1,35 @@
 // Hook personalizado con la lógica de negocio del Módulo de Convenios
 // MediTunja - Separación de Lógica y Vista
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { apiRequest, mensajeError } from "../../../../auth/api.js";
+import { useAdminAuth } from "../../../../auth/useAdminAuth.js";
 import {
   EPS_CATALOGO,
   IPS_CATALOGO,
   PORTAFOLIOS_ASISTENCIALES,
-  SERVICIOS_POR_CATEGORIA,
-  CONVENIOS_INICIALES
+  SERVICIOS_POR_CATEGORIA
 } from "../data/conveniosData";
 
+function normalizarEps(valor) {
+  return valor.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es")
+    .replace(/\beps\b/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 export function useConvenios() {
-  // Lista de convenios registrados
-  const [convenios, setConvenios] = useState(CONVENIOS_INICIALES);
+  const { token, usuario } = useAdminAuth();
+  const epsDisponibles = useMemo(
+    () => EPS_CATALOGO.filter((eps) => normalizarEps(eps.nombre) === normalizarEps(usuario.eps)),
+    [usuario.eps]
+  );
+  const [convenios, setConvenios] = useState([]);
+  const [cargando, setCargando] = useState(true);
 
   // Estados del formulario de convenio: EPS Gestora e IPS Prestadora
-  const [epsId, setEpsId] = useState(EPS_CATALOGO[0].id);
+  const [epsId, setEpsId] = useState(() => epsDisponibles[0]?.id || "");
   const [ipsId, setIpsId] = useState(IPS_CATALOGO[0].id);
   const [portafolioId, setPortafolioId] = useState("integral");
   const [categoriaFiltro, setCategoriaFiltro] = useState("todas");
@@ -29,14 +43,31 @@ export function useConvenios() {
   // Mensaje de retroalimentación
   const [notificacion, setNotificacion] = useState("");
 
+  useEffect(() => {
+    let activo = true;
+    apiRequest("/admin/convenios", {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then((respuesta) => {
+      if (activo) setConvenios(respuesta.data);
+    }).catch((error) => {
+      if (activo) setNotificacion(mensajeError(error));
+    }).finally(() => {
+      if (activo) setCargando(false);
+    });
+
+    return () => {
+      activo = false;
+    };
+  }, [token]);
+
   // Obtener datos de la EPS seleccionada actualmente
   const epsActual = useMemo(() => {
-    return EPS_CATALOGO.find((eps) => eps.id === epsId) || EPS_CATALOGO[0];
-  }, [epsId]);
+    return epsDisponibles.find((eps) => eps.id === epsId) || epsDisponibles[0] || null;
+  }, [epsDisponibles, epsId]);
 
   // Obtener datos de la IPS seleccionada actualmente
   const ipsActual = useMemo(() => {
-    return IPS_CATALOGO.find((ips) => ips.id === ipsId) || IPS_CATALOGO[0];
+    return IPS_CATALOGO.find((ips) => ips.id === ipsId) || IPS_CATALOGO[0] || null;
   }, [ipsId]);
 
   // Servicios filtrados según la categoría activa y la IPS seleccionada
@@ -52,7 +83,7 @@ export function useConvenios() {
   // Cambiar EPS
   const handleCambiarEps = (valor) => {
     const id = valor && typeof valor === "object" && valor.target ? valor.target.value : valor;
-    if (!id) return;
+    if (!epsDisponibles.some((eps) => eps.id === id)) return;
     setEpsId(id);
   };
 
@@ -98,7 +129,7 @@ export function useConvenios() {
 
   // Restablecer el formulario
   const handleRestablecer = () => {
-    setEpsId(EPS_CATALOGO[0].id);
+    setEpsId(epsDisponibles[0]?.id || "");
     setIpsId(IPS_CATALOGO[0].id);
     setPortafolioId("integral");
     setCategoriaFiltro("todas");
@@ -110,7 +141,7 @@ export function useConvenios() {
   };
 
   // Enviar y formalizar convenio
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (serviciosSeleccionados.length === 0) {
@@ -118,10 +149,13 @@ export function useConvenios() {
       return;
     }
 
+    if (!epsActual) {
+      setNotificacion("La EPS asignada a esta cuenta no coincide con el catálogo de EPS.");
+      return;
+    }
     const portafolioObj = PORTAFOLIOS_ASISTENCIALES.find((p) => p.id === portafolioId);
 
     const nuevoConvenio = {
-      id: `CNV-TUN-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       epsId: epsActual.id,
       epsNombre: epsActual.nombre,
       epsSede: epsActual.sede,
@@ -138,25 +172,41 @@ export function useConvenios() {
       fechaCreacion: new Date().toISOString().split("T")[0]
     };
 
-    setConvenios((prev) => [nuevoConvenio, ...prev]);
-    setNotificacion(`¡Convenio formalizado con éxito entre ${epsActual.nombre} y ${ipsActual.nombre}!`);
-
-    // Limpiar notificación tras 4 segundos
-    setTimeout(() => {
-      setNotificacion("");
-    }, 4000);
+    try {
+      const respuesta = await apiRequest("/admin/convenios", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(nuevoConvenio)
+      });
+      setConvenios((prev) => [respuesta.data, ...prev]);
+      setNotificacion(`Convenio guardado entre ${epsActual.nombre} y ${ipsActual.nombre}.`);
+    } catch (error) {
+      setNotificacion(mensajeError(error));
+    }
   };
 
   // Eliminar o archivar un convenio
-  const handleEliminarConvenio = (id) => {
+  const handleEliminarConvenio = async (id) => {
     if (window.confirm("¿Seguro que deseas desactivar este convenio de la red en Tunja?")) {
-      setConvenios((prev) => prev.filter((c) => c.id !== id));
+      try {
+        await apiRequest(`/admin/convenios/${encodeURIComponent(id)}/desactivar`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setConvenios((prev) => prev.map((convenio) =>
+          convenio.id === id ? { ...convenio, estado: "Inactivo" } : convenio
+        ));
+        setNotificacion("Convenio desactivado.");
+      } catch (error) {
+        setNotificacion(mensajeError(error));
+      }
     }
   };
 
   return {
     convenios,
     epsId,
+    epsDisponibles,
     setEpsId: handleCambiarEps,
     handleCambiarEps,
     epsActual,
@@ -173,6 +223,7 @@ export function useConvenios() {
     clausulaTransporte,
     setClausulaTransporte,
     notificacion,
+    cargando,
     handleToggleServicio,
     handleSeleccionarTodosCategoria,
     handleDeseleccionarCategoria,

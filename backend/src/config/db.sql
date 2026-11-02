@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     fecha_nacimiento TEXT,
     sexo TEXT CHECK (sexo IS NULL OR sexo IN ('M', 'F', 'O')),
     eps TEXT,
+    rol TEXT NOT NULL DEFAULT 'afiliado'
+        CHECK (rol IN ('afiliado', 'administrador')),
     password_hash TEXT NOT NULL CHECK (
         length(password_hash) = 161 AND
         substr(password_hash, 33, 1) = ':' AND
@@ -62,3 +64,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_citas_ips_fecha_hora_confirmada
 
 CREATE INDEX IF NOT EXISTS idx_citas_usuario_fecha
     ON citas (usuario_id, fecha, hora);
+
+CREATE TABLE IF NOT EXISTS convenios (
+    id TEXT PRIMARY KEY,
+    eps_id TEXT NOT NULL,
+    eps_nombre TEXT NOT NULL,
+    eps_sede TEXT NOT NULL,
+    eps_direccion TEXT NOT NULL,
+    ips_id TEXT NOT NULL,
+    ips_nombre TEXT NOT NULL,
+    ips_sede TEXT NOT NULL,
+    ips_direccion TEXT NOT NULL,
+    portafolio_id TEXT NOT NULL,
+    portafolio_nombre TEXT NOT NULL,
+    servicios_seleccionados TEXT NOT NULL,
+    clausula_transporte INTEGER NOT NULL CHECK (clausula_transporte IN (0, 1)),
+    estado TEXT NOT NULL DEFAULT 'Activo' CHECK (estado IN ('Activo', 'Inactivo')),
+    fecha_creacion TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_convenios_eps_fecha
+    ON convenios (eps_nombre, fecha_creacion);

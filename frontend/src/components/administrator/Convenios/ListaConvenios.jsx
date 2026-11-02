@@ -84,14 +84,18 @@ function ListaConvenios({ convenios, onEliminarConvenio }) {
                   </td>
                   <td>{c.fechaCreacion}</td>
                   <td>
-                    <button
-                      type="button"
-                      className={styles.btnDesactivar}
-                      onClick={() => onEliminarConvenio(c.id)}
-                      title="Desactivar convenio"
-                    >
-                      Desactivar
-                    </button>
+                    {c.estado === "Activo" ? (
+                      <button
+                        type="button"
+                        className={styles.btnDesactivar}
+                        onClick={() => onEliminarConvenio(c.id)}
+                        title="Desactivar convenio"
+                      >
+                        Desactivar
+                      </button>
+                    ) : (
+                      <span>Desactivado</span>
+                    )}
                   </td>
                 </tr>
               ))
