@@ -43,7 +43,8 @@
     font-weight: 700;
     line-height: 1;
     text-align: center;
-    margin-bottom: 20px;
+    margin: 0 auto 20px;
+    box-sizing: border-box;
 }
 
 .state {
@@ -52,7 +53,7 @@
     gap: 8px;
     padding: 9px 14px;
     border-radius: 30px;
-    background-color: #dcfce7;
+    background-color: var(--color-tertiary);
     color: var(--color-text);
     font-family: var(--sm);
     font-size: 13px;
