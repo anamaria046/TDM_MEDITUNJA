@@ -1,4 +1,4 @@
-import styles from "./nfcStatus.module.css";
+import styles from "./NFCStatus.module.css";
 
 function NfcStatus() {
     return (
