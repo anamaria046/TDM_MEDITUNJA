@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import HomeUserModule from "./pages/UserPages/HomeUserModule.jsx";
 import Login from "./pages/Login.jsx";
@@ -14,31 +14,35 @@ import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrato
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
 import ConveniosModule from "./pages/AdministratorPages/ConveniosModule.jsx";
-import AdminLogin from "./pages/AdminLogin.jsx";
 import RequireAdmin from "./auth/RequireAdmin.jsx";
+import RequireAuth from "./auth/RequireAuth.jsx";
 
 function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<AppointmentModule />} />
-                <Route path="/citas" element={<AppointmentModule />} />
-                {/* TunjaAPI login/registration stay implemented but inactive until the API key is configured. */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Register />} />
-                <Route path="/home" element={<HomeUserModule />} />
-                <Route path="/pagos" element={<PaymentModule />} />
-                <Route path="/transporte" element={<TransportModule />} />
-                <Route path="/mapa" element={<Map />} />
-                <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/resultados-administrador" element={<RequireAdmin><ResultadosAdministrador /></RequireAdmin>} />
-                <Route path="/perfilUsuario" element={<ProfileUser />} />
-                <Route path="/perfilAdministrador" element={<RequireAdmin><ProfileAdministrador /></RequireAdmin>} />
-                <Route path="/gestionCitas" element={<RequireAdmin><AppointmentManagementModule /></RequireAdmin>} />
-                <Route path="/gestionUsuarios" element={<RequireAdmin><UserGestor /></RequireAdmin>} />
-                <Route path="/convenios" element={<RequireAdmin><ConveniosModule /></RequireAdmin>} />
-                <Route path="/gestionConvenios" element={<RequireAdmin><ConveniosModule /></RequireAdmin>} />
+                <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+                <Route element={<RequireAdmin />}>
+                    <Route path="/resultados-administrador" element={<ResultadosAdministrador />} />
+                    <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
+                    <Route path="/gestionCitas" element={<AppointmentManagementModule />} />
+                    <Route path="/gestionUsuarios" element={<UserGestor />} />
+                    <Route path="/convenios" element={<ConveniosModule />} />
+                    <Route path="/gestionConvenios" element={<ConveniosModule />} />
+                </Route>
+                <Route element={<RequireAuth />}>
+                    <Route path="/" element={<AppointmentModule />} />
+                    <Route path="/citas" element={<AppointmentModule />} />
+                    <Route path="/home" element={<HomeUserModule />} />
+                    <Route path="/pagos" element={<PaymentModule />} />
+                    <Route path="/transporte" element={<TransportModule />} />
+                    <Route path="/perfilUsuario" element={<ProfileUser />} />
+                    <Route path="/mapa" element={<Map />} />
+                    <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </BrowserRouter>
     );

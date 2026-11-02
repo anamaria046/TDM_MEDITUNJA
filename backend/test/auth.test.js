@@ -33,6 +33,26 @@ async function post(ruta, cuerpo) {
   });
 }
 
+async function postRegistroTunja(
+  datos,
+  contenido = '%PDF-1.7\ncomprobante de prueba',
+  mime = 'application/pdf'
+) {
+  const formulario = new FormData();
+  for (const [nombre, valor] of Object.entries(datos)) {
+    formulario.append(nombre, valor);
+  }
+  formulario.append(
+    'comprobante',
+    new Blob([contenido], { type: mime }),
+    'comprobante.pdf'
+  );
+  return fetchLocal(`${baseUrl}/api/tunja/auth/register`, {
+    method: 'POST',
+    body: formulario
+  });
+}
+
 async function registrar(numeroDocumento, email = `ana${numeroDocumento}@example.com`) {
   return post('/api/registro', {
     tipo_documento: 'CC',
@@ -106,6 +126,12 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
 
     const credencialesIncompletas = await post('/api/login', {});
     assert.equal(credencialesIncompletas.status, 400);
+    const nitEnLoginDeAfiliados = await post('/api/login', {
+      tipo_documento: 'NIT',
+      numero_documento: '900156264-2',
+      contrasena
+    });
+    assert.equal(nitEnLoginDeAfiliados.status, 400);
 
     const credenciales = {
       tipo_documento: 'CC',
@@ -296,16 +322,39 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
     };
 
     try {
-      const tunjaRegistro = await post('/api/tunja/auth/register', {
+      const comprobanteInvalido = await postRegistroTunja({
+        email: 'falso@example.com',
+        contrasena: 'clave Tunja segura',
+        nombre: 'Persona Prueba',
+        nombres: 'Persona',
+        apellidos: 'Prueba',
+        tipo_documento: 'CC',
+        numero_documento: '3040506070',
+        eps: 'Nueva EPS',
+        perfil: 'general'
+      }, 'no es un PDF');
+      assert.equal(comprobanteInvalido.status, 400);
+
+      const tunjaRegistro = await postRegistroTunja({
         email: 'ANA@example.com',
         contrasena: 'clave Tunja segura',
         nombre: 'Ana Pérez',
-        documento: '3040506071',
+        nombres: 'Ana',
+        apellidos: 'Pérez',
+        telefono: '3185777316',
+        tipo_documento: 'CC',
+        numero_documento: '3040506071',
+        eps: 'Nueva EPS',
         perfil: 'general',
-        descuento: 0
       });
       assert.equal(tunjaRegistro.status, 201);
-      assert.equal((await tunjaRegistro.json()).refresco, 'tunja-refresh-token');
+      assert.equal((await tunjaRegistro.json()).estado_afiliacion, 'pendiente');
+      const solicitudLocal = await ejecutar(
+        'get',
+        `SELECT telefono, eps FROM usuarios_tunja WHERE numero_documento = ?`,
+        ['3040506071']
+      );
+      assert.deepEqual(solicitudLocal, { telefono: '3185777316', eps: 'Nueva EPS' });
       const peticionRegistro = peticionesTunja.at(-1);
       assert.equal(peticionRegistro.url, 'https://tunja-api.test/api/v1/auth/register');
       assert.equal(peticionRegistro.opciones.headers['X-API-Key'], process.env.TUNJA_CLAVE);
@@ -314,27 +363,64 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
         contrasena: 'clave Tunja segura',
         nombre: 'Ana Pérez',
         documento: '3040506071',
+        tipo_documento: 'CC',
+        numero_documento: '3040506071',
+        perfil: 'general',
+        descuento: 0
+      });
+
+      const registroConTipoDocumento = await postRegistroTunja({
+        email: 'persona@example.com',
+        contrasena: 'clave Tunja segura',
+        nombre: 'Persona Prueba',
+        nombres: 'Persona',
+        apellidos: 'Prueba',
+        telefono: '3185777316',
+        tipo_documento: 'TI',
+        numero_documento: '12345678',
+        eps: 'Sanitas',
+        perfil: 'general',
+      });
+      assert.equal(registroConTipoDocumento.status, 201);
+      assert.deepEqual(JSON.parse(peticionesTunja.at(-1).opciones.body), {
+        email: 'persona@example.com',
+        contrasena: 'clave Tunja segura',
+        nombre: 'Persona Prueba',
+        documento: '12345678',
+        tipo_documento: 'TI',
+        numero_documento: '12345678',
         perfil: 'general',
         descuento: 0
       });
 
       const tunjaLogin = await post('/api/tunja/auth/login', {
-        email: 'ANA@example.com',
+        tipo_documento: 'TI',
+        numero_documento: '12345678',
         contrasena: 'clave Tunja segura'
       });
       assert.equal(tunjaLogin.status, 200);
-      assert.equal((await tunjaLogin.json()).acceso, 'tunja-access-token');
+      const respuestaLoginTunja = await tunjaLogin.json();
+      assert.equal(respuestaLoginTunja.acceso, 'tunja-access-token');
+      assert.equal(respuestaLoginTunja.usuario.estado_afiliacion, 'pendiente');
+      assert.equal(respuestaLoginTunja.usuario.telefono, '3185777316');
       const peticionLogin = peticionesTunja.at(-1);
       assert.equal(peticionLogin.opciones.headers['X-API-Key'], undefined);
       assert.deepEqual(JSON.parse(peticionLogin.opciones.body), {
+        email: 'persona@example.com',
+        contrasena: 'clave Tunja segura'
+      });
+
+      const loginSinDocumento = await post('/api/tunja/auth/login', {
         email: 'ana@example.com',
         contrasena: 'clave Tunja segura'
       });
+      assert.equal(loginSinDocumento.status, 400);
 
       const tunjaMe = await fetchLocal(`${baseUrl}/api/tunja/auth/me`, {
         headers: { Authorization: 'Bearer tunja-access-token' }
       });
       assert.equal(tunjaMe.status, 200);
+      assert.equal((await tunjaMe.json()).usuario.telefono, '3185777316');
       assert.equal(peticionesTunja.at(-1).opciones.headers.Authorization, 'Bearer tunja-access-token');
 
       const tunjaRefresh = await post('/api/tunja/auth/refresh', {
@@ -359,11 +445,15 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
 
     const claveTunjaOriginal = process.env.TUNJA_CLAVE;
     delete process.env.TUNJA_CLAVE;
-    const registroSinClave = await post('/api/tunja/auth/register', {
+    const registroSinClave = await postRegistroTunja({
       email: 'sin-clave@example.com',
       contrasena: 'clave Tunja segura',
       nombre: 'Persona Prueba',
-      documento: '3040506072'
+      nombres: 'Persona',
+      apellidos: 'Prueba',
+      tipo_documento: 'CC',
+      numero_documento: '3040506072',
+      eps: 'Nueva EPS'
     });
     assert.equal(registroSinClave.status, 503);
     process.env.TUNJA_CLAVE = claveTunjaOriginal;

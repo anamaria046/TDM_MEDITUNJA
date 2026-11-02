@@ -10,12 +10,16 @@ function PersonalDataAdministrador() {
 
     async function salir() {
         setError("");
+        let aviso;
         try {
             await cerrarSesion();
-            navigate("/admin/login", { replace: true });
         } catch (errorSolicitud) {
-            setError(mensajeError(errorSolicitud));
+            aviso = `La sesión se cerró en este dispositivo, pero no se pudo confirmar su revocación en el servidor: ${mensajeError(errorSolicitud)}`;
         }
+        navigate("/login", {
+            replace: true,
+            state: aviso ? { notice: aviso } : undefined,
+        });
     }
 
     return (

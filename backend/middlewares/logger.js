@@ -16,7 +16,11 @@ export function escribirLog(usuario, accion, resultado) {
 export function logger(req, res, next) {
   res.on('finish', () => {
     const usuario = req.usuario && req.usuario.id_usuario ? req.usuario.id_usuario : 'anonimo';
-    const accion = req.method + ' ' + new URL(req.originalUrl, 'http://localhost').pathname;
+    const ruta = new URL(req.originalUrl, 'http://localhost').pathname.replace(
+      /^\/api\/admin\/solicitudes-afiliacion\/[^/]+\/[^/]+(?=\/)/,
+      '/api/admin/solicitudes-afiliacion/:tipoDocumento/:numeroDocumento'
+    );
+    const accion = req.method + ' ' + ruta;
     const resultado = (res.statusCode >= 400 ? 'fallido ' : 'exitoso ') + res.statusCode;
     escribirLog(usuario, accion, resultado);
   });

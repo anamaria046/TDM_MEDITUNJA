@@ -4,7 +4,7 @@ import * as usuarios from '../repositories/usuarios.js';
 import * as sesiones from '../repositories/sesiones.js';
 
 const scrypt = promisify(crypto.scrypt);
-const tiposDocumentoPermitidos = new Set(['CC', 'TI', 'CE', 'PAS']);
+const tiposDocumentoPermitidos = new Set(['CC', 'TI', 'CE', 'PAS', 'NIT']);
 const duracionSesionMs = 30 * 60 * 1000;
 
 const responderError = (res, status, error, mensaje) =>
@@ -43,6 +43,7 @@ async function procesarInicioSesion(req, res, soloAdministrador) {
   const tipoDocumento = tipo_documento.trim().toUpperCase();
   const numeroDocumento = numero_documento.trim();
   if (!tiposDocumentoPermitidos.has(tipoDocumento) ||
+      (tipoDocumento === 'NIT' && !soloAdministrador) ||
       !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumento)) {
     return responderError(res, 400, 'Datos inválidos', 'Revisa el tipo y número de documento.');
   }

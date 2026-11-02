@@ -12,7 +12,12 @@ function RegisterForm() {
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
     if (sesion) {
-        return <Navigate to="/citas" replace />;
+        return (
+            <Navigate
+                to={sesion.usuario?.estado_afiliacion === "aprobado" ? "/citas" : "/perfilUsuario"}
+                replace
+            />
+        );
     }
 
     async function handleSubmit(event) {
@@ -26,18 +31,20 @@ function RegisterForm() {
             setError("Las contraseñas no coinciden.");
             return;
         }
+        datos.delete("confirmarContrasena");
+        datos.set("nombre", `${datos.get("nombres").trim()} ${datos.get("apellidos").trim()}`);
+        datos.set("tipo_documento", datos.get("tipoDocumento"));
+        datos.set("numero_documento", datos.get("numeroDocumento").trim());
+        datos.delete("tipoDocumento");
+        datos.delete("numeroDocumento");
 
         setEnviando(true);
         try {
-            await registrar({
-                email: datos.get("email").trim(),
-                contrasena,
-                nombre: `${datos.get("nombres").trim()} ${datos.get("apellidos").trim()}`,
-                documento: datos.get("documento").trim(),
-                perfil: datos.get("perfil"),
-                descuento: 0,
+            await registrar(datos);
+            navigate("/login", {
+                replace: true,
+                state: { mensaje: "Cuenta creada. Inicia sesión mientras tu EPS valida la afiliación." },
             });
-            navigate("/citas", { replace: true });
         } catch (errorSolicitud) {
             setError(mensajeError(errorSolicitud));
         } finally {
@@ -74,13 +81,28 @@ function RegisterForm() {
                 </div>
 
                 <div>
-                    <label htmlFor="documento">Número de documento</label>
+                    <label htmlFor="tipo-documento-registro">Tipo de documento</label>
+                    <select
+                        id="tipo-documento-registro"
+                        name="tipoDocumento"
+                        defaultValue="CC"
+                        required
+                    >
+                        <option value="CC">Cédula de ciudadanía</option>
+                        <option value="TI">Tarjeta de identidad</option>
+                        <option value="CE">Cédula de extranjería</option>
+                        <option value="PAS">Pasaporte</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label htmlFor="numero-documento-registro">Número de documento</label>
                     <input
                         type="text"
-                        id="documento"
-                        name="documento"
+                        id="numero-documento-registro"
+                        name="numeroDocumento"
                         autoComplete="off"
-                        maxLength="40"
+                        maxLength="30"
                         required
                     />
                 </div>
@@ -96,6 +118,29 @@ function RegisterForm() {
                 </div>
 
                 <div>
+                    <label htmlFor="eps-registro">EPS</label>
+                    <select id="eps-registro" name="eps" defaultValue="" required>
+                        <option value="" disabled>Selecciona tu EPS</option>
+                        <option value="Nueva EPS">Nueva EPS</option>
+                        <option value="Famisanar">Famisanar</option>
+                        <option value="Sanitas">Sanitas</option>
+                        <option value="SURA">SURA</option>
+                        <option value="Salud Total">Salud Total</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label htmlFor="comprobante-afiliacion">Comprobante de afiliación (PDF, JPG o PNG; máximo 5 MB)</label>
+                    <input
+                        type="file"
+                        id="comprobante-afiliacion"
+                        name="comprobante"
+                        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                        required
+                    />
+                </div>
+
+                <div>
                     <label htmlFor="email-registro">Correo electrónico</label>
                     <input
                         type="email"
@@ -104,6 +149,19 @@ function RegisterForm() {
                         autoComplete="email"
                         maxLength="254"
                         required
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="telefono-registro">Teléfono</label>
+                    <input
+                        type="tel"
+                        id="telefono-registro"
+                        name="telefono"
+                        autoComplete="tel"
+                        maxLength="30"
+                        pattern="\+?[0-9\s()-]{7,30}"
+                        placeholder="Ej.: 3185777316"
                     />
                 </div>
 

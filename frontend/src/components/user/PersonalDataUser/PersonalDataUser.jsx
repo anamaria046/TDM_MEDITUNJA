@@ -1,74 +1,98 @@
 import ProfileHeader from "../../ProfileHeader/ProfileHeader.jsx";
 import NfcStatus from "../../NFCStatus/NFCStatus.jsx";
 
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
-
+import { useEffect, useState } from "react";
+import { useAuth } from "../../../auth/useAuth.js";
 import styles from "./personalDataUser.module.css";
 
 function PersonalDataUser() {
-    const [mostrarContrasena, setMostrarContrasena] = useState(false);
-    
+    const { sesion, actualizarUsuario } = useAuth();
+    const [actualizandoEstado, setActualizandoEstado] = useState(false);
+    const [errorEstado, setErrorEstado] = useState("");
+    const usuario = sesion?.usuario || {};
+    const estado = usuario.estado_afiliacion || "pendiente";
+    const nombre = (usuario.nombres || usuario.nombre || "").trim();
+    const partesNombre = nombre.split(/\s+/);
+    const nombresPerfil = usuario.nombres || partesNombre.slice(0, -2).join(" ") || partesNombre[0] || "—";
+    const apellidosPerfil = usuario.apellidos || (
+        partesNombre.length > 2
+            ? partesNombre.slice(-2).join(" ")
+            : partesNombre.slice(-1).join(" ")
+    ) || "—";
+    const estadoTexto = {
+        pendiente: "En validación",
+        aprobado: "Activada",
+        rechazado: "Rechazada",
+    }[estado] || "En validación";
+
+    useEffect(() => {
+        actualizarUsuario().catch((error) => {
+            setErrorEstado(error instanceof Error ? error.message : "No se pudo actualizar el perfil.");
+        });
+    }, [actualizarUsuario]);
+
+    async function consultarEstado() {
+        setActualizandoEstado(true);
+        setErrorEstado("");
+        try {
+            await actualizarUsuario();
+        } catch (error) {
+            setErrorEstado(error instanceof Error ? error.message : "No se pudo consultar el estado.");
+        } finally {
+            setActualizandoEstado(false);
+        }
+    }
+
     return (
         <div className={styles.profileContainer}>
             <section className={styles.profileSidebar}>
-                <ProfileHeader />
+                <ProfileHeader nombre={nombre || undefined} />
             </section>
             <section className={styles.profileContent}>
+                {estado !== "aprobado" && (
+                    <div className={styles.affiliationNotice} role="status">
+                        <strong>Afiliación: {estadoTexto}</strong>
+                        <p>
+                            {estado === "rechazado"
+                                ? "La EPS rechazó la solicitud. Comunícate con su administrador para conocer los pasos a seguir."
+                                : "Puedes iniciar sesión y consultar este estado. Cuando el administrador de tu EPS valide el comprobante, actualiza el estado para habilitar los demás módulos."}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={consultarEstado}
+                            disabled={actualizandoEstado}
+                        >
+                            {actualizandoEstado ? "Consultando..." : "Actualizar estado"}
+                        </button>
+                        {errorEstado && <p role="alert">{errorEstado}</p>}
+                    </div>
+                )}
                 <fieldset>
                     <h3>Información del paciente</h3>
                     <div className={styles.profileGrid}> 
                         <div className={styles.dataGroup}>
                             <label>Nombres</label>
-                            <p>Mi nombre</p>
+                            <p>{nombresPerfil}</p>
                         </div>
 
                         <div className={styles.dataGroup}>
                             <label>Apellidos</label>
-                            <p>Mis apellidos</p>
-                        </div>
-
-                        <div className={styles.dataGroup}>
-                            <label>Fecha de Nacimiento</label>
-                            <p>01/01/1990</p>
-                        </div>
-
-                        <div className={styles.dataGroup}>
-                            <label>Sexo</label>
-                            <p>Femenino</p>
+                            <p>{apellidosPerfil}</p>
                         </div>
 
                         <div className={styles.dataGroup}>
                             <label>Tipo de Documento</label>
-                            <p>Cédula de Ciudadanía</p>
+                            <p>{usuario.tipo_documento || "—"}</p>
                         </div>
 
                         <div className={styles.dataGroup}>
-                            <label>Numero de documento</label>
-                            <p>123456789</p>
+                            <label>Número de documento</label>
+                            <p>{usuario.numero_documento || usuario.documento || "—"}</p>
                         </div>
 
                         <div className={styles.dataGroup}>
-                            <label>Contraseña</label>
-                            <div className={styles.passwordWrapper}>
-                                <p>••••••••••</p>
-                                <button
-                                    className={styles.passwordToggle}
-                                    type="button"
-                                    aria-label={
-                                    mostrarContrasena ? "Ocultar contraseña" : "Mostrar contraseña"
-                                    }
-                                    aria-pressed={mostrarContrasena}
-                                    onClick={() => setMostrarContrasena((actual) => !actual)}
-                                >
-                                {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className={styles.dataGroup}>
-                            <label>Entidad de salud</label>
-                            <p>Nueva EPS</p>
+                            <label>EPS</label>
+                            <p>{usuario.eps || "EPS no registrada"}</p>
                         </div>
                     </div>
                 </fieldset>
@@ -78,24 +102,25 @@ function PersonalDataUser() {
                     <div className={styles.profileGrid}>
                         <div className={styles.dataGroup}>
                             <label>Correo Electrónico</label>
-                            <p>juan.perez@correo.com</p>
+                            <p>{usuario.email || "—"}</p>
                         </div>
-
                         <div className={styles.dataGroup}>
-                            <label>Telefono</label>
-                            <p>3001234567</p>
-                            </div>
-                        </div>
-                </fieldset>
-
-                <fieldset>
-                    <div>
-                        <h3>Tarjeta NFC</h3>
-                        <div>
-                            <NfcStatus />
+                            <label>Teléfono</label>
+                            <p>{usuario.telefono || "—"}</p>
                         </div>
                     </div>
                 </fieldset>
+
+                {estado === "aprobado" && (
+                    <fieldset>
+                        <div>
+                            <h3>Tarjeta NFC</h3>
+                            <div>
+                                <NfcStatus />
+                            </div>
+                        </div>
+                    </fieldset>
+                )}
             </section>
         </div>
     );

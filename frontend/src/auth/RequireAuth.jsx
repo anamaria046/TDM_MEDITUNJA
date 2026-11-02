@@ -24,6 +24,13 @@ function RequireAuth() {
         return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
+    if (
+        sesion.usuario?.estado_afiliacion !== "aprobado" &&
+        location.pathname !== "/perfilUsuario"
+    ) {
+        return <Navigate to="/perfilUsuario" replace />;
+    }
+
     return <Outlet />;
 }
 

@@ -16,6 +16,38 @@
     min-width: 0;
 }
 
+.affiliationNotice {
+    margin: 20px 0;
+    padding: 18px 22px;
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-primary);
+    border-radius: 8px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--text);
+}
+
+.affiliationNotice p {
+    margin: 8px 0 0;
+    color: var(--color-text-secundary);
+}
+
+.affiliationNotice button {
+    margin-top: 12px;
+    padding: 9px 14px;
+    border: 1px solid var(--color-primary);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    font: inherit;
+}
+
+.affiliationNotice button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
 .profileContent fieldset {
     display: flex;
     flex-direction: column;

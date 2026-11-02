@@ -6,9 +6,12 @@ import { exigirAdministrador } from '../middleware/exigirAdministrador.js';
 import {
   actualizarAfiliado,
   actualizarEstadoAfiliado,
+  actualizarEstadoSolicitudAfiliacion,
   crearConvenio,
+  descargarComprobanteAfiliacion,
   desactivarConvenio,
   listarAfiliados,
+  listarSolicitudesAfiliacion,
   listarConvenios
 } from '../controllers/administracion.js';
 import {
@@ -26,10 +29,11 @@ import {
   registrarEnTunja,
   renovarSesionTunja
 } from '../controllers/tunjaAuth.js';
+import { recibirComprobante } from '../middleware/recibirComprobante.js';
 
 const router = Router();
 
-router.post('/tunja/auth/register', registrarEnTunja);
+router.post('/tunja/auth/register', recibirComprobante, registrarEnTunja);
 router.post('/tunja/auth/login', iniciarSesionTunja);
 router.post('/tunja/auth/refresh', renovarSesionTunja);
 router.post('/tunja/auth/logout', cerrarSesionTunja);
@@ -56,6 +60,17 @@ router.get('/admin/sesion', exigirAdministrador, (req, res) => {
   res.status(200).json({ data: req.usuario });
 });
 router.get('/admin/afiliados', exigirAdministrador, listarAfiliados);
+router.get('/admin/solicitudes-afiliacion', exigirAdministrador, listarSolicitudesAfiliacion);
+router.get(
+  '/admin/solicitudes-afiliacion/:tipoDocumento/:numeroDocumento/comprobante',
+  exigirAdministrador,
+  descargarComprobanteAfiliacion
+);
+router.put(
+  '/admin/solicitudes-afiliacion/:tipoDocumento/:numeroDocumento/estado',
+  exigirAdministrador,
+  actualizarEstadoSolicitudAfiliacion
+);
 router.put('/admin/afiliados/:id', exigirAdministrador, actualizarAfiliado);
 router.put('/admin/afiliados/:id/estado', exigirAdministrador, actualizarEstadoAfiliado);
 router.get('/admin/convenios', exigirAdministrador, listarConvenios);

@@ -2,7 +2,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS usuarios (
     id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo_documento VARCHAR(10) NOT NULL CHECK (tipo_documento IN ('CC', 'TI', 'CE', 'PAS')),
+    tipo_documento VARCHAR(10) NOT NULL CHECK (tipo_documento IN ('CC', 'TI', 'CE', 'PAS', 'NIT')),
     numero_documento VARCHAR(30) NOT NULL,
     nombres VARCHAR(100) NOT NULL,
     apellidos VARCHAR(100) NOT NULL,
@@ -40,6 +40,26 @@ CREATE TABLE IF NOT EXISTS sesiones (
 
 CREATE INDEX IF NOT EXISTS idx_sesiones_usuario_expiracion
     ON sesiones (id_usuario, expira_en);
+
+CREATE TABLE IF NOT EXISTS usuarios_tunja (
+    tipo_documento VARCHAR(10) NOT NULL,
+    numero_documento VARCHAR(30) NOT NULL,
+    email VARCHAR(254) NOT NULL,
+    nombres VARCHAR(100),
+    apellidos VARCHAR(100),
+    telefono VARCHAR(30),
+    eps VARCHAR(100),
+    estado_afiliacion VARCHAR(20) NOT NULL DEFAULT 'pendiente'
+        CHECK (estado_afiliacion IN ('pendiente', 'aprobado', 'rechazado')),
+    comprobante_archivo TEXT,
+    comprobante_tipo TEXT,
+    comprobante_nombre TEXT,
+    fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tipo_documento, numero_documento)
+);
+
+CREATE INDEX IF NOT EXISTS idx_usuarios_tunja_email
+    ON usuarios_tunja (email);
 
 CREATE TABLE IF NOT EXISTS citas (
     id_cita INTEGER PRIMARY KEY AUTOINCREMENT,

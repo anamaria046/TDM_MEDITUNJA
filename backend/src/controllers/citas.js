@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { ejecutar } from '../repositories/sqlite.js';
+import * as usuariosTunja from '../repositories/usuariosTunja.js';
 import { tunjaRequest } from '../services/tunjaApi.js';
 
 const horarios = ['08:00', '09:30', '11:00'];
@@ -58,6 +59,7 @@ function obtenerPerfilTunja(respuesta) {
     id: typeof identificador === 'string' && identificador.includes('@')
       ? id.toLowerCase()
       : id,
+    email: typeof usuario.email === 'string' ? usuario.email.trim().toLowerCase() : null,
     descuento
   };
 }
@@ -75,6 +77,23 @@ export async function autenticarUsuarioTunja(req, res, next) {
     if (!perfil) {
       console.error('TunjaAPI devolvió un perfil sin identificador o descuento válido.');
       return responderError(res, 502, 'perfil_no_disponible', 'No fue posible verificar el perfil del usuario.');
+    }
+
+    const solicitud = perfil.email
+      ? await usuariosTunja.buscarPorEmail(perfil.email)
+      : perfil.id.includes('@')
+        ? await usuariosTunja.buscarPorEmail(perfil.id)
+        : null;
+    if (solicitud?.estado_afiliacion !== 'aprobado') {
+      const rechazado = solicitud?.estado_afiliacion === 'rechazado';
+      return responderError(
+        res,
+        403,
+        rechazado ? 'afiliacion_rechazada' : 'afiliacion_pendiente',
+        rechazado
+          ? 'Tu afiliación fue rechazada. Contacta al administrador de tu EPS.'
+          : 'Tu cuenta debe ser activada por el administrador de tu EPS antes de usar este módulo.'
+      );
     }
 
     req.usuarioCitas = perfil;

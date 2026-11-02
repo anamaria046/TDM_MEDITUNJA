@@ -1,11 +1,11 @@
 import Brand from "../components/Brand/Brand.jsx";
 import LoginForm from "../components/LoginForm/LoginForm.jsx";
 
-function Login () {
+function Login({ initialMode = "user" }) {
     return (
         <div>
             <Brand />
-            <LoginForm />
+            <LoginForm initialMode={initialMode} />
         </div>
     );
 }

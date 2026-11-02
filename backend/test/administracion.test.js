@@ -45,9 +45,9 @@ async function registrar(numeroDocumento, eps, email) {
   assert.equal(respuesta.status, 201);
 }
 
-async function iniciarSesion(ruta, numeroDocumento) {
+async function iniciarSesion(ruta, numeroDocumento, tipoDocumento = 'CC') {
   const respuesta = await post(ruta, {
-    tipo_documento: 'CC',
+    tipo_documento: tipoDocumento,
     numero_documento: numeroDocumento,
     contrasena
   });
@@ -66,6 +66,20 @@ test('gestión administrativa autentica roles y persiste datos aislados por EPS'
        WHERE numero_documento IN (?, ?, ?)`,
       ['5000000001', '5000000001', '5000000002', '5000000003']
     );
+    const hashContrasena = await ejecutar(
+      'get',
+      'SELECT password_hash FROM usuarios WHERE numero_documento = ?',
+      ['5000000001']
+    );
+    await ejecutar(
+      'run',
+      `INSERT INTO usuarios (
+        tipo_documento, numero_documento, nombres, apellidos, email, eps,
+        rol, password_hash, activo, estado_registro
+      ) VALUES ('NIT', ?, 'Nueva EPS', 'Administración', ?, 'Nueva EPS',
+        'administrador', ?, 1, 'aprobado')`,
+      ['900156264-2', 'admin-nueva@meditunja.invalid', hashContrasena.password_hash]
+    );
 
     const sinToken = await fetch(`${baseUrl}/api/admin/afiliados`);
     assert.equal(sinToken.status, 401);
@@ -73,11 +87,30 @@ test('gestión administrativa autentica roles y persiste datos aislados por EPS'
     const loginAfiliado = await iniciarSesion('/api/admin/login', '5000000002');
     assert.equal(loginAfiliado.respuesta.status, 403);
 
+    const { respuesta: respuestaLoginNit, datos: sesionNit } =
+      await iniciarSesion('/api/admin/login', '900156264-2', 'NIT');
+    assert.equal(respuestaLoginNit.status, 200);
+    assert.equal(sesionNit.data.tipo_documento, 'NIT');
+    assert.equal(sesionNit.data.eps, 'Nueva EPS');
+
     const { respuesta: respuestaLogin, datos: sesionAdmin } =
       await iniciarSesion('/api/admin/login', '5000000001');
     assert.equal(respuestaLogin.status, 200);
     assert.equal(sesionAdmin.data.rol, 'administrador');
     assert.equal(sesionAdmin.data.eps, 'EPS Sura');
+    const nombreComprobante = '123e4567-e89b-12d3-a456-426614174000.pdf';
+    const carpetaComprobantes = path.join(carpetaTemporal, 'afiliaciones-privadas');
+    fs.mkdirSync(carpetaComprobantes, { recursive: true });
+    fs.writeFileSync(path.join(carpetaComprobantes, nombreComprobante), '%PDF-1.7\nprueba privada');
+    await ejecutar(
+      'run',
+      `INSERT INTO usuarios_tunja (
+        tipo_documento, numero_documento, email, nombres, apellidos, eps,
+        estado_afiliacion, comprobante_archivo, comprobante_tipo, comprobante_nombre
+      ) VALUES ('CC', '6000000001', 'solicitud-sura@example.test', 'Afiliado',
+        'Sura', 'EPS Sura', 'pendiente', ?, 'application/pdf', 'documento.pdf')`,
+      [nombreComprobante]
+    );
     const authorization = { Authorization: `Bearer ${sesionAdmin.token}` };
 
     const afiliados = await fetch(`${baseUrl}/api/admin/afiliados`, { headers: authorization });
@@ -86,6 +119,41 @@ test('gestión administrativa autentica roles y persiste datos aislados por EPS'
     assert.equal(resultadoAfiliados.data.length, 1);
     assert.equal(resultadoAfiliados.data[0].numeroDocumento, '5000000002');
     assert.equal('password_hash' in resultadoAfiliados.data[0], false);
+
+    const solicitudesSura = await fetch(`${baseUrl}/api/admin/solicitudes-afiliacion`, {
+      headers: authorization
+    });
+    assert.equal(solicitudesSura.status, 200);
+    assert.equal((await solicitudesSura.json()).data.length, 1);
+    const comprobanteSura = await fetch(
+      `${baseUrl}/api/admin/solicitudes-afiliacion/CC/6000000001/comprobante`,
+      { headers: authorization }
+    );
+    assert.equal(comprobanteSura.status, 200);
+    assert.equal(comprobanteSura.headers.get('content-type'), 'application/pdf');
+    assert.match(await comprobanteSura.text(), /^%PDF-1\.7/);
+    const aprobacionSolicitud = await fetch(
+      `${baseUrl}/api/admin/solicitudes-afiliacion/CC/6000000001/estado`,
+      {
+        method: 'PUT',
+        headers: { ...authorization, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'aprobado' })
+      }
+    );
+    assert.equal(aprobacionSolicitud.status, 200);
+    assert.equal(fs.existsSync(path.join(carpetaComprobantes, nombreComprobante)), false);
+    const solicitudAprobada = await ejecutar(
+      'get',
+      `SELECT estado_afiliacion, comprobante_archivo, comprobante_tipo, comprobante_nombre
+       FROM usuarios_tunja WHERE numero_documento = ?`,
+      ['6000000001']
+    );
+    assert.deepEqual(solicitudAprobada, {
+      estado_afiliacion: 'aprobado',
+      comprobante_archivo: null,
+      comprobante_tipo: null,
+      comprobante_nombre: null
+    });
 
     const estado = await fetch(`${baseUrl}/api/admin/afiliados/${resultadoAfiliados.data[0].id}/estado`, {
       method: 'PUT',
@@ -155,6 +223,16 @@ test('gestión administrativa autentica roles y persiste datos aislados por EPS'
       ['5000000004']
     );
     const { datos: sesionOtraEps } = await iniciarSesion('/api/admin/login', '5000000004');
+    const authorizationOtraEps = { Authorization: 'Bearer ' + sesionOtraEps.token };
+    const solicitudesOtraEps = await fetch(`${baseUrl}/api/admin/solicitudes-afiliacion`, {
+      headers: authorizationOtraEps
+    });
+    assert.equal((await solicitudesOtraEps.json()).data.length, 0);
+    const comprobanteAjeno = await fetch(
+      `${baseUrl}/api/admin/solicitudes-afiliacion/CC/6000000001/comprobante`,
+      { headers: authorizationOtraEps }
+    );
+    assert.equal(comprobanteAjeno.status, 404);
     const afiliadosOtraEps = await fetch(`${baseUrl}/api/admin/afiliados`, {
       headers: { Authorization: `Bearer ${sesionOtraEps.token}` }
     });
@@ -188,6 +266,9 @@ test('gestión administrativa autentica roles y persiste datos aislados por EPS'
     assert.equal(cierre.status, 200);
     const sesionCerrada = await fetch(`${baseUrl}/api/admin/sesion`, { headers: authorization });
     assert.equal(sesionCerrada.status, 401);
+    const registros = fs.readFileSync(process.env.LOG_PATH, 'utf8');
+    assert.equal(registros.includes('6000000001'), false);
+    assert.ok(registros.includes('/admin/solicitudes-afiliacion/:tipoDocumento/:numeroDocumento/comprobante'));
   } finally {
     await new Promise((resolve, reject) => {
       servidor.close((error) => error ? reject(error) : resolve());

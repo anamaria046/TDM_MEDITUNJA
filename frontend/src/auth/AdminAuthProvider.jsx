@@ -50,6 +50,10 @@ function AdminAuthProvider({ children }) {
     }, []);
 
     const cerrarSesion = useCallback(async () => {
+        window.localStorage.removeItem(claveToken);
+        setToken(null);
+        setUsuario(null);
+
         try {
             if (token) {
                 await apiRequest("/logout", {

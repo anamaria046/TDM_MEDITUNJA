@@ -1,11 +1,20 @@
 import crypto from 'node:crypto';
 import * as usuarios from '../repositories/usuarios.js';
+import * as usuariosTunja from '../repositories/usuariosTunja.js';
 import * as administracion from '../repositories/administracion.js';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const tiposDocumentoPermitidos = new Set(['CC', 'TI', 'CE', 'PAS']);
 const sexosPermitidos = new Set(['M', 'F', 'O']);
 const responderError = (res, status, error, mensaje) =>
   res.status(status).json({ error, mensaje });
+const carpetaComprobantes = path.resolve(
+  process.env.DB_PATH
+    ? path.join(path.dirname(path.resolve(process.env.DB_PATH)), 'afiliaciones-privadas')
+    : path.join(path.dirname(fileURLToPath(import.meta.url)), '../../data/afiliaciones-privadas')
+);
 
 function esTexto(valor, maximo) {
   return typeof valor === 'string' && valor.trim().length > 0 &&
@@ -118,6 +127,95 @@ export async function actualizarEstadoAfiliado(req, res) {
   } catch (error) {
     console.error('Error al actualizar estado del afiliado:', error.code || 'ERROR_INTERNO');
     return responderError(res, 500, 'Error interno del servidor', 'No fue posible actualizar el estado.');
+  }
+}
+
+export async function listarSolicitudesAfiliacion(req, res) {
+  try {
+    const data = await usuariosTunja.listarSolicitudesPorEps(req.usuario.eps);
+    return res.status(200).json({ data });
+  } catch (error) {
+    console.error('Error al listar solicitudes de afiliación:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'Error interno del servidor', 'No fue posible consultar las solicitudes.');
+  }
+}
+
+export async function actualizarEstadoSolicitudAfiliacion(req, res) {
+  const { tipoDocumento, numeroDocumento } = req.params;
+  const { estado } = req.body || {};
+  if (!['CC', 'TI', 'CE', 'PAS'].includes(tipoDocumento) ||
+      !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumento) ||
+      !['aprobado', 'rechazado'].includes(estado)) {
+    return responderError(res, 400, 'Datos inválidos', 'Indica un estado válido para la solicitud.');
+  }
+
+  try {
+    const solicitud = await usuariosTunja.buscarSolicitud(
+      tipoDocumento,
+      numeroDocumento,
+      req.usuario.eps
+    );
+    if (!solicitud) {
+      return responderError(res, 404, 'Solicitud no encontrada', 'No se encontró la solicitud de esta EPS.');
+    }
+
+    if (estado === 'aprobado' &&
+        /^[\da-f-]{36}\.(pdf|jpg|png)$/i.test(solicitud.comprobante_archivo || '')) {
+      try {
+        await fs.unlink(path.join(carpetaComprobantes, solicitud.comprobante_archivo));
+      } catch (errorArchivo) {
+        if (errorArchivo.code !== 'ENOENT') throw errorArchivo;
+      }
+    }
+
+    const resultado = await usuariosTunja.actualizarEstadoSolicitud(
+      tipoDocumento,
+      numeroDocumento,
+      req.usuario.eps,
+      estado
+    );
+    if (resultado.changes === 0) {
+      return responderError(res, 404, 'Solicitud no encontrada', 'No se encontró la solicitud de esta EPS.');
+    }
+    return res.status(200).json({ mensaje: `Solicitud ${estado}.` });
+  } catch (error) {
+    console.error('Error al actualizar solicitud de afiliación:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'Error interno del servidor', 'No fue posible actualizar la solicitud.');
+  }
+}
+
+export async function descargarComprobanteAfiliacion(req, res) {
+  const { tipoDocumento, numeroDocumento } = req.params;
+  if (!['CC', 'TI', 'CE', 'PAS'].includes(tipoDocumento) ||
+      !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumento)) {
+    return responderError(res, 400, 'Datos inválidos', 'Indica una solicitud válida.');
+  }
+
+  try {
+    const solicitud = await usuariosTunja.buscarSolicitud(
+      tipoDocumento,
+      numeroDocumento,
+      req.usuario.eps
+    );
+    if (!solicitud) {
+      return responderError(res, 404, 'Solicitud no encontrada', 'No se encontró la solicitud de esta EPS.');
+    }
+    if (!/^[\da-f-]{36}\.(pdf|jpg|png)$/i.test(solicitud.comprobante_archivo || '')) {
+      return responderError(res, 404, 'Comprobante no disponible', 'La solicitud no tiene un comprobante disponible.');
+    }
+
+    const archivo = await fs.readFile(path.join(carpetaComprobantes, solicitud.comprobante_archivo));
+    res.setHeader('Content-Type', solicitud.comprobante_tipo);
+    res.setHeader('Content-Disposition', `attachment; filename="comprobante-${tipoDocumento}-${numeroDocumento}.${solicitud.comprobante_archivo.split('.').pop()}"`);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    return res.status(200).send(archivo);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return responderError(res, 404, 'Comprobante no disponible', 'No se encontró el archivo del comprobante.');
+    }
+    console.error('Error al descargar comprobante de afiliación:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'Error interno del servidor', 'No fue posible descargar el comprobante.');
   }
 }
 

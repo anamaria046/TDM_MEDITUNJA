@@ -2,24 +2,24 @@
 
 Las rutas de administración usan la base SQLite del backend, requieren una sesión local y solo permiten operar sobre afiliados y convenios de la EPS asignada al administrador.
 
-## Habilitar la primera cuenta administradora
+## Cuentas administradoras de EPS
 
-1. Registra una cuenta en `POST /api/registro` usando la EPS correspondiente. El endpoint local guarda la cuenta en `backend/data/meditunja.db` (o en la ruta definida en `DB_PATH`).
-2. Desde un acceso controlado a esa base, aprueba y asigna el rol a la cuenta:
+Los NIT se configuran mediante `ADMIN_NUEVA_EPS_NIT`, `ADMIN_FAMISANAR_NIT`, `ADMIN_SANITAS_NIT`, `ADMIN_SURA_NIT` y `ADMIN_SALUD_TOTAL_NIT` en `backend/.env`. Define también una contraseña distinta para cada EPS con las variables `ADMIN_NUEVA_EPS_PASSWORD`, `ADMIN_FAMISANAR_PASSWORD`, `ADMIN_SANITAS_PASSWORD`, `ADMIN_SURA_PASSWORD` y `ADMIN_SALUD_TOTAL_PASSWORD`. No compartas ni subas ese archivo al repositorio.
 
-```sql
-UPDATE usuarios
-SET estado_registro = 'aprobado',
-    rol = 'administrador',
-    eps = 'EPS Sura'
-WHERE tipo_documento = 'CC'
-  AND numero_documento = '<documento de la cuenta>';
+Luego, para crear las cuentas iniciales de Nueva EPS, Famisanar, Sanitas, SURA y Salud Total, ejecuta desde `backend/`:
+
+```sh
+npm run provision:admins
 ```
 
-Reemplaza el tipo, documento y EPS por los valores de la cuenta. Las cuentas migradas y los nuevos registros tienen el rol `afiliado` por defecto. No asignes este rol desde un formulario público.
+El comando crea cada usuario con tipo de documento NIT y el nombre de la EPS, y guarda únicamente el hash de la contraseña. Las cuentas existentes se conservan; si un NIT ya pertenece a un usuario incompatible, el comando se detiene sin modificarlo. La base está en `backend/data/meditunja.db` o en la ruta definida por `DB_PATH`.
 
-3. Ingresa por `/admin/login` con el tipo, número de documento y contraseña de esa cuenta.
+Ingresa por `/admin/login` con tipo NIT, el número en formato `XXXXXXXXX-DV` y la contraseña asignada. No guardes las contraseñas iniciales en el repositorio ni en logs.
 
 El panel permite aprobar/rechazar solicitudes, actualizar datos de afiliados y crear/desactivar convenios. Los cambios se guardan en SQLite; cada petición vuelve a comprobar rol y EPS en el servidor.
 
-El formulario público actual registra usuarios en TunjaAPI; esos registros externos no se copian automáticamente a esta base SQLite. Para que una solicitud aparezca en la gestión administrativa, debe existir también en la base local mediante `POST /api/registro`.
+El registro público crea la cuenta en TunjaAPI y guarda localmente la solicitud de afiliación, EPS, teléfono, estado y relación entre documento y correo. Se exige un comprobante PDF, JPG o PNG de hasta 5 MB; los archivos se almacenan en `backend/data/afiliaciones-privadas` (o junto a la base indicada por `DB_PATH`) y no se sirven como contenido estático. Solo el administrador autenticado de la EPS correspondiente puede consultarlo desde Gestión de afiliados; al aprobar la solicitud se elimina el archivo y sus metadatos.
+
+Las nuevas cuentas pueden iniciar sesión mientras la solicitud está pendiente, pero solo pueden consultar su perfil y cerrar sesión. La administración puede aprobar o rechazar solicitudes; únicamente las cuentas aprobadas acceden a citas y a los demás módulos. Las cuentas anteriores que no tengan una solicitud local permanecen restringidas hasta completar el proceso de afiliación.
+
+TunjaAPI autentica actualmente con correo. La aplicación conserva localmente la relación entre tipo/número de documento y correo para permitir que el inicio de sesión público siga solicitando el documento.

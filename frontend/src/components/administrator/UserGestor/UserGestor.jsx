@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiRequest, mensajeError } from "../../../auth/api.js";
+import { apiBaseUrl, apiRequest, mensajeError } from "../../../auth/api.js";
 import { useAdminAuth } from "../../../auth/useAdminAuth.js";
 
 const etiquetasEstado = {
@@ -30,6 +30,7 @@ function calcularEdad(fechaNacimiento) {
 function UserGestor() {
     const { token, usuario } = useAdminAuth();
     const [usuarios, setUsuarios] = useState([]);
+    const [solicitudesTunja, setSolicitudesTunja] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [errorCarga, setErrorCarga] = useState("");
     const [busqueda, setBusqueda] = useState("");
@@ -53,6 +54,23 @@ function UserGestor() {
             })
             .finally(() => {
                 if (activo) setCargando(false);
+            });
+
+        return () => {
+            activo = false;
+        };
+    }, [token]);
+
+    useEffect(() => {
+        let activo = true;
+        apiRequest("/admin/solicitudes-afiliacion", {
+            headers: { Authorization: "Bearer " + token },
+        })
+            .then((respuesta) => {
+                if (activo) setSolicitudesTunja(respuesta.data);
+            })
+            .catch((error) => {
+                if (activo) setErrorCarga(mensajeError(error));
             });
 
         return () => {
@@ -97,6 +115,56 @@ function UserGestor() {
                 ),
             );
             setMensaje(`Solicitud ${etiquetasEstado[estado].toLocaleLowerCase("es")}.`);
+        } catch (error) {
+            setMensaje(mensajeError(error));
+        }
+    }
+
+    async function actualizarEstadoSolicitud(solicitud, estado) {
+        setMensaje("");
+        const tipo = encodeURIComponent(solicitud.tipo_documento);
+        const numero = encodeURIComponent(solicitud.numero_documento);
+        try {
+            await apiRequest(`/admin/solicitudes-afiliacion/${tipo}/${numero}/estado`, {
+                method: "PUT",
+                headers: { Authorization: "Bearer " + token },
+                body: JSON.stringify({ estado }),
+            });
+            setSolicitudesTunja((actuales) =>
+                actuales.map((actual) =>
+                    actual.tipo_documento === solicitud.tipo_documento &&
+                    actual.numero_documento === solicitud.numero_documento
+                        ? { ...actual, estado_afiliacion: estado }
+                        : actual,
+                ),
+            );
+            setMensaje(`Solicitud ${etiquetasEstado[estado].toLocaleLowerCase("es")}.`);
+        } catch (error) {
+            setMensaje(mensajeError(error));
+        }
+    }
+
+    async function descargarComprobante(solicitud) {
+        setMensaje("");
+        const tipo = encodeURIComponent(solicitud.tipo_documento);
+        const numero = encodeURIComponent(solicitud.numero_documento);
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/admin/solicitudes-afiliacion/${tipo}/${numero}/comprobante`,
+                { headers: { Authorization: "Bearer " + token } },
+            );
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.mensaje || "No fue posible descargar el comprobante.");
+            }
+            const url = URL.createObjectURL(await response.blob());
+            const enlace = document.createElement("a");
+            enlace.href = url;
+            enlace.download = `comprobante-${solicitud.tipo_documento}-${solicitud.numero_documento}`;
+            document.body.append(enlace);
+            enlace.click();
+            enlace.remove();
+            URL.revokeObjectURL(url);
         } catch (error) {
             setMensaje(mensajeError(error));
         }
@@ -195,6 +263,78 @@ function UserGestor() {
 
             {mensaje && <p className="user-gestor__message" role="status">{mensaje}</p>}
             {errorCarga && <p role="alert">{errorCarga}</p>}
+
+            <section className="user-gestor__panel" aria-labelledby="titulo-solicitudes-tunja">
+                <div className="user-gestor__list-heading">
+                    <div>
+                        <h2 id="titulo-solicitudes-tunja">Solicitudes de activación</h2>
+                        <p>{solicitudesTunja.length} solicitud(es) de {usuario.eps}</p>
+                    </div>
+                </div>
+                {solicitudesTunja.length === 0 ? (
+                    <p className="user-gestor__empty">No hay solicitudes de afiliación para esta EPS.</p>
+                ) : (
+                    <div className="user-gestor__table-wrap">
+                        <table className="user-gestor__table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Afiliado</th>
+                                    <th scope="col">Documento</th>
+                                    <th scope="col">Comprobante</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {solicitudesTunja.map((solicitud) => (
+                                    <tr key={`${solicitud.tipo_documento}-${solicitud.numero_documento}`}>
+                                        <td>
+                                            <strong>{solicitud.nombres} {solicitud.apellidos}</strong>
+                                            <span className="user-gestor__secondary">{solicitud.email}</span>
+                                        </td>
+                                        <td>{solicitud.tipo_documento} {solicitud.numero_documento}</td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                className="user-gestor__button user-gestor__button--secondary"
+                                                onClick={() => descargarComprobante(solicitud)}
+                                                disabled={!solicitud.comprobante_tipo}
+                                            >
+                                                Descargar {solicitud.comprobante_tipo?.split("/")[1]?.toUpperCase() || ""}
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <span className={`user-gestor__status user-gestor__status--${solicitud.estado_afiliacion}`}>
+                                                {etiquetasEstado[solicitud.estado_afiliacion]}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {solicitud.estado_afiliacion === "pendiente" && (
+                                                <div className="user-gestor__actions">
+                                                    <button
+                                                        type="button"
+                                                        className="user-gestor__button user-gestor__button--approve"
+                                                        onClick={() => actualizarEstadoSolicitud(solicitud, "aprobado")}
+                                                    >
+                                                        Aprobar
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="user-gestor__button user-gestor__button--reject"
+                                                        onClick={() => actualizarEstadoSolicitud(solicitud, "rechazado")}
+                                                    >
+                                                        Rechazar
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
 
             <section className="user-gestor__panel" aria-labelledby="titulo-listado">
                 <div className="user-gestor__list-heading">

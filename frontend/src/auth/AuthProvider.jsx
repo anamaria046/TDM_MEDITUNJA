@@ -13,6 +13,25 @@ function borrarSesionGuardada() {
     window.localStorage.removeItem(claveSesion);
 }
 
+function combinarUsuario(usuarioAnterior, usuarioActualizado) {
+    const combinado = { ...usuarioAnterior, ...usuarioActualizado };
+    for (const campo of [
+        "estado_afiliacion",
+        "eps",
+        "telefono",
+        "nombres",
+        "apellidos",
+        "tipo_documento",
+        "numero_documento",
+        "email",
+    ]) {
+        if (usuarioActualizado?.[campo] == null || usuarioActualizado[campo] === "") {
+            combinado[campo] = usuarioAnterior?.[campo] ?? usuarioActualizado?.[campo];
+        }
+    }
+    return combinado;
+}
+
 function renovarSesion(refresco) {
     if (!renovacionEnCurso) {
         renovacionEnCurso = apiRequest("/tunja/auth/refresh", {
@@ -25,7 +44,7 @@ function renovarSesion(refresco) {
     return renovacionEnCurso;
 }
 
-function crearSesion(respuesta) {
+function crearSesion(respuesta, usuarioAnterior) {
     if (
         typeof respuesta?.acceso !== "string" ||
         typeof respuesta?.refresco !== "string" ||
@@ -37,7 +56,9 @@ function crearSesion(respuesta) {
         accessToken: respuesta.acceso,
         refreshToken: respuesta.refresco,
         expiresAt: Date.now() + (Number(respuesta.expira_en) || 900) * 1000,
-        usuario: respuesta.usuario,
+        usuario: usuarioAnterior
+            ? combinarUsuario(usuarioAnterior, respuesta.usuario)
+            : respuesta.usuario,
     };
 }
 
@@ -78,7 +99,10 @@ function AuthProvider({ children }) {
                     const usuario = await apiRequest("/tunja/auth/me", {
                         headers: { Authorization: `Bearer ${existente.accessToken}` },
                     });
-                    sesionActual = { ...existente, usuario };
+                    sesionActual = {
+                        ...existente,
+                        usuario: combinarUsuario(existente.usuario, usuario),
+                    };
                 } catch (error) {
                     if (!(error instanceof ApiError &&
                         error.status === 401 &&
@@ -87,6 +111,7 @@ function AuthProvider({ children }) {
                     }
                     sesionActual = crearSesion(
                         await renovarSesion(existente.refreshToken),
+                        existente.usuario,
                     );
                 }
 
@@ -122,7 +147,10 @@ function AuthProvider({ children }) {
         const espera = Math.max(sesion.expiresAt - Date.now() - 30000, 0);
         const temporizador = window.setTimeout(async () => {
             try {
-                const renovada = crearSesion(await renovarSesion(sesion.refreshToken));
+                const renovada = crearSesion(
+                    await renovarSesion(sesion.refreshToken),
+                    sesion.usuario,
+                );
                 guardarSesion(renovada);
                 setSesion(renovada);
                 setErrorInicial("");
@@ -158,31 +186,56 @@ function AuthProvider({ children }) {
     const registrar = useCallback(async (datos) => {
         const respuesta = await apiRequest("/tunja/auth/register", {
             method: "POST",
-            body: JSON.stringify(datos),
+            body: datos,
         });
-        const nuevaSesion = crearSesion(respuesta);
-        guardarSesion(nuevaSesion);
-        setSesion(nuevaSesion);
-        setErrorInicial("");
         return respuesta;
     }, []);
 
-    const cerrarSesion = useCallback(async () => {
-        if (sesion?.refreshToken) {
-            await apiRequest("/tunja/auth/logout", {
-                method: "POST",
-                body: JSON.stringify({ refresco: sesion.refreshToken }),
-            });
+    const actualizarUsuario = useCallback(async () => {
+        const accessToken = sesion?.accessToken;
+        if (!accessToken) {
+            throw new Error("Inicia sesión para consultar el estado de tu afiliación.");
         }
+        const usuario = await apiRequest("/tunja/auth/me", {
+            headers: { Authorization: "Bearer " + accessToken },
+        });
+        setSesion((actual) => {
+            if (actual?.accessToken !== accessToken) return actual;
+            const sesionActualizada = {
+                ...actual,
+                usuario: combinarUsuario(actual.usuario, usuario),
+            };
+            guardarSesion(sesionActualizada);
+            return sesionActualizada;
+        });
+        return usuario;
+    }, [sesion?.accessToken]);
 
+    const cerrarSesion = useCallback(async () => {
+        const refresco = sesion?.refreshToken;
         borrarSesionGuardada();
         setSesion(null);
         setErrorInicial("");
+
+        if (refresco) {
+            await apiRequest("/tunja/auth/logout", {
+                method: "POST",
+                body: JSON.stringify({ refresco }),
+            });
+        }
     }, [sesion]);
 
     const valor = useMemo(
-        () => ({ sesion, cargando, errorInicial, iniciarSesion, registrar, cerrarSesion }),
-        [sesion, cargando, errorInicial, iniciarSesion, registrar, cerrarSesion],
+        () => ({
+            sesion,
+            cargando,
+            errorInicial,
+            iniciarSesion,
+            registrar,
+            actualizarUsuario,
+            cerrarSesion,
+        }),
+        [sesion, cargando, errorInicial, iniciarSesion, registrar, actualizarUsuario, cerrarSesion],
     );
 
     return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

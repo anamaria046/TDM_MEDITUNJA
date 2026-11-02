@@ -17,15 +17,34 @@ const [{ default: app }, { ready }, { ejecutar }] = await Promise.all([
 ]);
 
 await ready;
+await ejecutar(
+  'run',
+  `INSERT INTO usuarios_tunja (
+     tipo_documento, numero_documento, email, eps, estado_afiliacion
+   ) VALUES ('CC', '1000000001', 'usuario1@example.com', 'Nueva EPS', 'aprobado'),
+            ('CC', '1000000002', 'usuario2@example.com', 'Nueva EPS', 'aprobado'),
+            ('CC', '1000000003', 'usuario3@example.com', 'Nueva EPS', 'pendiente')`
+);
 const servidor = app.listen(0);
 await once(servidor, 'listening');
 const baseUrl = `http://127.0.0.1:${servidor.address().port}`;
 const fetchOriginal = globalThis.fetch;
 globalThis.fetch = async (url, opciones) => {
   const token = opciones.headers.Authorization;
+  if (token.includes('usuario-pendiente')) {
+    return new Response(JSON.stringify({
+      id: 3,
+      email: 'usuario3@example.com',
+      perfil: 'general',
+      descuento: 0
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   const usuario = token === 'Bearer usuario-dos'
-    ? { id: 2, perfil: 'general', descuento: 0 }
-    : { id: 1, perfil: 'estudiante', descuento: 15 };
+    ? { id: 2, email: 'usuario2@example.com', perfil: 'general', descuento: 0 }
+    : { id: 1, email: 'usuario1@example.com', perfil: 'estudiante', descuento: 15 };
   return new Response(JSON.stringify(usuario), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }
@@ -53,6 +72,10 @@ test('reservas validan disponibilidad, descuento, usuario y cancelación', async
   try {
     const sinSesion = await peticion('/api/citas', null);
     assert.equal(sinSesion.status, 401);
+
+    const accesoPendiente = await peticion('/api/citas', 'usuario-pendiente');
+    assert.equal(accesoPendiente.status, 403);
+    assert.equal((await accesoPendiente.json()).error, 'afiliacion_pendiente');
 
     const fecha = fechaEnDias(3);
     const disponibilidad = await peticion(
