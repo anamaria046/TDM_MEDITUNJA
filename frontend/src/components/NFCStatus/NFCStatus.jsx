@@ -1,31 +1,30 @@
+import { Link } from "react-router-dom";
 import styles from "./NFCStatus.module.css";
 
-function NfcStatus() {
+function NfcStatus({ tarjeta }) {
+    if (tarjeta) {
+        return (
+            <section>
+                <p role="status">✓ Tarjeta NFC vinculada</p>
+            </section>
+        );
+    }
+
     return (
         <section>
-        {/*Caso de que no este vincualada*/}
             <div className={styles.nfcCard}>
-                <div className={styles.nfcHeader}>
-                    <span className={styles.nfcStatus}>Tarjeta NFC No Vinculada</span>
-                </div>
                 <p className={styles.nfcDescription}>
-                    <small>Aún no tienes una tarjeta física asociada a tu cuenta. Vincúlala para iniciar sesión al instante y validar tus citas en taquilla.</small>
+                    Aún no tienes una tarjeta física asociada a tu cuenta. Vincúlala para
+                    iniciar sesión al instante, pagar tu cita con el saldo de tu tarjeta y
+                    validar tus citas en taquilla
                 </p>
-                <button type="button" className={styles.nfcButton}>
-                    Ir a Vincular Tarjeta NFC (Vincular modulo NFC)
-                </button>
-            </div>
-
-            {/*Caso de que este vinculada*/}
-            <div className={`${styles.nfcCard} ${styles.nfcLinked}`}>
-                <div className={styles.nfcDescription}>
-                    <span className={styles.nfcStatus}>Tarjeta NFC Vinculada</span>
-                </div>
-                <p className={styles.nfcDescription}>
-                    ID de Tarjeta: <strong>NFC-99482-COL</strong>
-                    <span className={styles.nfcSeparator}> | </span>
-                    Registrada el: 2026-10-15
-                </p>
+                <Link
+                    to="/vinculacionNFC"
+                    state={{ origen: "/perfilUsuario" }}
+                    className={styles.nfcButton}
+                >
+                    Vincular tarjeta NFC
+                </Link>
             </div>
         </section>
     );

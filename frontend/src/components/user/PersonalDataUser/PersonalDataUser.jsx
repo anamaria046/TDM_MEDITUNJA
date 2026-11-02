@@ -116,7 +116,7 @@ function PersonalDataUser() {
                         <div>
                             <h3>Tarjeta NFC</h3>
                             <div>
-                                <NfcStatus />
+                                <NfcStatus tarjeta={usuario.tarjetaNfc || usuario.tarjeta_nfc} />
                             </div>
                         </div>
                     </fieldset>

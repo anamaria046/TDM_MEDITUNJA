@@ -14,6 +14,7 @@ import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrato
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
 import ConveniosModule from "./pages/AdministratorPages/ConveniosModule.jsx";
+import NFCVinculation from "./components/NFCVinculation/NFCVinculation.jsx";
 import RequireAdmin from "./auth/RequireAdmin.jsx";
 import RequireAuth from "./auth/RequireAuth.jsx";
 
@@ -39,6 +40,7 @@ function App() {
                     <Route path="/pagos" element={<PaymentModule />} />
                     <Route path="/transporte" element={<TransportModule />} />
                     <Route path="/perfilUsuario" element={<ProfileUser />} />
+                    <Route path="/vinculacionNFC" element={<NFCVinculation />} />
                     <Route path="/mapa" element={<Map />} />
                     <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
                 </Route>
