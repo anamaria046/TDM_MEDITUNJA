@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import HomeUserModule from "./pages/UserPages/HomeUserModule.jsx";
@@ -5,7 +6,6 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import PaymentModule from "./pages/UserPages/PaymentModule.jsx";
 import TransportModule from "./pages/UserPages/TransportModule.jsx";
-import Map from "./components/Map/map.jsx";
 import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
 import ResultadosAdministrador from "./components/administrator/resultados_administrador.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
@@ -17,6 +17,8 @@ import ConveniosModule from "./pages/AdministratorPages/ConveniosModule.jsx";
 import NFCVinculation from "./components/NFCVinculation/NFCVinculation.jsx";
 import RequireAdmin from "./auth/RequireAdmin.jsx";
 import RequireAuth from "./auth/RequireAuth.jsx";
+
+const Map = lazy(() => import("./components/Map/map.jsx"));
 
 function App() {
     return (
@@ -41,7 +43,7 @@ function App() {
                     <Route path="/transporte" element={<TransportModule />} />
                     <Route path="/perfilUsuario" element={<ProfileUser />} />
                     <Route path="/vinculacionNFC" element={<NFCVinculation />} />
-                    <Route path="/mapa" element={<Map />} />
+                    <Route path="/mapa" element={<Suspense fallback={<p role="status">Cargando mapa...</p>}><Map /></Suspense>} />
                     <Route path="/resultados-procedimientos" element={<ProcedureResults />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/login" replace />} />
