@@ -8,6 +8,7 @@ function ProfileAdministrador () {
                 <h2>Administración de usuarios</h2>
                 <p>Revisa solicitudes de registro y administra los datos de afiliados.</p>
                 <Link to="/gestionUsuarios">Ir a Gestión de usuarios</Link>
+                <Link to="/resultados-administrador">Gestionar resultados de procedimientos</Link>
             </section>
             <PersonalDataAdministrador />
 

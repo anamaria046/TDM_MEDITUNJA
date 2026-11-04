@@ -21,6 +21,12 @@ import {
   listarCitas,
   obtenerDisponibilidad
 } from '../controllers/citas.js';
+import {
+  crearResultado,
+  eliminarResultado,
+  listarResultadosAdministrador,
+  listarResultadosUsuario
+} from '../controllers/resultados.js';
 import * as sesiones from '../repositories/sesiones.js';
 import {
   cerrarSesionTunja,
@@ -47,6 +53,7 @@ router.get('/citas/disponibilidad', autenticarUsuarioTunja, obtenerDisponibilida
 router.get('/citas', autenticarUsuarioTunja, listarCitas);
 router.post('/citas', autenticarUsuarioTunja, crearCita);
 router.put('/citas/:id/cancelar', autenticarUsuarioTunja, cancelarCita);
+router.get('/resultados', autenticarUsuarioTunja, listarResultadosUsuario);
 
 router.use(autenticarSesion);
 router.get('/sesion', (req, res) => {
@@ -76,6 +83,9 @@ router.put('/admin/afiliados/:id/estado', exigirAdministrador, actualizarEstadoA
 router.get('/admin/convenios', exigirAdministrador, listarConvenios);
 router.post('/admin/convenios', exigirAdministrador, crearConvenio);
 router.put('/admin/convenios/:id/desactivar', exigirAdministrador, desactivarConvenio);
+router.get('/admin/resultados', exigirAdministrador, listarResultadosAdministrador);
+router.post('/admin/resultados', exigirAdministrador, crearResultado);
+router.delete('/admin/resultados/:id', exigirAdministrador, eliminarResultado);
 router.post('/logout', async (req, res, next) => {
   try {
     await sesiones.revocar(req.sesionTokenHash, Date.now());

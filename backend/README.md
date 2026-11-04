@@ -18,6 +18,12 @@ Ingresa por `/admin/login` con tipo NIT, el número en formato `XXXXXXXXX-DV` y 
 
 El panel permite aprobar/rechazar solicitudes, actualizar datos de afiliados y crear/desactivar convenios. Los cambios se guardan en SQLite; cada petición vuelve a comprobar rol y EPS en el servidor.
 
+## Resultados de procedimientos
+
+Los administradores de EPS pueden registrar y eliminar resultados desde `/resultados-administrador`; solo pueden operar sobre afiliados aprobados de su propia EPS. El paciente autenticado consulta sus resultados en `/resultados-procedimientos`. Los informes en estado «En proceso» no se entregan al paciente.
+
+El registro es manual y se guarda en la tabla `resultados_procedimientos` de SQLite. No existe una integración automática con los sistemas de las IPS, por lo que se debe verificar la información antes de publicarla.
+
 El registro público crea la cuenta en TunjaAPI y guarda localmente la solicitud de afiliación, EPS, teléfono, estado y relación entre documento y correo. Se exige un comprobante PDF, JPG o PNG de hasta 5 MB; los archivos se almacenan en `backend/data/afiliaciones-privadas` (o junto a la base indicada por `DB_PATH`) y no se sirven como contenido estático. Solo el administrador autenticado de la EPS correspondiente puede consultarlo desde Gestión de afiliados; al aprobar la solicitud se elimina el archivo y sus metadatos.
 
 Las nuevas cuentas pueden iniciar sesión mientras la solicitud está pendiente, pero solo pueden consultar su perfil y cerrar sesión. La administración puede aprobar o rechazar solicitudes; únicamente las cuentas aprobadas acceden a citas y a los demás módulos. Las cuentas anteriores que no tengan una solicitud local permanecen restringidas hasta completar el proceso de afiliación.

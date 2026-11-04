@@ -1,12 +1,58 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { apiRequest, mensajeError } from "../../auth/api.js";
+import { useAdminAuth } from "../../auth/useAdminAuth.js";
 
 function ResultadosAdministrador() {
+    const { token } = useAdminAuth();
     const [results, setResults] = useState([]);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("todos");
     const [showForm, setShowForm] = useState(false);
     const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
+
+    const loadResults = useCallback(async () => {
+        setLoading(true);
+        setError("");
+        try {
+            const respuesta = await apiRequest("/admin/resultados", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setResults(respuesta.data);
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        } finally {
+            setLoading(false);
+        }
+    }, [token]);
+
+    useEffect(() => {
+        let active = true;
+
+        async function loadInitialResults() {
+            setLoading(true);
+            setError("");
+            try {
+                const respuesta = await apiRequest("/admin/resultados", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (active) setResults(respuesta.data);
+            } catch (errorSolicitud) {
+                if (active) setError(mensajeError(errorSolicitud));
+            } finally {
+                if (active) setLoading(false);
+            }
+        }
+
+        loadInitialResults();
+        return () => {
+            active = false;
+        };
+    }, [token]);
 
     const visibleResults = useMemo(() => {
         const normalizedSearch = search.trim().toLocaleLowerCase("es");
@@ -14,7 +60,7 @@ function ResultadosAdministrador() {
         return results.filter((result) => {
             const matchesSearch =
                 !normalizedSearch ||
-                [result.patient, result.document, result.procedure, result.code]
+                [result.patient, result.document, result.procedure]
                     .join(" ")
                     .toLocaleLowerCase("es")
                     .includes(normalizedSearch);
@@ -25,31 +71,60 @@ function ResultadosAdministrador() {
         });
     }, [results, search, statusFilter]);
 
-    function handleSubmit(event) {
+    async function handleSubmit(event) {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        const result = {
-            id: `${Date.now()}`,
-            patient: formData.get("patient").trim(),
-            document: formData.get("document").trim(),
-            procedure: formData.get("procedure").trim(),
-            date: formData.get("date"),
-            provider: formData.get("provider").trim(),
-            status: formData.get("status"),
-            report: formData.get("report").trim(),
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        const resultado = {
+            tipoDocumento: formData.get("tipoDocumento"),
+            numeroDocumento: formData.get("document").trim(),
+            procedimiento: formData.get("procedure").trim(),
+            fecha: formData.get("date"),
+            proveedor: formData.get("provider").trim(),
+            estado: formData.get("status"),
+            informe: formData.get("report").trim(),
         };
 
-        setResults((currentResults) => [result, ...currentResults]);
-        setMessage("El resultado se agregó a esta sesión de demostración.");
-        event.currentTarget.reset();
-        setShowForm(false);
+        setSaving(true);
+        setMessage("");
+        setError("");
+        try {
+            await apiRequest("/admin/resultados", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: JSON.stringify(resultado),
+            });
+            form.reset();
+            setShowForm(false);
+            setMessage("Resultado guardado correctamente.");
+            await loadResults();
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        } finally {
+            setSaving(false);
+        }
     }
 
-    function removeResult(id) {
-        setResults((currentResults) =>
-            currentResults.filter((result) => result.id !== id),
-        );
-        setMessage("El registro se quitó de esta sesión de demostración.");
+    async function removeResult(id, patient) {
+        if (!window.confirm(`¿Eliminar el resultado de ${patient}?`)) return;
+
+        setDeletingId(id);
+        setMessage("");
+        setError("");
+        try {
+            await apiRequest(`/admin/resultados/${id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setResults((currentResults) =>
+                currentResults.filter((result) => result.id !== id),
+            );
+            setMessage("Resultado eliminado.");
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        } finally {
+            setDeletingId(null);
+        }
     }
 
     return (
@@ -59,14 +134,15 @@ function ResultadosAdministrador() {
                 <p>MediTunja · Administración</p>
                 <h1>Gestión de resultados de procedimientos</h1>
                 <p>
-                    Consulta y registra los resultados de procedimientos realizados a los usuarios.
+                    Consulta y registra resultados para afiliados aprobados de tu EPS.
                 </p>
             </header>
 
-            <section aria-label="Aviso sobre esta maquetación">
+            <section aria-label="Alcance de los resultados">
                 <p>
-                    Maquetación de demostración: los registros se mantienen solo mientras esta
-                    página está abierta. No se guardan ni se publican en una base de datos.
+                    Los resultados se guardan en la base de datos de MediTunja y son ingresados
+                    manualmente por un administrador. No se reciben automáticamente de la IPS;
+                    verifica la información antes de publicarla.
                 </p>
             </section>
 
@@ -78,6 +154,7 @@ function ResultadosAdministrador() {
                     aria-controls="formulario-resultado"
                     onClick={() => {
                         setShowForm((isVisible) => !isVisible);
+                        setError("");
                         setMessage("");
                     }}
                 >
@@ -87,25 +164,28 @@ function ResultadosAdministrador() {
                 {showForm && (
                     <form id="formulario-resultado" onSubmit={handleSubmit}>
                         <fieldset>
-                            <legend>Datos del usuario</legend>
-
+                            <legend>Afiliado</legend>
                             <div>
-                                <label htmlFor="nombre-paciente">Nombre completo</label>
-                                <input
-                                    id="nombre-paciente"
-                                    name="patient"
-                                    type="text"
-                                    autoComplete="name"
+                                <label htmlFor="tipo-documento-paciente">Tipo de documento</label>
+                                <select
+                                    id="tipo-documento-paciente"
+                                    name="tipoDocumento"
+                                    defaultValue="CC"
                                     required
-                                />
+                                >
+                                    <option value="CC">Cédula de ciudadanía</option>
+                                    <option value="TI">Tarjeta de identidad</option>
+                                    <option value="CE">Cédula de extranjería</option>
+                                    <option value="PAS">Pasaporte</option>
+                                </select>
                             </div>
-
                             <div>
                                 <label htmlFor="documento-paciente">Número de documento</label>
                                 <input
                                     id="documento-paciente"
                                     name="document"
                                     type="text"
+                                    maxLength={30}
                                     required
                                 />
                             </div>
@@ -113,37 +193,36 @@ function ResultadosAdministrador() {
 
                         <fieldset>
                             <legend>Información del procedimiento</legend>
-
                             <div>
                                 <label htmlFor="nombre-procedimiento">Procedimiento</label>
                                 <input
                                     id="nombre-procedimiento"
                                     name="procedure"
                                     type="text"
+                                    maxLength={120}
                                     required
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor="fecha-procedimiento">Fecha de realización</label>
                                 <input
                                     id="fecha-procedimiento"
                                     name="date"
                                     type="date"
+                                    max={new Date().toISOString().slice(0, 10)}
                                     required
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor="ips-procedimiento">IPS prestadora</label>
                                 <input
                                     id="ips-procedimiento"
                                     name="provider"
                                     type="text"
+                                    maxLength={120}
                                     required
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor="estado-resultado">Estado del resultado</label>
                                 <select id="estado-resultado" name="status" defaultValue="En proceso">
@@ -151,27 +230,27 @@ function ResultadosAdministrador() {
                                     <option value="Disponible">Disponible</option>
                                 </select>
                             </div>
-
                             <div>
                                 <label htmlFor="informe-resultado">Informe o nota del resultado</label>
                                 <textarea
                                     id="informe-resultado"
                                     name="report"
                                     rows="5"
-                                    placeholder="Ingresa la información correspondiente al resultado"
+                                    maxLength={10000}
+                                    placeholder="Registra el informe proporcionado por la IPS."
                                     required
                                 />
                             </div>
                         </fieldset>
-
-                        <button type="submit">Guardar resultado</button>
+                        <button type="submit" disabled={saving}>
+                            {saving ? "Guardando..." : "Guardar resultado"}
+                        </button>
                     </form>
                 )}
             </section>
 
             <section aria-labelledby="listado-resultados">
                 <h2 id="listado-resultados">Resultados registrados</h2>
-
                 <div>
                     <label htmlFor="buscar-resultado">Buscar por usuario, documento o procedimiento</label>
                     <input
@@ -181,7 +260,6 @@ function ResultadosAdministrador() {
                         onChange={(event) => setSearch(event.target.value)}
                     />
                 </div>
-
                 <div>
                     <label htmlFor="filtrar-estado">Filtrar por estado</label>
                     <select
@@ -196,11 +274,14 @@ function ResultadosAdministrador() {
                 </div>
 
                 {message && <p role="status">{message}</p>}
+                {error && <p role="alert">{error}</p>}
 
-                {visibleResults.length > 0 ? (
+                {loading ? (
+                    <p role="status">Cargando resultados...</p>
+                ) : error ? null : visibleResults.length > 0 ? (
                     <div>
                         <table>
-                            <caption>Resultados agregados durante esta sesión</caption>
+                            <caption>Resultados de afiliados aprobados de tu EPS</caption>
                             <thead>
                                 <tr>
                                     <th scope="col">Usuario</th>
@@ -217,7 +298,7 @@ function ResultadosAdministrador() {
                                 {visibleResults.map((result) => (
                                     <tr key={result.id}>
                                         <td>{result.patient}</td>
-                                        <td>{result.document}</td>
+                                        <td>{result.tipoDocumento} {result.document}</td>
                                         <td>{result.procedure}</td>
                                         <td>{result.date}</td>
                                         <td>{result.provider}</td>
@@ -226,10 +307,11 @@ function ResultadosAdministrador() {
                                         <td>
                                             <button
                                                 type="button"
-                                                onClick={() => removeResult(result.id)}
+                                                onClick={() => removeResult(result.id, result.patient)}
+                                                disabled={deletingId === result.id}
                                                 aria-label={`Eliminar resultado de ${result.patient}`}
                                             >
-                                                Eliminar
+                                                {deletingId === result.id ? "Eliminando..." : "Eliminar"}
                                             </button>
                                         </td>
                                     </tr>

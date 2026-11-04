@@ -85,6 +85,28 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_citas_ips_fecha_hora_confirmada
 CREATE INDEX IF NOT EXISTS idx_citas_usuario_fecha
     ON citas (usuario_id, fecha, hora);
 
+CREATE TABLE IF NOT EXISTS resultados_procedimientos (
+    id_resultado INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo_documento VARCHAR(10) NOT NULL,
+    numero_documento VARCHAR(30) NOT NULL,
+    eps TEXT NOT NULL,
+    procedimiento VARCHAR(120) NOT NULL,
+    fecha_procedimiento TEXT NOT NULL,
+    ips VARCHAR(120) NOT NULL,
+    estado TEXT NOT NULL CHECK (estado IN ('En proceso', 'Disponible')),
+    informe TEXT NOT NULL,
+    creado_por INTEGER NOT NULL,
+    creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_resultado_administrador FOREIGN KEY (creado_por)
+        REFERENCES usuarios (id_usuario)
+);
+
+CREATE INDEX IF NOT EXISTS idx_resultados_usuario_fecha
+    ON resultados_procedimientos (tipo_documento, numero_documento, fecha_procedimiento DESC);
+
+CREATE INDEX IF NOT EXISTS idx_resultados_eps
+    ON resultados_procedimientos (eps, fecha_procedimiento DESC);
+
 CREATE TABLE IF NOT EXISTS convenios (
     id TEXT PRIMARY KEY,
     eps_id TEXT NOT NULL,
