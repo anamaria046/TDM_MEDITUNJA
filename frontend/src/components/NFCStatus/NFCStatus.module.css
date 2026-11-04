@@ -63,6 +63,11 @@
     border-color: var(--color-secundary);
 }
 
+.nfcLinked .nfcStatus::before {
+    content: "✓ ";
+    color: #16834a;
+}
+
 @media (max-width: 600px) {
     .nfcCard {
         padding: 18px;

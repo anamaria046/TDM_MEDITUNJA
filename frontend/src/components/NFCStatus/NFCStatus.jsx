@@ -1,11 +1,26 @@
 import { Link } from "react-router-dom";
 import styles from "./NFCStatus.module.css";
 
+function obtenerIdentificador(tarjeta) {
+    if (typeof tarjeta === "string") return tarjeta;
+    return tarjeta?.id || tarjeta?.uid || "Tarjeta registrada";
+}
+
 function NfcStatus({ tarjeta }) {
     if (tarjeta) {
         return (
-            <section>
-                <p role="status">✓ Tarjeta NFC vinculada</p>
+            <section className={`${styles.nfcCard} ${styles.nfcLinked}`}>
+                <p className={styles.nfcStatus} role="status">Tarjeta de demostración vinculada</p>
+                <p className={styles.nfcDescription}>
+                    Identificador de demostración: <strong>{obtenerIdentificador(tarjeta)}</strong>
+                </p>
+                <Link
+                    to="/vinculacionNFC"
+                    state={{ origen: "/perfilUsuario" }}
+                    className={styles.nfcButton}
+                >
+                    Administrar tarjeta
+                </Link>
             </section>
         );
     }
