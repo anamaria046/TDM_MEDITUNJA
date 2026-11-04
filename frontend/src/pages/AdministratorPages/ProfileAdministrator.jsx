@@ -1,17 +1,11 @@
-import { Link } from "react-router-dom";
 import PersonalDataAdministrador from "../../components/administrator/PersonalDataAdministrador/PersonalDataAdministrador.jsx";
+import NavbarAdminEPS from "../../components/administrator/NavbarAdminEPS/NavbarAdminEPS.jsx";
 
 function ProfileAdministrador () {
     return (
         <div>
-            <section>
-                <h2>Administración de usuarios</h2>
-                <p>Revisa solicitudes de registro y administra los datos de afiliados.</p>
-                <Link to="/gestionUsuarios">Ir a Gestión de usuarios</Link>
-                <Link to="/resultados-administrador">Gestionar resultados de procedimientos</Link>
-            </section>
+            <NavbarAdminEPS />
             <PersonalDataAdministrador />
-
         </div>
     );
 }

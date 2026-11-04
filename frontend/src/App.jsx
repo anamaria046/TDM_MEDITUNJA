@@ -30,6 +30,7 @@ function App() {
                 <Route element={<RequireAdmin />}>
                     <Route path="/resultados-administrador" element={<ResultadosAdministrador />} />
                     <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
+                    <Route path="/perfilAdiminEPS" element={<Navigate to="/perfilAdministrador" replace />} />
                     <Route path="/gestionCitas" element={<AppointmentManagementModule />} />
                     <Route path="/gestionUsuarios" element={<UserGestor />} />
                     <Route path="/convenios" element={<ConveniosModule />} />

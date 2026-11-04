@@ -1,42 +1,92 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAdminAuth } from "../../../auth/useAdminAuth.js";
-import { mensajeError } from "../../../auth/api.js";
+import ProfileHeader from "../../ProfileHeader/ProfileHeader.jsx";
+import NfcStatus from "../../NFCStatus/NFCStatus.jsx";
+import styles from "./PersonalDataAdministrador.module.css";
+import { useAuth } from "../../../auth/useAdminAuth.js";
 
 function PersonalDataAdministrador() {
-    const { usuario, cerrarSesion } = useAdminAuth();
-    const navigate = useNavigate();
-    const [cerrandoSesion, setCerrandoSesion] = useState(false);
-
-    async function salir() {
-        setCerrandoSesion(true);
-        let aviso;
-        try {
-            await cerrarSesion();
-        } catch (errorSolicitud) {
-            aviso = `La sesión se cerró en este dispositivo, pero no se pudo confirmar su revocación en el servidor: ${mensajeError(errorSolicitud)}`;
-        }
-        navigate("/login", {
-            replace: true,
-            state: aviso ? { notice: aviso } : undefined,
-        });
-    }
+    const { sesion } = useAuth();
+    const usuario = sesion?.usuario || {};
+    const nombresPerfil = usuario.nombres || usuario.nombre || "—";
+    const apellidosPerfil = usuario.apellidos || "—";
+    const nombreCompleto = `${nombresPerfil} ${apellidosPerfil}`;
+    const estado = usuario.estado_afiliacion || "pendiente";
 
     return (
-        <section>
-            <h3>Cuenta administradora</h3>
-            <dl>
-                <dt>Nombres y apellidos</dt>
-                <dd>{usuario.nombres} {usuario.apellidos}</dd>
-                <dt>Documento</dt>
-                <dd>{usuario.tipo_documento} {usuario.numero_documento}</dd>
-                <dt>EPS administrada</dt>
-                <dd>{usuario.eps}</dd>
-            </dl>
-            <button type="button" onClick={salir} disabled={cerrandoSesion}>
-                {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión administrativa"}
-            </button>
-        </section>
+        <div className={styles.profileContainer}>
+
+            <section className={styles.profileSidebar}>
+                <ProfileHeader 
+                    nombre={nombreCompleto}
+                    tipo="Administrador de EPS"
+                    estadoTexto={
+                        usuario.estado === "aprobado"
+                            ? "Cuenta activa"
+                            : "Cuenta pendiente"
+                    }
+                />
+            </section>
+
+            <section className={styles.profileContent}>
+
+                <fieldset>
+                    <h3>Información del Administrador de la EPS</h3>
+
+                    <div className={styles.profileGrid}>
+
+                        <div className={styles.dataGroup}>
+                            <label>Nombres</label>
+                            <p>{nombresPerfil}</p>
+                        </div>
+
+                        <div className={styles.dataGroup}>
+                            <label>Apellidos</label>
+                            <p>{apellidosPerfil}</p>
+                        </div>
+
+                        <div className={styles.dataGroup}>
+                            <label>Tipo de Documento</label>
+                            <p>{usuario?.tipo_documento || "—"}</p>
+                        </div>
+
+                        <div className={styles.dataGroup}>
+                            <label>Número de documento</label>
+                            <p>
+                                {usuario?.numero_documento ||
+                                 usuario?.documento || "—"}
+                            </p>
+                        </div>
+
+                        <div className={styles.dataGroup}>
+                            <label>EPS administrada</label>
+                            <p>{usuario?.eps || "EPS no registrada"}</p>
+                        </div>
+
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <h3>Datos de contacto</h3>
+
+                    <div className={styles.profileGrid}>
+                        <div className={styles.dataGroup}>
+                            <label>Correo electrónico</label>
+                            <p>{usuario?.email || "—"}</p>
+                        </div>
+                    </div>
+                </fieldset>
+
+                {estado === "aprobado" && (
+                    <fieldset>
+                        <h3>Tarjeta NFC</h3>
+
+                        <NfcStatus
+                            tarjeta={usuario?.tarjetaNfc || usuario?.tarjeta_nfc}
+                        />
+                    </fieldset>
+                )}
+
+            </section>
+        </div>
     );
 }
 
