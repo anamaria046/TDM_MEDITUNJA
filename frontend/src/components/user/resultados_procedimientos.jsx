@@ -1,32 +1,60 @@
+import { FileSearch, Info, MoveLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import Hero from "../Hero/Hero.jsx";
+import NavbarUser from "./NavbarUser/NavbarUser.jsx";
+import styles from "./ResultadosProcedimientos.module.css";
 
 function ResultadosProcedimientos() {
     return (
-        <main>
-            <header>
-                <Link to="/citas">← Volver a mis citas</Link>
-                <p>MediTunja · Mi salud</p>
-                <h1>Resultados de procedimientos</h1>
-                <p>Consulta el estado y los informes de tus procedimientos médicos.</p>
-            </header>
+        <>
+            <NavbarUser />
+            <Hero
+                label="Mi salud"
+                title="Resultados de procedimientos"
+                description="Consulta el estado y los informes de tus procedimientos médicos."
+            />
 
-            <section aria-label="Información importante">
-                <p>
-                    Los resultados de tus procedimientos aparecerán aquí cuando estén disponibles.
-                    Si necesitas información, comunícate con la IPS donde te atendieron.
-                </p>
-            </section>
+            <main className={styles.resultsPage}>
+                <Link className={styles.backLink} to="/citas">
+                    <MoveLeft size={18} aria-hidden="true" />
+                    Volver a mis citas
+                </Link>
 
-            <section aria-labelledby="listado-titulo">
-                <h2 id="listado-titulo">Tus procedimientos</h2>
-                <div role="status">
-                    <h3>Aún no hay resultados disponibles</h3>
+                <section className={styles.infoNotice} aria-label="Información importante">
+                    <span className={styles.infoIcon} aria-hidden="true">
+                        <Info size={20} />
+                    </span>
                     <p>
-                        Cuando la IPS publique los resultados de tus procedimientos, podrás consultarlos en esta sección.
+                        Los resultados de tus procedimientos aparecerán aquí cuando estén disponibles.
+                        Si necesitas información, comunícate con la IPS donde te atendieron.
                     </p>
-                </div>
-            </section>
-        </main>
+                </section>
+
+                <section className={styles.resultsSection} aria-labelledby="listado-titulo">
+                    <div className={styles.sectionHeading}>
+                        <div>
+                            <span className={styles.eyebrow}>Tu historial médico</span>
+                            <h2 id="listado-titulo">Tus procedimientos</h2>
+                        </div>
+                        <span className={styles.resultsCount}>0 disponibles</span>
+                    </div>
+
+                    <div className={styles.emptyState} role="status">
+                        <span className={styles.emptyIcon} aria-hidden="true">
+                            <FileSearch size={30} />
+                        </span>
+                        <h3>Aún no hay resultados disponibles</h3>
+                        <p>
+                            Cuando la IPS publique los resultados de tus procedimientos, podrás
+                            consultarlos en esta sección.
+                        </p>
+                        <Link className={styles.appointmentsLink} to="/citas">
+                            Consultar mis citas
+                        </Link>
+                    </div>
+                </section>
+            </main>
+        </>
     );
 }
 
