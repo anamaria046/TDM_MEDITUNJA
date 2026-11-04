@@ -30,7 +30,7 @@ function LoginForm() {
     if (sesion) {
         return (
             <Navigate
-                to={sesion.usuario?.estado_afiliacion === "aprobado" ? "/citas" : "/perfilUsuario"}
+                to={sesion.usuario?.estado_afiliacion === "aprobado" ? "/home" : "/perfilUsuario"}
                 replace
             />
         );
@@ -56,7 +56,7 @@ function LoginForm() {
                 navigate(location.state?.from?.pathname || "/perfilAdministrador", { replace: true });
             } else {
                 await iniciarSesion(credenciales);
-                navigate(location.state?.from?.pathname || "/citas", { replace: true });
+                navigate(location.state?.from?.pathname || "/home", { replace: true });
             }
         } catch (errorSolicitud) {
             setError(mensajeError(errorSolicitud));

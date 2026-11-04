@@ -6,10 +6,10 @@ import { mensajeError } from "../../../auth/api.js";
 function PersonalDataAdministrador() {
     const { usuario, cerrarSesion } = useAdminAuth();
     const navigate = useNavigate();
-    const [error, setError] = useState("");
+    const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
     async function salir() {
-        setError("");
+        setCerrandoSesion(true);
         let aviso;
         try {
             await cerrarSesion();
@@ -33,8 +33,9 @@ function PersonalDataAdministrador() {
                 <dt>EPS administrada</dt>
                 <dd>{usuario.eps}</dd>
             </dl>
-            {error && <p role="alert">{error}</p>}
-            <button type="button" onClick={salir}>Cerrar sesión administrativa</button>
+            <button type="button" onClick={salir} disabled={cerrandoSesion}>
+                {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión administrativa"}
+            </button>
         </section>
     );
 }

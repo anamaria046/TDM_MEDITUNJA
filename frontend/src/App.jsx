@@ -36,7 +36,7 @@ function App() {
                     <Route path="/gestionConvenios" element={<ConveniosModule />} />
                 </Route>
                 <Route element={<RequireAuth />}>
-                    <Route path="/" element={<AppointmentModule />} />
+                    <Route path="/" element={<HomeUserModule />} />
                     <Route path="/citas" element={<AppointmentModule />} />
                     <Route path="/home" element={<HomeUserModule />} />
                     <Route path="/pagos" element={<PaymentModule />} />

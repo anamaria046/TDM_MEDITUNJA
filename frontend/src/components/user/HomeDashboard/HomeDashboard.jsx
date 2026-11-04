@@ -1,15 +1,23 @@
 import { Link } from "react-router-dom";
-import { CalendarPlus, CirclePlay, FileText, ShieldCheck } from "lucide-react";
+import { CalendarPlus, FileText, ShieldCheck } from "lucide-react";
+import { useAuth } from "../../../auth/useAuth.js";
 import styles from "./HomeDashboard.module.css";
 
 function HomeDashboard() {
+    const { sesion } = useAuth();
+    const usuario = sesion?.usuario;
+    const nombre = [usuario?.nombres || usuario?.nombre, usuario?.apellidos]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || "paciente";
+
     return (
         <div className={styles.home}>
             <main className={styles.main}>
                 <section className={styles.welcome} aria-labelledby="home-title">
                     <div className={styles.welcomeCopy}>
-                        <span className={styles.eyebrow}>PÁGINA DE INICIO</span>
-                        <h1 id="home-title">Hola, paciente. Bienvenido de nuevo</h1>
+                        <span className={styles.eyebrow}>BIENVENIDO A MEDITUNJA</span>
+                        <h1 id="home-title">Hola, {nombre}</h1>
                         <p>Gestiona tu salud de forma simple, rápida y segura.</p>
                     </div>
                     <div className={styles.securityBadge}>
@@ -22,19 +30,6 @@ function HomeDashboard() {
                 </section>
 
                 <section className={styles.dashboard} aria-label="Accesos de MediTunja">
-                    <article className={styles.tutorialCard}>
-                        <span className={styles.tutorialEyebrow}>RECORRIDO POR LA PLATAFORMA</span>
-                        <h2>Conoce todo lo que puedes hacer en MediTunja</h2>
-                        <p>
-                            Aprende a agendar citas, consultar resultados y encontrar
-                            nuestras sedes con un recorrido breve.
-                        </p>
-                        <Link to="/citas" className={styles.tutorialButton}>
-                            <span className={styles.playIcon}><CirclePlay size={22} /></span>
-                            Iniciar tutorial guiado
-                        </Link>
-                    </article>
-
                     <div className={styles.quickLinks}>
                         <Link to="/citas" className={styles.actionCard}>
                             <span className={`${styles.actionIcon} ${styles.purpleIcon}`}>
