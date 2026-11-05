@@ -1,28 +1,25 @@
 import ProfileHeader from "../../ProfileHeader/ProfileHeader.jsx";
 import NfcStatus from "../../NFCStatus/NFCStatus.jsx";
 import styles from "./PersonalDataAdministrador.module.css";
-import { useAuth } from "../../../auth/useAdminAuth.js";
+import { useAdminAuth } from "../../../auth/useAdminAuth.js";
 
 function PersonalDataAdministrador() {
-    const { sesion } = useAuth();
-    const usuario = sesion?.usuario || {};
+    const { usuario, cerrarSesion } = useAdminAuth();
     const nombresPerfil = usuario.nombres || usuario.nombre || "—";
     const apellidosPerfil = usuario.apellidos || "—";
     const nombreCompleto = `${nombresPerfil} ${apellidosPerfil}`;
-    const estado = usuario.estado_afiliacion || "pendiente";
+    const estado = usuario.estado_registro || "pendiente";
 
     return (
         <div className={styles.profileContainer}>
 
             <section className={styles.profileSidebar}>
-                <ProfileHeader 
+                <ProfileHeader
+                    usuario={usuario}
+                    cerrarSesion={cerrarSesion}
                     nombre={nombreCompleto}
                     tipo="Administrador de EPS"
-                    estadoTexto={
-                        usuario.estado === "aprobado"
-                            ? "Cuenta activa"
-                            : "Cuenta pendiente"
-                    }
+                    estadoTexto={estado === "aprobado" ? "Cuenta activa" : "Cuenta pendiente"}
                 />
             </section>
 

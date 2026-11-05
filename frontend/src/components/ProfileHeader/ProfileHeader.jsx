@@ -3,35 +3,41 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth.js";
 import styles from "./ProfileHeader.module.css";
 
-function ProfileHeader() {
+function ProfileHeader({
+    nombre: nombrePersonalizado,
+    tipo: tipoPersonalizado,
+    estadoTexto: estadoTextoPersonalizado,
+    usuario: usuarioPersonalizado,
+    cerrarSesion: cerrarSesionPersonalizado,
+}) {
     const { sesion, cerrarSesion } = useAuth();
     const navigate = useNavigate();
     const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
-    const usuario = sesion?.usuario || {};
+    const usuario = usuarioPersonalizado || sesion?.usuario || {};
 
-    const nombrePerfil =
+    const nombrePerfil = nombrePersonalizado ||
         usuario.nombres ||
         usuario.nombre ||
         "Mi perfil";
 
-    const tipo = {
+    const tipo = tipoPersonalizado || ({
         paciente: "Paciente MediTunja",
         administrador: "Administrador de EPS",
         admin: "Administrador",
         medico: "Profesional de salud"
-    }[usuario.rol] || "Usuario MediTunja";
+    }[usuario.rol] || "Usuario MediTunja");
 
     const estado =
         usuario.estado_afiliacion ||
         usuario.estado ||
         "pendiente";
 
-    const etiquetaEstado = {
+    const etiquetaEstado = estadoTextoPersonalizado || ({
         pendiente: "Afiliación en validación",
         aprobado: "Cuenta activa",
         rechazado: "Afiliación rechazada"
-    }[estado] || "Cuenta activa";
+    }[estado] || "Cuenta activa");
 
     const iniciales = nombrePerfil
         .split(" ")
@@ -47,7 +53,7 @@ function ProfileHeader() {
         let notice;
 
         try {
-            await cerrarSesion();
+            await (cerrarSesionPersonalizado || cerrarSesion)();
         } catch {
             notice = "Se cerró la sesión en este dispositivo, pero no se pudo confirmar su revocación en el servidor.";
         }
