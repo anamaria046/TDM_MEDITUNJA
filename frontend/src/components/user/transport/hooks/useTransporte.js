@@ -15,26 +15,26 @@ export function useTransporte() {
   // 2. Estado de la solicitud
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
 
-  // 4. Discapacidad y adaptaciones automáticas
+  // 3. Discapacidad y adaptaciones automáticas
   const [tipoDiscapacidad, setTipoDiscapacidad] = useState("");
   const [requerimientosSeleccionados, setRequerimientosSeleccionados] = useState([]);
   const [requerimientosRecomendados, setRequerimientosRecomendados] = useState([]);
 
-  // 5. Modal de confirmación para desmarcar requerimientos recomendados
+  // 4. Modal de confirmación para desmarcar requerimientos recomendados
   const [modalConfirmacion, setModalConfirmacion] = useState({
     isOpen: false,
     reqId: null,
     reqTitulo: ""
   });
 
-  // 5b. Modal de confirmación para limpiar todos los campos
+  // 4b. Modal de confirmación para limpiar todos los campos
   const [modalLimpiar, setModalLimpiar] = useState(false);
 
-  // 6. Acompañante (por defecto 'no'; solo muestra nombre si se elige 'si')
+  // 5. Acompañante (por defecto 'no'; solo muestra nombre si se elige 'si')
   const [viajaAcompanante, setViajaAcompanante] = useState("no");
   const [nombreAcompanante, setNombreAcompanante] = useState("");
 
-  // 7. Datos de recogida ingresados por el usuario
+  // 6. Datos de recogida ingresados por el usuario
   const [direccionOrigen, setDireccionOrigen] = useState("");
   const [barrioSector, setBarrioSector] = useState("");
   const [puntosReferencia, setPuntosReferencia] = useState("");

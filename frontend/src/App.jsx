@@ -14,6 +14,7 @@ import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrato
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
 import ConveniosModule from "./pages/AdministratorPages/ConveniosModule.jsx";
+import BienvenidaAdminModule from "./pages/AdministratorPages/BienvenidaAdminModule.jsx";
 import NFCVinculation from "./components/NFCVinculation/NFCVinculation.jsx";
 import RequireAdmin from "./auth/RequireAdmin.jsx";
 import RequireAuth from "./auth/RequireAuth.jsx";
@@ -28,6 +29,9 @@ function App() {
                 <Route path="/registro" element={<Register />} />
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
                 <Route element={<RequireAdmin />}>
+                    <Route path="/admin" element={<BienvenidaAdminModule />} />
+                    <Route path="/inicioAdmin" element={<BienvenidaAdminModule />} />
+                    <Route path="/admin/inicio" element={<BienvenidaAdminModule />} />
                     <Route path="/resultados-administrador" element={<ResultadosAdministrador />} />
                     <Route path="/perfilAdministrador" element={<ProfileAdministrador />} />
                     <Route path="/perfilAdiminEPS" element={<Navigate to="/perfilAdministrador" replace />} />

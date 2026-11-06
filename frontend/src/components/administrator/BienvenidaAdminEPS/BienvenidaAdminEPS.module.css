@@ -1,0 +1,173 @@
+/* ==========================================================================
+   MÓDULO DE BIENVENIDA ADMIN EPS - MediTunja
+   Estructura base de clases para maquetación HTML y JSX modular
+   ========================================================================== */
+
+/* Contenedor Principal con Layout Sidebar + Contenido */
+.moduloBienvenidaAdmin {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modificador opcional de tema oscuro */
+.modoOscuro {
+  /* Preparado para personalización de tema */
+}
+
+/* 1. Sidebar Lateral */
+.sidebarAdmin {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandContenedor {
+  display: flex;
+  align-items: center;
+}
+
+.avatarLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandTexto {
+  display: flex;
+  flex-direction: column;
+}
+
+.nombreMarca {
+  /* Tipografía de marca */
+}
+
+.subtituloMarca {
+  /* Subtítulo de rol */
+}
+
+.navSidebar {
+  /* Navegación del menú lateral */
+}
+
+.listaMenu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.itemMenu {
+  /* Item del menú */
+}
+
+.enlaceMenu {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.enlaceMenuActivo {
+  /* Estado activo seleccionado */
+}
+
+.iconoMenu {
+  /* Icono de la opción */
+}
+
+.textoMenu {
+  /* Texto de la opción */
+}
+
+/* 2. Área de Trabajo Principal */
+.contenedorAreaTrabajo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+}
+
+/* 3. Header Superior */
+.headerAdmin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.infoEntidad {
+  display: flex;
+  flex-direction: column;
+}
+
+.rolEtiqueta {
+  /* ADMINISTRADOR EPS */
+}
+
+.nombreEntidad {
+  /* Nueva EPS · Regional Boyacá */
+  margin: 0;
+}
+
+.accionesHeader {
+  display: flex;
+  align-items: center;
+}
+
+.btnModoOscuro {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+/* 4. Contenido Principal y Métricas */
+.contenidoPrincipal {
+  flex: 1;
+}
+
+.seccionMetricas {
+  /* Sección de bienvenida y KPIs */
+}
+
+.encabezadoBienvenida {
+  display: flex;
+  flex-direction: column;
+}
+
+.badgePanel {
+  /* PANEL ADMINISTRATIVO */
+  display: inline-block;
+}
+
+.tituloBienvenida {
+  /* Bienvenido de nuevo */
+  margin: 0;
+}
+
+.descripcionBienvenida {
+  /* Aquí tienes un resumen de la operación de MediTunja. */
+}
+
+.rejillaMetricas {
+  display: grid;
+}
+
+.tarjetaMetrica {
+  display: flex;
+  flex-direction: column;
+}
+
+.valorMetrica {
+  /* 1.248 / 84 / 27 */
+  font-weight: bold;
+}
+
+.etiquetaMetrica {
+  /* Afiliados activos / Citas este mes / Resultados pendientes */
+}
+
+/* 5. Botón Flotante de Ayuda */
+.btnAyudaFlotante {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  cursor: pointer;
+}

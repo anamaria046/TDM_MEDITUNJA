@@ -77,7 +77,7 @@ function Pay() {
         </ol>
       </nav>
 
-      {/* 3. Cabecera con navegación de retorno */}
+      {/* 2. Cabecera con navegación de retorno */}
       <header className={styles.cabeceraPagos}>
         <nav aria-label="Navegación secundaria" className={styles.navFlujo}>
           <Link to="/citas" className={styles.enlaceVolver}>
@@ -95,7 +95,7 @@ function Pay() {
         </div>
       </header>
 
-      {/* 4. Contenido Principal */}
+      {/* 3. Contenido Principal */}
       <main className={styles.contenidoPrincipal}>
         {pagoExitoso ? (
           <ResumenPagoExito
@@ -134,7 +134,7 @@ function Pay() {
         )}
       </main>
 
-      {/* 5. Pie de página */}
+      {/* 4. Pie de página */}
       <footer className={styles.piePagos}>
         <div className={styles.pieContenedor}>
           <p>

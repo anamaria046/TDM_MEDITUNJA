@@ -72,7 +72,7 @@ function TransportePreferencial() {
         </ol>
       </nav>
 
-      {/* 3. Cabecera con navegación de retorno */}
+      {/* 2. Cabecera con navegación de retorno */}
       <header className={styles.cabeceraTransporte}>
         <nav aria-label="Navegación secundaria y opciones de ruta" className={styles.navFlujo}>
           <Link to="/citas" className={styles.enlaceVolver}>
@@ -105,7 +105,7 @@ function TransportePreferencial() {
         </div>
       </header>
 
-      {/* 4. Contenido Principal */}
+      {/* 3. Contenido Principal */}
       <main className={styles.contenidoPrincipal}>
         {solicitudEnviada ? (
           <ResumenExito
@@ -508,7 +508,7 @@ function TransportePreferencial() {
         )}
       </main>
 
-      {/* 5. Ventana modal de confirmación para desmarcar requerimientos recomendados */}
+      {/* 4. Ventana modal de confirmación para desmarcar requerimientos recomendados */}
       <ModalConfirmacion
         isOpen={modalConfirmacion.isOpen}
         reqTitulo={modalConfirmacion.reqTitulo}
@@ -561,7 +561,7 @@ function TransportePreferencial() {
         </div>
       )}
 
-      {/* 6. Pie de página */}
+      {/* 5. Pie de página */}
       <footer className={styles.pieTransporte}>
         <div className={styles.pieContenedor}>
           <p>
