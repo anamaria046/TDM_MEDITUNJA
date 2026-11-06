@@ -15,6 +15,7 @@ import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentM
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
 import ConveniosModule from "./pages/AdministratorPages/ConveniosModule.jsx";
 import BienvenidaAdminModule from "./pages/AdministratorPages/BienvenidaAdminModule.jsx";
+import BienvenidaOperadorModule from "./pages/OperatorPages/BienvenidaOperadorModule.jsx";
 import NFCVinculation from "./components/NFCVinculation/NFCVinculation.jsx";
 import RequireAdmin from "./auth/RequireAdmin.jsx";
 import RequireAuth from "./auth/RequireAuth.jsx";
@@ -28,6 +29,9 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Register />} />
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+                <Route path="/operador" element={<BienvenidaOperadorModule />} />
+                <Route path="/operador/inicio" element={<BienvenidaOperadorModule />} />
+                <Route path="/inicioOperador" element={<BienvenidaOperadorModule />} />
                 <Route element={<RequireAdmin />}>
                     <Route path="/admin" element={<BienvenidaAdminModule />} />
                     <Route path="/inicioAdmin" element={<BienvenidaAdminModule />} />
