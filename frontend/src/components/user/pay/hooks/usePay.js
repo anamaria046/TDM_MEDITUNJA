@@ -10,27 +10,23 @@ import {
 } from "../data/payData";
 
 export function usePay() {
-  // 1. Accesibilidad (tamaño de texto y modo alto contraste)
-  const [fontSize, setFontSize] = useState("normal"); // 'normal', 'large', 'xlarge'
-  const [highContrast, setHighContrast] = useState(false);
-
-  // 2. Estado del flujo de pago
+  // 1. Estado del flujo de pago
   const [pagoExitoso, setPagoExitoso] = useState(false);
 
-  // 3. Datos del paciente y cita médica precargados (bloqueados para trazabilidad)
+  // 2. Datos del paciente y cita médica precargados (bloqueados para trazabilidad)
   const [datosCita] = useState(DATOS_CITA_PAGO_PRECARGADOS);
 
-  // 4. Integración del servicio de Transporte Preferencial Adaptado
+  // 3. Integración del servicio de Transporte Preferencial Adaptado
   const [incluyeTransporte, setIncluyeTransporte] = useState(true);
   const [tipoAsistenciaTransporte, setTipoAsistenciaTransporte] = useState("rampa-silla");
 
-  // 5. Configuración del método de pago
+  // 4. Configuración del método de pago
   const [metodoPago, setMetodoPago] = useState("pse");
   const [bancoPse, setBancoPse] = useState("bancolombia");
   const [celularNequi, setCelularNequi] = useState("3123456789");
   const [tarjetaNfcLeida, setTarjetaNfcLeida] = useState(false);
 
-  // 6. Transacción generada
+  // 5. Transacción generada
   const [codigoTransaccion, setCodigoTransaccion] = useState("");
   const [fechaTransaccion, setFechaTransaccion] = useState("");
 
@@ -72,18 +68,6 @@ export function usePay() {
     setTarjetaNfcLeida(false);
   };
 
-  // Audio-guía accesible
-  const handleAudioGuia = () => {
-    alert(
-      "Audio-guía de Pago MediTunja:\n" +
-      `Estás pagando la ${PRECIOS_CITA[datosCita.tipoCita]?.nombre} por valor de ${formatearMoneda(valorCita)}.\n` +
-      (incluyeTransporte
-        ? `Tienes activado el servicio de Transporte Preferencial Adaptado por ${formatearMoneda(TARIFA_TRANSPORTE)}.\n`
-        : "No tienes seleccionado transporte adaptado.\n") +
-      `Total a cancelar: ${formatearMoneda(totalPagar)}.`
-    );
-  };
-
   // Descarga de recibo comprobante
   const handleDescargarRecibo = () => {
     alert(
@@ -98,10 +82,6 @@ export function usePay() {
   };
 
   return {
-    fontSize,
-    setFontSize,
-    highContrast,
-    setHighContrast,
     pagoExitoso,
     datosCita,
     incluyeTransporte,
@@ -123,7 +103,6 @@ export function usePay() {
     handleEscanearNFC,
     handleSubmit,
     handleNuevoPago,
-    handleAudioGuia,
     handleDescargarRecibo
   };
 }

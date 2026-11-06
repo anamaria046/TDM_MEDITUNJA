@@ -11,10 +11,6 @@ import FormularioPago from "./FormularioPago";
 
 function Pay() {
   const {
-    fontSize,
-    setFontSize,
-    highContrast,
-    setHighContrast,
     pagoExitoso,
     datosCita,
     incluyeTransporte,
@@ -36,59 +32,12 @@ function Pay() {
     handleEscanearNFC,
     handleSubmit,
     handleNuevoPago,
-    handleAudioGuia,
     handleDescargarRecibo
   } = usePay();
 
   return (
-    <div
-      className={`${styles.moduloPagos} ${
-        highContrast ? styles.modoAltoContraste : ""
-      } ${styles[`fuente${fontSize.charAt(0).toUpperCase() + fontSize.slice(1)}`] || ""}`}
-    >
-      {/* 1. Barra superior de accesibilidad */}
-      <aside className={styles.barraAccesibilidad} aria-label="Herramientas de accesibilidad">
-        <div className={styles.accesibilidadContenedor}>
-          <span className={styles.accesibilidadTitulo}>Accesibilidad:</span>
-          <div className={styles.accesibilidadBotones}>
-            <button
-              type="button"
-              className={styles.btnAccesibilidad}
-              onClick={() => setHighContrast(!highContrast)}
-              aria-pressed={highContrast}
-              aria-label="Alternar modo de alto contraste"
-            >
-              👁️ {highContrast ? "Contraste Normal" : "Alto Contraste"}
-            </button>
-            <button
-              type="button"
-              className={styles.btnAccesibilidad}
-              onClick={() =>
-                setFontSize(
-                  fontSize === "normal"
-                    ? "large"
-                    : fontSize === "large"
-                    ? "xlarge"
-                    : "normal"
-                )
-              }
-              aria-label="Ajustar tamaño de texto"
-            >
-              🔍 Texto: {fontSize.toUpperCase()}
-            </button>
-            <button
-              type="button"
-              className={`${styles.btnAccesibilidad} ${styles.btnAudio}`}
-              onClick={handleAudioGuia}
-              aria-label="Escuchar resumen del pago en voz alta"
-            >
-              🔊 Escuchar Resumen
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* 2. Barra de Secuencia Visual del Flujo de Usuario */}
+    <div className={styles.moduloPagos}>
+      {/* 1. Barra de Secuencia Visual del Flujo de Usuario */}
       <nav className={styles.barraSecuencia} aria-label="Ruta y pasos del proceso">
         <ol className={styles.listaSecuencia}>
           <li className={`${styles.pasoSecuencia} ${styles.pasoCompletado}`}>

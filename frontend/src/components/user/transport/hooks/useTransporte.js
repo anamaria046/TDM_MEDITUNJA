@@ -9,14 +9,10 @@ import {
 } from "../data/transporteData";
 
 export function useTransporte() {
-  // 1. Accesibilidad (tamaño de texto y alto contraste)
-  const [fontSize, setFontSize] = useState("normal");
-  const [highContrast, setHighContrast] = useState(false);
-
-  // 2. Datos precargados de la cita médica (bloqueados)
+  // 1. Datos precargados de la cita médica (bloqueados)
   const [datosCita] = useState(DATOS_CITA_PRECARGADOS);
 
-  // 3. Estado de la solicitud
+  // 2. Estado de la solicitud
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
 
   // 4. Discapacidad y adaptaciones automáticas
@@ -143,12 +139,6 @@ export function useTransporte() {
   };
 
   return {
-    // Accesibilidad
-    fontSize,
-    setFontSize,
-    highContrast,
-    setHighContrast,
-
     // Cita (bloqueados)
     datosCita,
 
