@@ -1,4 +1,7 @@
-import styles from "./AppointmentEps.module.css"
+import { useState } from "react";
+import ModifyAppointment from "../ModifyAppointment/ModifyAppointment.jsx";
+import CancelAppointment from "../CancelAppointment/CancelAppointment.jsx";
+import styles from "./AppointmentEps.module.css";
 
 const citasEjemplo = [
     {
@@ -15,6 +18,19 @@ const citasEjemplo = [
 ];
 
 function AppointmentEps({ citas = citasEjemplo }) {
+    const [modalActivo, setModalActivo] = useState(null);
+    const [citaSeleccionada, setCitaSeleccionada] = useState(null);
+
+    const abrirModal = (tipo, cita) => {
+        setCitaSeleccionada(cita);
+        setModalActivo(tipo);
+    };
+
+    const cerrarModal = () => {
+        setModalActivo(null);
+        setCitaSeleccionada(null);
+    };
+
     return (
         <section className={styles.container}>
             <div className={styles.list}>
@@ -51,19 +67,34 @@ function AppointmentEps({ citas = citasEjemplo }) {
                         <button
                             type="button"
                             className={styles.Modify}
-                            onClick={() => console.log("Cita:", cita)}
+                            onClick={() => abrirModal("modificar", cita)}
                         >
                             Modificar
                         </button>
                         <button
                             type="button"
                             className={styles.cancel}
+                            onClick={() => abrirModal("cancelar", cita)}
                         >
                             Cancelar
                         </button>
                     </article>
                 ))}
             </div>
+
+            {modalActivo === "modificar" && (
+                <ModifyAppointment
+                    cita={citaSeleccionada}
+                    onClose={cerrarModal}
+                />
+            )}
+
+            {modalActivo === "cancelar" && (
+                <CancelAppointment
+                    cita={citaSeleccionada}
+                    onClose={cerrarModal}
+                />
+            )}
         </section>
     );
 }

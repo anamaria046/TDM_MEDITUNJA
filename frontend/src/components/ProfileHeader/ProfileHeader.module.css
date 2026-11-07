@@ -51,6 +51,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    width: fit-content;
     padding: 9px 14px;
     border-radius: 30px;
     background-color: var(--color-tertiary);

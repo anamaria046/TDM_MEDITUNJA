@@ -12,19 +12,15 @@ function PersonalDataAdministrador() {
 
     return (
         <div className={styles.profileContainer}>
-
-            <section className={styles.profileSidebar}>
+            <section className={styles.profileContent}>
                 <ProfileHeader
                     usuario={usuario}
                     cerrarSesion={cerrarSesion}
                     nombre={nombreCompleto}
                     tipo="Administrador de EPS"
                     estadoTexto={estado === "aprobado" ? "Cuenta activa" : "Cuenta pendiente"}
+                    className={styles.headerAdministrador}
                 />
-            </section>
-
-            <section className={styles.profileContent}>
-
                 <fieldset>
                     <h3>Información del Administrador de la EPS</h3>
 

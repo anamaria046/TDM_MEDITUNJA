@@ -67,7 +67,7 @@
     border: none;
     border-radius: 8px;
     background-color: var(--color-primary);
-    color: white;
+    color: var(--color-bg);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;

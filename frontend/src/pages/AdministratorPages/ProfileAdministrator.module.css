@@ -3,6 +3,11 @@
     min-height: 100vh;
 }
 
+.profileLayout > :first-child {
+    width: 280px;
+    flex-shrink: 0;
+}
+
 .profileContent {
     flex: 1;
     min-width: 0;
@@ -11,5 +16,9 @@
 @media (max-width: 600px) {
     .profileLayout {
         flex-direction: column;
+    }
+
+    .profileLayout > :first-child {
+        width: 100%;
     }
 }

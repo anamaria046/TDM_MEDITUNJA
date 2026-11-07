@@ -3,8 +3,6 @@ import HeaderAdmin from "../../components/administrator/HeaderAdmin/HeaderAdmin.
 import Hero from "../../components/Hero/Hero.jsx";
 import Filter from "../../components/Filter/Filter.jsx";
 import AppointmentEps from "../../components/administrator/AppointmentManagement/AppointmentEps/AppointmentEps.jsx";
-import ModifyAppointment from "../../components/administrator/AppointmentManagement/ModifyAppointment/ModifyAppointment.jsx";
-import CancelAppointment from "../../components/administrator/AppointmentManagement/CancelAppointment/CancelAppointment.jsx";
 
 import styles from "./AppointmentM.module.css";
 
@@ -21,8 +19,6 @@ function AppointmentManagementModule (){
                 />
                 <Filter />
                 <AppointmentEps />
-                <ModifyAppointment />
-                <CancelAppointment />
             </div>
             
         </div>

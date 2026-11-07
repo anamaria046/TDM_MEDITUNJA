@@ -9,6 +9,7 @@ function ProfileHeader({
     estadoTexto: estadoTextoPersonalizado,
     usuario: usuarioPersonalizado,
     cerrarSesion: cerrarSesionPersonalizado,
+    className = "",
 }) {
     const { sesion, cerrarSesion } = useAuth();
     const navigate = useNavigate();
@@ -65,30 +66,38 @@ function ProfileHeader({
     }
 
     return (
-        <div className={styles.headerContainer}>
-            <div className={styles.initials}>
-                {iniciales}
+        <div className={`${styles.headerContainer} ${className}`}>
+            <div className={styles.avatar}>
+                <div className={styles.initials}>
+                    {iniciales}
+                </div>
+            </div>
+            
+            <div className={styles.info}>
+                <h2>{nombrePerfil}</h2>
+
+                <p>{tipo}</p>
+
+                <span className={styles.state}>
+                    <span className={styles.indicator}></span>
+                    {etiquetaEstado}
+                </span>
             </div>
 
-            <h2>{nombrePerfil}</h2>
+            <div>
+                <button
+                    className={styles.logOutButton}
+                    type="button"
+                    onClick={salir}
+                    disabled={cerrandoSesion}
+                >
+                    {cerrandoSesion
+                        ? "Cerrando sesión..."
+                        : "Cerrar sesión"}
+                </button>
+            </div>
 
-            <p>{tipo}</p>
-
-            <span className={styles.state}>
-                <span className={styles.indicator}></span>
-                {etiquetaEstado}
-            </span>
-
-            <button
-                className={styles.logOutButton}
-                type="button"
-                onClick={salir}
-                disabled={cerrandoSesion}
-            >
-                {cerrandoSesion
-                    ? "Cerrando sesión..."
-                    : "Cerrar sesión"}
-            </button>
+            
         </div>
     );
 }

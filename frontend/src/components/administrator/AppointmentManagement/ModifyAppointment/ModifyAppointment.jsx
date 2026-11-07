@@ -1,14 +1,21 @@
-function ModifyAppointment() {
-    return (
-        <section>
-            <h3>Modificar Cita de Afiliado (EPS Sura)</h3>
-            <p>
-                <strong>Cita:</strong>| <strong>Afiliado:</strong> Juan Andrés Pérez | <strong>Convenio:</strong> Plan Contributivo Sura
-            </p>
+import { SquarePen } from "lucide-react";
+import styles from "./modifyAppointment.module.css";
 
-            <form>
-                <div>
-                    <div>
+function ModifyAppointment({ cita, onClose }) {
+    return (
+        <div className={styles.modalOverlay}>
+            <div className={styles.modifyForm} role="dialog" aria-modal="true" aria-labelledby="modify-appointment-title">
+                <div className={styles.iconContainer}>
+                    <SquarePen className={styles.icon} size={20} />
+                </div>
+
+                <h3 id="modify-appointment-title">Modificar Cita</h3>
+                <p>
+                    <strong>Cita: </strong> {cita?.id} | <strong> Afiliado: </strong> {cita?.afiliado} | <strong> Convenio: </strong> {cita?.ips}
+                </p>
+
+                <form>
+                    <div className={styles.group}>
                         <label htmlFor="admin-ips">Reasignar a IPS en Convenio:</label>
                         <br />
                         <select id="admin-ips" name="ips">
@@ -17,13 +24,13 @@ function ModifyAppointment() {
                         </select>
                     </div>
 
-                    <div>
+                    <div className={styles.group}>
                         <label htmlFor="admin-fecha">Nueva Fecha:</label>
                         <br />
                         <input type="date" id="admin-fecha" name="fecha" defaultValue="2026-11-12" required />
                     </div>
 
-                    <div>
+                    <div className={styles.group}>
                         <label htmlFor="admin-hora">Horario de Atención:</label><br />
                         <select id="admin-hora" name="hora" defaultValue="09:00">
                             <option value="08:00">08:00 AM</option>
@@ -32,24 +39,24 @@ function ModifyAppointment() {
                         </select>
                     </div>
 
-                </div>
+                    <div className={styles.group}>
+                        <label htmlFor="admin-motivo-mod">Justificación Administrativa de EPS:</label>
+                        <br />
+                        <textarea
+                            id="admin-motivo-mod"
+                            name="motivo"
+                            rows="2"
+                            placeholder="Ej: Cambio de IPS por falta de agenda médica o solicitud de traslado del afiliado"
+                        ></textarea>
+                    </div>
 
-                <div>
-                    <label htmlFor="admin-motivo-mod">Justificación Administrativa de EPS:</label>
-                    <br />
-                    <textarea 
-                        id="admin-motivo-mod" 
-                        name="motivo" 
-                        rows="2" 
-                        placeholder="Ej: Cambio de IPS por falta de agenda médica o solicitud de traslado del afiliado"
-                    ></textarea>
-                </div>
-
-                <div>
-                    <button type="submit">Confirmar Cambio por EPS</button>
-                </div>
-            </form>
-        </section>
+                    <div className={styles.actions}>
+                        <button className={styles.modify} type="submit">Confirmar Cambio</button>
+                        <button className={styles.discard} onClick={onClose} type="button">Descartar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }
 
