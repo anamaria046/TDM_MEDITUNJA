@@ -10,6 +10,7 @@ import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
 import ResultadosAdministrador from "./components/administrator/resultados_administrador.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
+import RechargeBalanceModule from "./pages/UserPages/RechargeBalanceModule.jsx";
 import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrator.jsx";
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
@@ -49,6 +50,7 @@ function App() {
                     <Route path="/citas" element={<AppointmentModule />} />
                     <Route path="/home" element={<HomeUserModule />} />
                     <Route path="/pagos" element={<PaymentModule />} />
+                    <Route path="/recargar-saldo" element={<RechargeBalanceModule />} />
                     <Route path="/transporte" element={<TransportModule />} />
                     <Route path="/perfilUsuario" element={<ProfileUser />} />
                     <Route path="/vinculacionNFC" element={<NFCVinculation />} />

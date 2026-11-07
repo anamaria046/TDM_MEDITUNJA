@@ -1,6 +1,6 @@
 import logo from "../../../assets/logo.png";
 import { NavLink } from "react-router-dom";
-import { House, CalendarDays, MapPin, FileText, UserRound } from "lucide-react";
+import { House, CalendarDays, MapPin, FileText, UserRound, Wallet } from "lucide-react";
 import { useAuth } from "../../../auth/useAuth.js";
 import styles from "./NavbarUser.module.css";
 
@@ -28,6 +28,9 @@ function NavbarUser() {
                         </li>
                         <li>
                             <NavLink to="/resultados-procedimientos" className={({ isActive }) => isActive ? styles.active : styles.link}><FileText className={styles.mobileIcon} size={22} />Resultados</NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/recargar-saldo" className={({ isActive }) => isActive ? styles.active : styles.link}><Wallet className={styles.mobileIcon} size={22} />Recargar saldo</NavLink>
                         </li>
                     </>
                 )}
