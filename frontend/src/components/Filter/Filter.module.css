@@ -1,0 +1,83 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 880px;
+    margin-inline: auto;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-sizing: border-box;
+
+    box-shadow:
+    0 24px 60px rgba(24, 39, 75, 0.08),
+    0 4px 12px rgba(24, 39, 75, 0.02);
+}
+
+.formFilter {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.formFilter input {
+    flex: 2;
+    min-width: 0;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--text);
+    font-size: 16px;
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.2s ease;
+}
+
+.formFilter select {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--text);
+    font-size: 16px;
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.2s ease;
+}
+
+.formFilter input:focus,.formFilter select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(149, 39, 245, 0.18);
+}
+
+@media (max-width: 480px) {
+    .container {
+        width: calc(100% - 20px);
+        padding: 14px;
+        margin: 10px auto;
+    }
+
+    .formFilter {
+        gap: 8px;
+    }
+
+    .formFilter input, .formFilter select {
+        min-height: 38px;
+        padding: 6px;
+        font-size: 12px;
+    }
+}

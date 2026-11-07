@@ -1,13 +1,30 @@
-import AppointmentFilter from "../../components/administrator/AppointmentManagement/AppointmentFilter/AppointmentFilter.jsx";
+import NavbarAdminEPS from "../../components/administrator/NavbarAdminEPS/NavbarAdminEPS.jsx";
+import HeaderAdmin from "../../components/administrator/HeaderAdmin/HeaderAdmin.jsx";
+import Hero from "../../components/Hero/Hero.jsx";
+import Filter from "../../components/Filter/Filter.jsx";
+import AppointmentEps from "../../components/administrator/AppointmentManagement/AppointmentEps/AppointmentEps.jsx";
 import ModifyAppointment from "../../components/administrator/AppointmentManagement/ModifyAppointment/ModifyAppointment.jsx";
 import CancelAppointment from "../../components/administrator/AppointmentManagement/CancelAppointment/CancelAppointment.jsx";
 
+import styles from "./AppointmentM.module.css";
+
 function AppointmentManagementModule (){
     return (
-        <div>
-            <AppointmentFilter />
-            <ModifyAppointment />
-            <CancelAppointment />
+        <div className={styles.pageLayout}>
+            <NavbarAdminEPS />
+            <div className={styles.pageContent}>
+                <HeaderAdmin />
+                <Hero 
+                    label="Administración"
+                    title="Gestión de citas"
+                    description="Modifica, reprograma o cancela citas"
+                />
+                <Filter />
+                <AppointmentEps />
+                <ModifyAppointment />
+                <CancelAppointment />
+            </div>
+            
         </div>
     );
 }

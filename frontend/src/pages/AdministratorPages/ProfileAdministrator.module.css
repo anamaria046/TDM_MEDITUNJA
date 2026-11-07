@@ -1,0 +1,15 @@
+.profileLayout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.profileContent {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 600px) {
+    .profileLayout {
+        flex-direction: column;
+    }
+}
