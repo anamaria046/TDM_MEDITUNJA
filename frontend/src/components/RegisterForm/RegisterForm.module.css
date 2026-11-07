@@ -277,3 +277,52 @@
     color: var(--color-primary);
     text-decoration: none;
 }
+
+@media (max-width: 600px) {
+    .register {
+        width: calc(100% - 32px);
+        margin: 0 auto 24px;
+        padding: 24px 20px;
+    }
+
+    .title {
+        font-size: clamp(26px, 7vw, 32px);
+    }
+
+    .fields {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .field label {
+        font-size: 15px;
+    }
+
+    .field input[type="file"] {
+        min-width: 0;
+        font-size: 13px;
+    }
+
+    .field input[type="file"]::file-selector-button {
+        margin-right: 8px;
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .actions {
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .backButton,
+    .nextButton {
+        flex: 1;
+        min-width: 0;
+        padding: 12px 10px;
+    }
+
+    .loginLink {
+        text-align: center;
+        line-height: 1.5;
+    }
+}

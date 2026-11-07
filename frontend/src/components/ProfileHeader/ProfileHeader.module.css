@@ -88,3 +88,9 @@
 .logOutButton:hover {
     background-color: var(--hover-secundary);
 }
+
+@media (max-width: 600px) {
+    .state {
+        margin-inline: auto;
+    }
+}
