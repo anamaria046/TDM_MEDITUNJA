@@ -15,6 +15,7 @@ async function crearHash(contrasena) {
 async function aprovisionar() {
   await ready;
   let creados = 0;
+  let activados = 0;
   let existentes = 0;
 
   for (const { eps, nitEnv, claveEnv } of administradoresEps) {
@@ -25,7 +26,7 @@ async function aprovisionar() {
 
     const usuario = await ejecutar(
       'get',
-      `SELECT nombres, rol, eps, estado_registro
+      `SELECT id_usuario, nombres, rol, eps, activo, estado_registro
        FROM usuarios
        WHERE tipo_documento = 'NIT' AND numero_documento = ?`,
       [nit]
@@ -35,13 +36,24 @@ async function aprovisionar() {
       if (
         usuario.nombres !== eps ||
         usuario.rol !== 'administrador' ||
-        usuario.eps !== eps ||
-        usuario.estado_registro !== 'aprobado'
+        usuario.eps !== eps
       ) {
         throw new Error(`El NIT de ${eps} ya existe con datos incompatibles; no se modificó esa cuenta.`);
       }
-      console.log(`La cuenta administradora de ${eps} ya existe; se conserva sin cambios.`);
-      existentes += 1;
+      if (usuario.activo !== 1 || usuario.estado_registro !== 'aprobado') {
+        await ejecutar(
+          'run',
+          `UPDATE usuarios
+           SET activo = 1, estado_registro = 'aprobado'
+           WHERE id_usuario = ?`,
+          [usuario.id_usuario]
+        );
+        activados += 1;
+        console.log(`Cuenta administradora activada para ${eps}.`);
+      } else {
+        existentes += 1;
+        console.log(`La cuenta administradora de ${eps} ya estaba activa.`);
+      }
       continue;
     }
 
@@ -64,7 +76,71 @@ async function aprovisionar() {
     console.log(`Cuenta administradora creada para ${eps}.`);
   }
 
-  console.log(`Aprovisionamiento finalizado: ${creados} creadas, ${existentes} ya existentes.`);
+  const tipoDocumentoPrueba = process.env.TEST_USER_DOCUMENT_TYPE;
+  const numeroDocumentoPrueba = process.env.TEST_USER_DOCUMENT_NUMBER;
+  const nombrePrueba = process.env.TEST_USER_NAME;
+  const emailPrueba = process.env.TEST_USER_EMAIL;
+  const epsPrueba = process.env.TEST_USER_EPS;
+  if (
+    !['CC', 'TI', 'CE', 'PAS'].includes(tipoDocumentoPrueba) ||
+    typeof numeroDocumentoPrueba !== 'string' ||
+    !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumentoPrueba) ||
+    typeof nombrePrueba !== 'string' || !nombrePrueba.trim() ||
+    typeof emailPrueba !== 'string' || !emailPrueba.trim() ||
+    typeof epsPrueba !== 'string' || !epsPrueba.trim()
+  ) {
+    throw new Error('Define TEST_USER_DOCUMENT_TYPE, TEST_USER_DOCUMENT_NUMBER, TEST_USER_NAME, TEST_USER_EMAIL y TEST_USER_EPS en backend/.env.');
+  }
+
+  const usuarioPrueba = await ejecutar(
+    'get',
+    `SELECT id_usuario, nombres, email, eps, rol, activo, estado_registro
+     FROM usuarios
+     WHERE tipo_documento = ? AND numero_documento = ?`,
+    [tipoDocumentoPrueba, numeroDocumentoPrueba]
+  );
+  if (usuarioPrueba) {
+    if (
+      usuarioPrueba.nombres !== nombrePrueba ||
+      usuarioPrueba.email !== emailPrueba ||
+      usuarioPrueba.eps !== epsPrueba ||
+      usuarioPrueba.rol !== 'afiliado'
+    ) {
+      throw new Error('La identificación de prueba ya existe con datos incompatibles; no se modificó esa cuenta.');
+    }
+    if (usuarioPrueba.activo !== 1 || usuarioPrueba.estado_registro !== 'aprobado') {
+      await ejecutar(
+        'run',
+        `UPDATE usuarios
+         SET activo = 1, estado_registro = 'aprobado'
+         WHERE id_usuario = ?`,
+        [usuarioPrueba.id_usuario]
+      );
+      activados += 1;
+      console.log('La cuenta de prueba fue activada.');
+    } else {
+      existentes += 1;
+      console.log('La cuenta de prueba ya estaba activa.');
+    }
+  } else {
+    const contrasenaPrueba = process.env.TEST_USER_PASSWORD;
+    if (typeof contrasenaPrueba !== 'string' || contrasenaPrueba.length < 12 || contrasenaPrueba.length > 128) {
+      throw new Error('Define TEST_USER_PASSWORD en backend/.env con una contraseña de 12 a 128 caracteres.');
+    }
+    const passwordHash = await crearHash(contrasenaPrueba);
+    await ejecutar(
+      'run',
+      `INSERT INTO usuarios (
+        tipo_documento, numero_documento, nombres, apellidos, email, eps,
+        rol, password_hash, activo, estado_registro
+      ) VALUES (?, ?, ?, 'Prueba', ?, ?, 'afiliado', ?, 1, 'aprobado')`,
+      [tipoDocumentoPrueba, numeroDocumentoPrueba, nombrePrueba.trim(), emailPrueba.trim(), epsPrueba.trim(), passwordHash]
+    );
+    creados += 1;
+    console.log('La cuenta de prueba fue creada y activada.');
+  }
+
+  console.log(`Aprovisionamiento finalizado: ${creados} creadas, ${activados} activadas, ${existentes} ya activas.`);
 }
 
 try {

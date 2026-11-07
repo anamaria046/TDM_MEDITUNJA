@@ -6,13 +6,13 @@ Las rutas de administración usan la base SQLite del backend, requieren una sesi
 
 Los NIT se configuran mediante `ADMIN_NUEVA_EPS_NIT`, `ADMIN_FAMISANAR_NIT`, `ADMIN_SANITAS_NIT`, `ADMIN_SURA_NIT` y `ADMIN_SALUD_TOTAL_NIT` en `backend/.env`. Define también una contraseña distinta para cada EPS con las variables `ADMIN_NUEVA_EPS_PASSWORD`, `ADMIN_FAMISANAR_PASSWORD`, `ADMIN_SANITAS_PASSWORD`, `ADMIN_SURA_PASSWORD` y `ADMIN_SALUD_TOTAL_PASSWORD`. No compartas ni subas ese archivo al repositorio.
 
-Luego, para crear las cuentas iniciales de Nueva EPS, Famisanar, Sanitas, SURA y Salud Total, ejecuta desde `backend/`:
+Luego, para crear o activar las cuentas de Nueva EPS, Famisanar, Sanitas, SURA y Salud Total, así como la cuenta de prueba definida por `TEST_USER_DOCUMENT_TYPE`, `TEST_USER_DOCUMENT_NUMBER`, `TEST_USER_PASSWORD`, `TEST_USER_NAME`, `TEST_USER_EMAIL` y `TEST_USER_EPS`, ejecuta desde `backend/`:
 
 ```sh
 npm run provision:admins
 ```
 
-El comando crea cada usuario con tipo de documento NIT y el nombre de la EPS, y guarda únicamente el hash de la contraseña. Las cuentas existentes se conservan; si un NIT ya pertenece a un usuario incompatible, el comando se detiene sin modificarlo. La base está en `backend/data/meditunja.db` o en la ruta definida por `DB_PATH`.
+El comando crea cada usuario con tipo de documento NIT y el nombre de la EPS, y guarda únicamente el hash de la contraseña. También activa las cuentas existentes cuando sus datos identificadores coinciden con la configuración; no cambia sus contraseñas ni sobrescribe otros datos. Si una identificación ya pertenece a una cuenta incompatible, el comando se detiene sin modificarla. La base está en `backend/data/meditunja.db` o en la ruta definida por `DB_PATH`.
 
 Ingresa por `/admin/login` con tipo NIT, el número en formato `XXXXXXXXX-DV` y la contraseña asignada. No guardes las contraseñas iniciales en el repositorio ni en logs.
 
