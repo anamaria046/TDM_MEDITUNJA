@@ -43,17 +43,19 @@ El backend escucha en `http://localhost:3001`; Vite suele usar
   **Vinculación de tarjeta NFC**. La lectura se hace en el equipo donde corre el
   backend, mediante PC/SC; consulta los requisitos en `backend/README.md`.
 
-## Pagos y alcance del NFC
+## Saldo y alcance del NFC
 
-No hay pasarela de pago ni servicio de saldo configurado. Por esa razón, las
-vistas de pagos y recargas no procesan dinero, no alteran saldos y no generan
-comprobantes. Para habilitarlas se debe integrar y configurar un proveedor de
-pagos.
+El módulo de recarga consulta la billetera de TunjaAPI y acredita saldo mediante
+`POST /wallet/topup`. La clave `TUNJA_CLAVE` se usa únicamente desde el backend;
+debe configurarse en `backend/.env`. Esta operación acredita saldo directamente:
+no cobra una tarjeta bancaria, no procesa PSE y no genera una transacción de pago
+externo. Para cobrar fondos reales se debe integrar una pasarela de pago.
 
-El lector registra el UID para vincular una tarjeta; ese identificador por sí
-solo no es una credencial criptográfica, no habilita inicio de sesión NFC ni
-permite debitar o recargar saldo. TunjaAPI actualmente autentica con correo y
-contraseña.
+El lector registra localmente el UID para vincular una tarjeta. Ese identificador
+no es una credencial criptográfica ni se sincroniza con las tarjetas de
+TunjaAPI; la recarga acredita el saldo de la billetera del usuario y no confirma
+que ese saldo esté disponible en la tarjeta física. TunjaAPI autentica con correo
+y contraseña.
 
 ## Pruebas
 

@@ -4,27 +4,103 @@ import { useAuth } from "../../auth/useAuth.js";
 import { apiRequest, mensajeError } from "../../auth/api.js";
 import NavbarUser from "../../components/user/NavbarUser/NavbarUser.jsx";
 
+const montosSugeridos = [10000, 20000, 50000, 100000];
+const formatoPesos = new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+});
+
 function RechargeBalanceModule() {
     const { sesion } = useAuth();
+    const accessToken = sesion?.accessToken;
     const [tarjeta, setTarjeta] = useState(null);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState("");
+    const [saldo, setSaldo] = useState(null);
+    const [monto, setMonto] = useState(20000);
+    const [otroMonto, setOtroMonto] = useState("");
+    const [cargandoTarjeta, setCargandoTarjeta] = useState(true);
+    const [cargandoSaldo, setCargandoSaldo] = useState(true);
+    const [procesando, setProcesando] = useState(false);
+    const [errorTarjeta, setErrorTarjeta] = useState("");
+    const [errorSaldo, setErrorSaldo] = useState("");
+    const [errorRecarga, setErrorRecarga] = useState("");
+    const [mensaje, setMensaje] = useState("");
 
     useEffect(() => {
         let activa = true;
-        apiRequest("/nfc/tarjeta", {
-            headers: { Authorization: `Bearer ${sesion.accessToken}` },
-        }).then((respuesta) => {
-            if (activa) setTarjeta(respuesta.data.vinculada ? respuesta.data : null);
-        }).catch((errorSolicitud) => {
-            if (activa) setError(mensajeError(errorSolicitud));
-        }).finally(() => {
-            if (activa) setCargando(false);
-        });
+        const headers = { Authorization: "Bearer " + accessToken };
+
+        apiRequest("/nfc/tarjeta", { headers })
+            .then((respuesta) => {
+                if (activa) {
+                    setTarjeta(respuesta.data.vinculada ? respuesta.data : null);
+                }
+            })
+            .catch((errorSolicitud) => {
+                if (activa) setErrorTarjeta(mensajeError(errorSolicitud));
+            })
+            .finally(() => {
+                if (activa) setCargandoTarjeta(false);
+            });
+
+        apiRequest("/wallet", { headers })
+            .then((respuesta) => {
+                if (activa) setSaldo(respuesta.data.saldo);
+            })
+            .catch((errorSolicitud) => {
+                if (activa) setErrorSaldo(mensajeError(errorSolicitud));
+            })
+            .finally(() => {
+                if (activa) setCargandoSaldo(false);
+            });
+
         return () => {
             activa = false;
         };
-    }, [sesion.accessToken]);
+    }, [accessToken]);
+
+    async function actualizarSaldo() {
+        const respuesta = await apiRequest("/wallet", {
+            headers: { Authorization: "Bearer " + accessToken },
+        });
+        setSaldo(respuesta.data.saldo);
+    }
+
+    async function enviarRecarga(evento) {
+        evento.preventDefault();
+        const montoFinal = otroMonto === "" ? monto : Number(otroMonto);
+        if (!Number.isSafeInteger(montoFinal) || montoFinal < 100 || montoFinal > 500000) {
+            setErrorRecarga("Ingresa un monto entero entre $100 y $500.000.");
+            setMensaje("");
+            return;
+        }
+
+        setProcesando(true);
+        setErrorRecarga("");
+        setMensaje("");
+        try {
+            const respuesta = await apiRequest("/wallet/topup", {
+                method: "POST",
+                headers: { Authorization: "Bearer " + accessToken },
+                body: JSON.stringify({ monto: montoFinal }),
+            });
+            setMensaje(respuesta.mensaje);
+            try {
+                await actualizarSaldo();
+                setErrorSaldo("");
+            } catch (errorSolicitud) {
+                setErrorSaldo(
+                    `La recarga fue acreditada, pero no se pudo actualizar el saldo mostrado: ${mensajeError(errorSolicitud)}`
+                );
+            }
+        } catch (errorSolicitud) {
+            setErrorRecarga(
+                `${mensajeError(errorSolicitud)} Si no estás seguro del resultado, consulta tu saldo antes de volver a intentarlo.`
+            );
+        } finally {
+            setProcesando(false);
+        }
+    }
 
     return (
         <>
@@ -32,30 +108,96 @@ function RechargeBalanceModule() {
             <main>
                 <header>
                     <span>BILLETERA MEDITUNJA</span>
-                    <h1>Recarga de tarjeta</h1>
-                    <p>Consulta el estado de la tarjeta asociada a tu cuenta.</p>
+                    <h1>Recarga de saldo</h1>
+                    <p>Consulta tu billetera TunjaAPI y acredita saldo a tu cuenta.</p>
                 </header>
 
-                <section aria-label="Estado de la tarjeta">
-                    <h2>Tarjeta NFC</h2>
-                    {cargando && <p role="status">Consultando la tarjeta...</p>}
-                    {!cargando && !error && (
-                        tarjeta
-                            ? <p>Vinculada · identificador terminado en {tarjeta.identificador}</p>
-                            : <p>No tienes una tarjeta vinculada.</p>
+                <section aria-label="Resumen de billetera">
+                    <h2>Saldo de billetera</h2>
+                    {cargandoSaldo ? (
+                        <p role="status">Consultando saldo...</p>
+                    ) : saldo !== null ? (
+                        <p><strong>{formatoPesos.format(saldo)}</strong></p>
+                    ) : (
+                        <p role="alert">{errorSaldo}</p>
                     )}
-                    {error && <p role="alert">{error}</p>}
-                    <Link to="/vinculacionNFC">Administrar tarjeta</Link>
+                    {errorSaldo && saldo !== null && <p role="alert">{errorSaldo}</p>}
+
+                    <h3>Tarjeta NFC vinculada</h3>
+                    {cargandoTarjeta ? (
+                        <p role="status">Consultando tarjeta...</p>
+                    ) : tarjeta ? (
+                        <p>Identificador terminado en {tarjeta.identificador}</p>
+                    ) : errorTarjeta ? (
+                        <p role="alert">{errorTarjeta}</p>
+                    ) : (
+                        <p>No tienes una tarjeta vinculada.</p>
+                    )}
+                    <Link to="/vinculacionNFC">Administrar tarjeta NFC</Link>
                 </section>
 
-                <section aria-labelledby="recharge-status-title">
-                    <h2 id="recharge-status-title">Recargas no disponibles</h2>
-                    <p role="status">
-                        Esta aplicación todavía no tiene una pasarela de pago ni un servicio
-                        de saldo conectado. No se aceptará un pago ni se modificará el saldo
-                        hasta integrar y configurar un proveedor.
+                <form onSubmit={enviarRecarga} aria-labelledby="recharge-title">
+                    <h2 id="recharge-title">Acreditar saldo</h2>
+                    <p>Selecciona un monto. El mínimo es $100 y el máximo por recarga es $500.000.</p>
+                    <fieldset>
+                        <legend>Montos sugeridos</legend>
+                        {montosSugeridos.map((montoSugerido) => (
+                            <label key={montoSugerido}>
+                                <input
+                                    type="radio"
+                                    name="monto-recarga"
+                                    value={montoSugerido}
+                                    checked={otroMonto === "" && monto === montoSugerido}
+                                    onChange={() => {
+                                        setMonto(montoSugerido);
+                                        setOtroMonto("");
+                                    }}
+                                />
+                                {formatoPesos.format(montoSugerido)}
+                            </label>
+                        ))}
+                    </fieldset>
+
+                    <label htmlFor="otro-monto">Otro monto</label>
+                    <input
+                        id="otro-monto"
+                        type="number"
+                        min="100"
+                        max="500000"
+                        step="1"
+                        value={otroMonto}
+                        onChange={(evento) => setOtroMonto(evento.target.value)}
+                        placeholder="Ingresa un monto en pesos"
+                    />
+
+                    <p>
+                        Monto a acreditar:{" "}
+                        <strong>
+                            {formatoPesos.format(otroMonto === "" ? monto : Number(otroMonto) || 0)}
+                        </strong>
                     </p>
-                </section>
+                    <button
+                        type="submit"
+                        disabled={procesando || cargandoSaldo || saldo === null}
+                    >
+                        {procesando ? "Procesando recarga..." : "Acreditar saldo"}
+                    </button>
+                    {mensaje && <p role="status">{mensaje}</p>}
+                    {errorRecarga && <p role="alert">{errorRecarga}</p>}
+                </form>
+
+                <aside>
+                    <h2>Importante</h2>
+                    <p>
+                        TunjaAPI acredita este monto directamente en tu billetera. Esta
+                        operación no cobra a una tarjeta bancaria ni procesa pagos PSE.
+                    </p>
+                    <p>
+                        La tarjeta NFC mostrada se administra en MediTunja; su UID no está
+                        sincronizado con las tarjetas de TunjaAPI, por lo que la recarga
+                        acredita el saldo de la billetera de tu cuenta.
+                    </p>
+                </aside>
             </main>
         </>
     );

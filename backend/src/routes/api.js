@@ -36,6 +36,7 @@ import {
   leerYVincularTarjeta,
   obtenerTarjeta
 } from '../controllers/nfc.js';
+import { obtenerSaldo, recargarSaldo } from '../controllers/wallet.js';
 import {
   crearSolicitudTransporte,
   listarSolicitudesTransporte,
@@ -72,6 +73,8 @@ router.get('/resultados', autenticarUsuarioTunja, listarResultadosUsuario);
 router.get('/nfc/tarjeta', autenticarUsuarioTunja, obtenerTarjeta);
 router.post('/nfc/tarjeta', autenticarUsuarioTunja, leerYVincularTarjeta);
 router.delete('/nfc/tarjeta', autenticarUsuarioTunja, desvincularTarjeta);
+router.get('/wallet', autenticarUsuarioTunja, obtenerSaldo);
+router.post('/wallet/topup', autenticarUsuarioTunja, recargarSaldo);
 router.get('/transporte', autenticarUsuarioTunja, listarSolicitudesTransporte);
 router.post('/transporte', autenticarUsuarioTunja, crearSolicitudTransporte);
 
