@@ -62,6 +62,7 @@ function actualizarSolicitudesTunja() {
 
       const existentes = new Set(columnas.map((columna) => columna.name));
       const migraciones = [
+        ['tunja_usuario_id', 'TEXT'],
         ['nombres', 'TEXT'],
         ['apellidos', 'TEXT'],
         ['telefono', 'TEXT'],
@@ -76,7 +77,16 @@ function actualizarSolicitudesTunja() {
         if (indice === migraciones.length) {
           db.run(
             'CREATE INDEX IF NOT EXISTS idx_usuarios_tunja_eps_estado ON usuarios_tunja (eps, estado_afiliacion)',
-            (errorIndice) => errorIndice ? reject(errorIndice) : resolve(db)
+            (errorIndice) => {
+              if (errorIndice) {
+                reject(errorIndice);
+                return;
+              }
+              db.run(
+                'CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_tunja_external_id ON usuarios_tunja (tunja_usuario_id) WHERE tunja_usuario_id IS NOT NULL',
+                (errorId) => errorId ? reject(errorId) : actualizarCitas(resolve, reject)
+              );
+            }
           );
           return;
         }
@@ -93,6 +103,39 @@ function actualizarSolicitudesTunja() {
 
       agregarSiguiente(0);
     });
+  });
+}
+
+function actualizarCitas(resolve, reject) {
+  db.all('PRAGMA table_info(citas)', (error, columnas) => {
+    if (error) {
+      reject(error);
+      return;
+    }
+
+    const existentes = new Set(columnas.map((columna) => columna.name));
+    const migraciones = [
+      ['motivo_administrativo', 'TEXT'],
+      ['modificada_en', 'TEXT']
+    ].filter(([nombre]) => !existentes.has(nombre));
+
+    const agregarSiguiente = (indice) => {
+      if (indice === migraciones.length) {
+        resolve(db);
+        return;
+      }
+
+      const [nombre, definicion] = migraciones[indice];
+      db.run(`ALTER TABLE citas ADD COLUMN ${nombre} ${definicion}`, (errorMigracion) => {
+        if (errorMigracion) {
+          reject(errorMigracion);
+          return;
+        }
+        agregarSiguiente(indice + 1);
+      });
+    };
+
+    agregarSiguiente(0);
   });
 }
 

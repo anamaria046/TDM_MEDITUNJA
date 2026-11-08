@@ -16,6 +16,12 @@ const serviciosPermitidos = new Map([
   ['radio', { nombre: 'Radiología', costo: 120000 }]
 ]);
 const modalidadesPermitidas = new Set(['presencial', 'telemedicina']);
+const condicionMismaEpsCita = `(
+  lower(trim(u.eps)) = lower(trim(?)) OR
+  lower(trim(u.eps)) = lower('EPS ' || trim(?)) OR
+  lower(trim(replace(lower(u.eps), 'eps ', ''))) =
+    lower(trim(replace(lower(?), 'eps ', '')))
+)`;
 
 function responderError(res, status, error, mensaje) {
   return res.status(status).json({ error, mensaje });
@@ -28,6 +34,11 @@ function fechaValida(fecha) {
   return fechaUTC.getUTCFullYear() === anio &&
     fechaUTC.getUTCMonth() === mes - 1 &&
     fechaUTC.getUTCDate() === dia;
+}
+
+function textoValido(valor, maximo) {
+  return typeof valor === 'string' && valor.trim().length > 0 &&
+    valor.trim().length <= maximo;
 }
 
 function fechaHoyColombia() {
@@ -96,6 +107,10 @@ export async function autenticarUsuarioTunja(req, res, next) {
       );
     }
 
+    if (solicitud && perfil.email) {
+      await usuariosTunja.asociarIdTunja(perfil.email, perfil.id);
+    }
+
     req.usuarioCitas = perfil;
     return next();
   } catch (error) {
@@ -155,6 +170,165 @@ export async function listarCitas(req, res) {
   } catch (error) {
     console.error('Error al listar citas:', error.code || 'ERROR_INTERNO');
     return responderError(res, 500, 'error_interno', 'No fue posible consultar tus citas.');
+  }
+}
+
+export async function listarCitasAdministrador(req, res) {
+  try {
+    const data = await ejecutar(
+      'all',
+      `SELECT c.id_cita AS id, c.codigo_cita, c.ips, c.especialidad, c.fecha,
+              c.hora, c.estado, c.costo, c.descuento_aplicado,
+              u.tipo_documento, u.numero_documento,
+              u.email AS correo,
+              trim(coalesce(u.nombres, '') || ' ' || coalesce(u.apellidos, '')) AS paciente
+       FROM citas c
+       JOIN usuarios_tunja u ON u.tunja_usuario_id = c.usuario_id
+       WHERE ${condicionMismaEpsCita}
+       ORDER BY c.fecha DESC, c.hora DESC, c.id_cita DESC`,
+      [req.usuario.eps, req.usuario.eps, req.usuario.eps]
+    );
+    return res.status(200).json({ data });
+  } catch (error) {
+    console.error('Error al listar citas administrativas:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'error_interno', 'No fue posible consultar las citas de la EPS.');
+  }
+}
+
+export async function obtenerResumenAdministrador(req, res) {
+  try {
+    const afiliados = await ejecutar(
+      'get',
+      `SELECT count(*) AS total,
+              sum(CASE WHEN estado_afiliacion = 'aprobado' THEN 1 ELSE 0 END) AS activos
+       FROM usuarios_tunja
+       WHERE lower(trim(eps)) = lower(trim(?))
+          OR lower(trim(eps)) = lower('EPS ' || trim(?))
+          OR lower(trim(replace(lower(eps), 'eps ', ''))) =
+             lower(trim(replace(lower(?), 'eps ', '')))`,
+      [req.usuario.eps, req.usuario.eps, req.usuario.eps]
+    );
+    const citas = await ejecutar(
+      'get',
+      `SELECT count(*) AS total
+       FROM citas c
+       JOIN usuarios_tunja u ON u.tunja_usuario_id = c.usuario_id
+       WHERE ${condicionMismaEpsCita}
+         AND c.estado = 'confirmada'
+         AND strftime('%Y-%m', c.fecha) = strftime('%Y-%m', 'now', '-5 hours')`,
+      [req.usuario.eps, req.usuario.eps, req.usuario.eps]
+    );
+    const resultados = await ejecutar(
+      'get',
+      `SELECT count(*) AS total
+       FROM resultados_procedimientos r
+       JOIN usuarios_tunja u
+         ON u.tipo_documento = r.tipo_documento
+        AND u.numero_documento = r.numero_documento
+       WHERE r.estado = 'En proceso'
+         AND u.estado_afiliacion = 'aprobado'
+         AND ${condicionMismaEpsCita.replaceAll('u.eps', 'r.eps')}
+         AND ${condicionMismaEpsCita}`,
+      [
+        req.usuario.eps, req.usuario.eps, req.usuario.eps,
+        req.usuario.eps, req.usuario.eps, req.usuario.eps
+      ]
+    );
+
+    return res.status(200).json({
+      data: {
+        afiliadosActivos: Number(afiliados.activos) || 0,
+        afiliadosTotales: Number(afiliados.total) || 0,
+        citasEsteMes: Number(citas.total) || 0,
+        resultadosPendientes: Number(resultados.total) || 0
+      }
+    });
+  } catch (error) {
+    console.error('Error al consultar resumen administrativo:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'error_interno', 'No fue posible consultar el resumen de la EPS.');
+  }
+}
+
+async function buscarCitaDeEps(idCita, eps) {
+  return ejecutar(
+    'get',
+    `SELECT c.id_cita, c.fecha, c.hora, c.estado, c.ips
+     FROM citas c
+     JOIN usuarios_tunja u ON u.tunja_usuario_id = c.usuario_id
+     WHERE c.id_cita = ? AND ${condicionMismaEpsCita}`,
+    [idCita, eps, eps, eps]
+  );
+}
+
+export async function reprogramarCitaAdministrador(req, res) {
+  const idCita = Number(req.params.id);
+  const { ips, fecha, hora, motivo } = req.body || {};
+  if (!Number.isSafeInteger(idCita) || idCita < 1 ||
+      !ipsPermitidas.has(ips) || !fechaValida(fecha) ||
+      fecha < fechaHoyColombia() || !horarios.includes(hora) ||
+      !textoValido(motivo, 500)) {
+    return responderError(res, 400, 'datos_invalidos', 'Revisa la IPS, la fecha, el horario y la justificación.');
+  }
+  if (instanteCita(fecha, hora) <= Date.now()) {
+    return responderError(res, 400, 'horario_vencido', 'Selecciona un horario futuro.');
+  }
+
+  try {
+    const cita = await buscarCitaDeEps(idCita, req.usuario.eps);
+    if (!cita) return responderError(res, 404, 'cita_no_encontrada', 'No se encontró la cita de esta EPS.');
+    if (cita.estado !== 'confirmada') {
+      return responderError(res, 409, 'cita_no_confirmada', 'No se puede reprogramar una cita cancelada.');
+    }
+
+    const resultado = await ejecutar(
+      'run',
+      `UPDATE citas
+       SET ips = ?, fecha = ?, hora = ?, motivo_administrativo = ?, modificada_en = CURRENT_TIMESTAMP
+       WHERE id_cita = ? AND estado = 'confirmada'`,
+      [ips, fecha, hora, motivo.trim(), idCita]
+    );
+    if (resultado.changes !== 1) {
+      return responderError(res, 409, 'cita_no_confirmada', 'La cita ya no está disponible para modificar.');
+    }
+    return res.status(200).json({ mensaje: 'Cita reprogramada correctamente.' });
+  } catch (error) {
+    if (error.code === 'SQLITE_CONSTRAINT' &&
+        error.message.includes('citas.ips, citas.fecha, citas.hora')) {
+      return responderError(res, 409, 'horario_no_disponible', 'Ese horario acaba de ser ocupado. Selecciona otro.');
+    }
+    console.error('Error al reprogramar cita administrativa:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'error_interno', 'No fue posible reprogramar la cita.');
+  }
+}
+
+export async function cancelarCitaAdministrador(req, res) {
+  const idCita = Number(req.params.id);
+  const { motivo } = req.body || {};
+  if (!Number.isSafeInteger(idCita) || idCita < 1 || !textoValido(motivo, 500)) {
+    return responderError(res, 400, 'datos_invalidos', 'Indica la cita y una justificación válida.');
+  }
+
+  try {
+    const cita = await buscarCitaDeEps(idCita, req.usuario.eps);
+    if (!cita) return responderError(res, 404, 'cita_no_encontrada', 'No se encontró la cita de esta EPS.');
+    if (cita.estado !== 'confirmada') {
+      return responderError(res, 409, 'cita_no_confirmada', 'La cita ya fue cancelada.');
+    }
+
+    const resultado = await ejecutar(
+      'run',
+      `UPDATE citas
+       SET estado = 'cancelada', motivo_administrativo = ?, modificada_en = CURRENT_TIMESTAMP
+       WHERE id_cita = ? AND estado = 'confirmada'`,
+      [motivo.trim(), idCita]
+    );
+    if (resultado.changes !== 1) {
+      return responderError(res, 409, 'cita_no_confirmada', 'La cita ya fue cancelada.');
+    }
+    return res.status(200).json({ mensaje: 'Cita cancelada correctamente.' });
+  } catch (error) {
+    console.error('Error al cancelar cita administrativa:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'error_interno', 'No fue posible cancelar la cita.');
   }
 }
 

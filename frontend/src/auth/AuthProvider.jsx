@@ -3,23 +3,10 @@ import { ApiError, apiRequest } from "./api.js";
 import { AuthContext } from "./AuthContext.js";
 
 const claveSesion = "meditunja_tunja_session";
-const prefijoClaveTarjeta = "meditunja_nfc_demo_";
 let renovacionEnCurso;
 
 function guardarSesion(sesion) {
     window.localStorage.setItem(claveSesion, JSON.stringify(sesion));
-}
-
-function claveTarjetaUsuario(usuario) {
-    const identidad = usuario?.numero_documento || usuario?.email || usuario?.id_usuario;
-    return identidad
-        ? `${prefijoClaveTarjeta}${encodeURIComponent(`${usuario.tipo_documento || "usuario"}_${identidad}`)}`
-        : "";
-}
-
-function leerTarjetaGuardada(usuario) {
-    const clave = claveTarjetaUsuario(usuario);
-    return clave ? window.localStorage.getItem(clave) : null;
 }
 
 function borrarSesionGuardada() {
@@ -42,12 +29,8 @@ function combinarUsuario(usuarioAnterior, usuarioActualizado) {
             combinado[campo] = usuarioAnterior?.[campo] ?? usuarioActualizado?.[campo];
         }
     }
-    combinado.tarjetaNfc =
-        usuarioActualizado?.tarjetaNfc ||
-        usuarioActualizado?.tarjeta_nfc ||
-        usuarioAnterior?.tarjetaNfc ||
-        usuarioAnterior?.tarjeta_nfc ||
-        leerTarjetaGuardada(combinado);
+    delete combinado.tarjetaNfc;
+    delete combinado.tarjeta_nfc;
     return combinado;
 }
 
@@ -228,30 +211,6 @@ function AuthProvider({ children }) {
         return usuario;
     }, [sesion?.accessToken]);
 
-    const actualizarTarjetaNfc = useCallback((tarjetaNfc) => {
-        const usuario = sesion?.usuario;
-        const claveTarjeta = claveTarjetaUsuario(usuario);
-        if (!sesion?.accessToken || !claveTarjeta) {
-            throw new Error("No se pudo identificar la cuenta para guardar la tarjeta de demostración.");
-        }
-
-        if (tarjetaNfc) {
-            window.localStorage.setItem(claveTarjeta, tarjetaNfc);
-        } else {
-            window.localStorage.removeItem(claveTarjeta);
-        }
-
-        setSesion((actual) => {
-            if (actual?.accessToken !== sesion.accessToken) return actual;
-            const sesionActualizada = {
-                ...actual,
-                usuario: { ...actual.usuario, tarjetaNfc: tarjetaNfc || null },
-            };
-            guardarSesion(sesionActualizada);
-            return sesionActualizada;
-        });
-    }, [sesion]);
-
     const cerrarSesion = useCallback(async () => {
         const refresco = sesion?.refreshToken;
         borrarSesionGuardada();
@@ -274,10 +233,9 @@ function AuthProvider({ children }) {
             iniciarSesion,
             registrar,
             actualizarUsuario,
-            actualizarTarjetaNfc,
             cerrarSesion,
         }),
-        [sesion, cargando, errorInicial, iniciarSesion, registrar, actualizarUsuario, actualizarTarjetaNfc, cerrarSesion],
+        [sesion, cargando, errorInicial, iniciarSesion, registrar, actualizarUsuario, cerrarSesion],
     );
 
     return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

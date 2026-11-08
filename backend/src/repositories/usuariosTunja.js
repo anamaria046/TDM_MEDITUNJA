@@ -22,6 +22,17 @@ export async function buscarPorEmail(email) {
   );
 }
 
+export async function asociarIdTunja(email, id) {
+  return ejecutar(
+    'run',
+    `UPDATE usuarios_tunja
+     SET tunja_usuario_id = ?
+     WHERE lower(email) = lower(?)
+       AND (tunja_usuario_id IS NULL OR tunja_usuario_id = ?)`,
+    [id, email, id]
+  );
+}
+
 export async function registrar(datos) {
   const existente = await buscarPorDocumento(datos.tipo_documento, datos.numero_documento);
   if (existente) {

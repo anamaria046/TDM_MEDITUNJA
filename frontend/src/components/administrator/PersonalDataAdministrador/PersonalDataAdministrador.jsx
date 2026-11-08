@@ -1,5 +1,4 @@
 import ProfileHeader from "../../ProfileHeader/ProfileHeader.jsx";
-import NfcStatus from "../../NFCStatus/NFCStatus.jsx";
 import styles from "./PersonalDataAdministrador.module.css";
 import { useAdminAuth } from "../../../auth/useAdminAuth.js";
 
@@ -67,16 +66,6 @@ function PersonalDataAdministrador() {
                         </div>
                     </div>
                 </fieldset>
-
-                {estado === "aprobado" && (
-                    <fieldset>
-                        <h3>Tarjeta NFC</h3>
-
-                        <NfcStatus
-                            tarjeta={usuario?.tarjetaNfc || usuario?.tarjeta_nfc}
-                        />
-                    </fieldset>
-                )}
 
             </section>
         </div>

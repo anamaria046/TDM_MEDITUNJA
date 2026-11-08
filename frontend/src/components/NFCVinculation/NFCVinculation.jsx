@@ -1,56 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CreditCard, MoveLeft, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../auth/useAuth.js";
+import { apiRequest, mensajeError } from "../../auth/api.js";
 import Hero from "../Hero/Hero.jsx";
 import NavbarUser from "../user/NavbarUser/NavbarUser.jsx";
 import styles from "./NFCVinculation.module.css";
 
-function obtenerIdentificador(tarjeta) {
-    if (typeof tarjeta === "string") return tarjeta;
-    return tarjeta?.id || tarjeta?.uid || "";
-}
-
 function NFCVinculation() {
-    const { sesion, actualizarTarjetaNfc } = useAuth();
-    const tarjetaActual = sesion?.usuario?.tarjetaNfc || sesion?.usuario?.tarjeta_nfc || null;
-    const identificadorActual = obtenerIdentificador(tarjetaActual);
-    const [identificador, setIdentificador] = useState("");
+    const { sesion } = useAuth();
+    const [tarjeta, setTarjeta] = useState(null);
+    const [cargando, setCargando] = useState(true);
+    const [procesando, setProcesando] = useState(false);
     const [mensaje, setMensaje] = useState("");
     const [error, setError] = useState("");
 
-    function vincularTarjeta(event) {
-        event.preventDefault();
+    useEffect(() => {
+        let activa = true;
+        apiRequest("/nfc/tarjeta", {
+            headers: { Authorization: `Bearer ${sesion.accessToken}` },
+        }).then((respuesta) => {
+            if (activa) setTarjeta(respuesta.data.vinculada ? respuesta.data : null);
+        }).catch((errorSolicitud) => {
+            if (activa) setError(mensajeError(errorSolicitud));
+        }).finally(() => {
+            if (activa) setCargando(false);
+        });
+        return () => {
+            activa = false;
+        };
+    }, [sesion.accessToken]);
+
+    async function vincularTarjeta() {
         setMensaje("");
         setError("");
-
-        const nuevoIdentificador = identificador.trim().toUpperCase();
-        if (!/^[A-Z0-9][A-Z0-9_-]{3,39}$/.test(nuevoIdentificador)) {
-            setError("Ingresa un identificador de 4 a 40 caracteres: letras, números, guiones o guiones bajos.");
-            return;
-        }
-
+        setProcesando(true);
         try {
-            actualizarTarjetaNfc(nuevoIdentificador);
-            setIdentificador("");
-            setMensaje("Tarjeta de demostración vinculada en este navegador.");
-        } catch (errorTarjeta) {
-            setError(errorTarjeta instanceof Error
-                ? errorTarjeta.message
-                : "No se pudo guardar la tarjeta de demostración.");
+            const respuesta = await apiRequest("/nfc/tarjeta", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${sesion.accessToken}` },
+            });
+            setTarjeta(respuesta.data);
+            setMensaje(respuesta.mensaje);
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        } finally {
+            setProcesando(false);
         }
     }
 
-    function desvincularTarjeta() {
+    async function desvincularTarjeta() {
         setMensaje("");
         setError("");
+        setProcesando(true);
         try {
-            actualizarTarjetaNfc(null);
-            setMensaje("Tarjeta de demostración desvinculada.");
-        } catch (errorTarjeta) {
-            setError(errorTarjeta instanceof Error
-                ? errorTarjeta.message
-                : "No se pudo desvincular la tarjeta de demostración.");
+            await apiRequest("/nfc/tarjeta", {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${sesion.accessToken}` },
+            });
+            setTarjeta(null);
+            setMensaje("Tarjeta desvinculada.");
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+        } finally {
+            setProcesando(false);
         }
     }
 
@@ -72,9 +85,9 @@ function NFCVinculation() {
                 <div className={styles.demoNotice} role="note">
                     <ShieldCheck size={22} aria-hidden="true" />
                     <p>
-                        <strong>Modo demostración:</strong> no hay lector NFC conectado. El
-                        identificador que ingreses solo se guardará en este navegador y no
-                        vincula ni valida una tarjeta física.
+                        El lector ACR122U debe estar conectado al equipo donde se ejecuta el
+                        backend. La tarjeta se asocia a tu cuenta en el servidor; su UID identifica
+                        la tarjeta, pero no es una credencial criptográfica ni habilita pagos.
                     </p>
                 </div>
 
@@ -84,11 +97,13 @@ function NFCVinculation() {
                     </div>
                     <div className={styles.cardDetails}>
                         <h2 id="card-status-heading">Estado de tu tarjeta</h2>
-                        {identificadorActual ? (
+                        {cargando ? (
+                            <p role="status">Consultando tu tarjeta...</p>
+                        ) : tarjeta ? (
                             <>
-                                <p className={styles.linkedStatus} role="status">Tarjeta de demostración vinculada</p>
+                                <p className={styles.linkedStatus} role="status">Tarjeta vinculada</p>
                                 <p className={styles.cardId}>
-                                    Identificador: <strong>{identificadorActual || "Tarjeta registrada"}</strong>
+                                    Identificador terminado en: <strong>{tarjeta.identificador}</strong>
                                 </p>
                             </>
                         ) : (
@@ -98,39 +113,21 @@ function NFCVinculation() {
                 </section>
 
                 <section className={styles.formCard} aria-labelledby="link-card-heading">
-                    <span className={styles.eyebrow}>Sin lector físico</span>
                     <h2 id="link-card-heading">
-                        {identificadorActual ? "Cambiar tarjeta de demostración" : "Vincular tarjeta de demostración"}
+                        {tarjeta ? "Cambiar tarjeta vinculada" : "Vincular tarjeta"}
                     </h2>
                     <p className={styles.description}>
-                        Para probar el flujo, escribe un identificador ficticio, por ejemplo
-                        <code> NFC-DEMO-1234</code>.
+                        Acerca la tarjeta al lector ACR122U y espera a que se complete la lectura.
                     </p>
 
-                    <form className={styles.form} onSubmit={vincularTarjeta}>
-                        <label htmlFor="nfc-card-id">Identificador de prueba</label>
-                        <input
-                            id="nfc-card-id"
-                            name="identificador"
-                            type="text"
-                            autoComplete="off"
-                            maxLength={40}
-                            pattern="[A-Za-z0-9][A-Za-z0-9_-]{3,39}"
-                            placeholder="NFC-DEMO-1234"
-                            value={identificador}
-                            onChange={(event) => {
-                                setIdentificador(event.target.value);
-                                setError("");
-                            }}
-                            required
-                        />
-                        <button className={styles.primaryButton} type="submit">
-                            {identificadorActual ? "Guardar identificador de prueba" : "Vincular tarjeta de prueba"}
+                    <div className={styles.form}>
+                        <button className={styles.primaryButton} type="button" onClick={vincularTarjeta} disabled={procesando || cargando}>
+                            {procesando ? "Esperando lectura..." : tarjeta ? "Leer y cambiar tarjeta" : "Leer y vincular tarjeta"}
                         </button>
-                    </form>
+                    </div>
 
-                    {identificadorActual && (
-                        <button className={styles.secondaryButton} type="button" onClick={desvincularTarjeta}>
+                    {tarjeta && (
+                        <button className={styles.secondaryButton} type="button" onClick={desvincularTarjeta} disabled={procesando}>
                             Desvincular tarjeta
                         </button>
                     )}

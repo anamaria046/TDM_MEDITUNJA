@@ -1,131 +1,187 @@
-// Hook personalizado con la lógica de negocio del Módulo de Transporte Preferencial
-// MediTunja - Separación de Lógica (JS) y Vista (JSX)
-
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { apiRequest, mensajeError } from "../../../../auth/api.js";
+import { useAuth } from "../../../../auth/useAuth.js";
 import {
-  DATOS_CITA_PRECARGADOS,
   RECOMENDACIONES_POR_DISCAPACIDAD,
   REQUERIMIENTOS_VEHICULO
-} from "../data/transporteData";
+} from "../data/transporteData.js";
+
+const nombresDocumento = {
+  CC: "Cédula de Ciudadanía (C.C.)",
+  TI: "Tarjeta de Identidad (T.I.)",
+  CE: "Cédula de Extranjería (C.E.)",
+  PAS: "Pasaporte"
+};
+
+const nombresIps = {
+  "san-rafael": "Hospital San Rafael de Tunja",
+  "santiago-tunja": "E.S.E. Santiago de Tunja",
+  "clinica-medilaser": "Clínica Medilaser",
+  "clinica-andes": "Clínica Los Andes",
+  "clinica-chia": "Clínica de Chía"
+};
+
+function instanteCita(cita) {
+  return new Date(`${cita.fecha}T${cita.hora}:00-05:00`).getTime();
+}
+
+function crearDatosCita(usuario, cita) {
+  return {
+    citaId: cita.id_cita,
+    tipoDocumentoTexto: nombresDocumento[usuario.tipo_documento] || usuario.tipo_documento || "—",
+    numeroDocumento: usuario.numero_documento || usuario.documento || "—",
+    nombresPaciente: [usuario.nombres || usuario.nombre, usuario.apellidos].filter(Boolean).join(" "),
+    epsPacienteTexto: usuario.eps || "—",
+    telefonoPaciente: usuario.telefono || "No registrado",
+    telefonoCuidador: "No registrado",
+    ipsDestinoTexto: nombresIps[cita.ips] || cita.ips,
+    tipoAtencion: cita.especialidad,
+    fechaCita: cita.fecha,
+    horaCita: cita.hora
+  };
+}
 
 export function useTransporte() {
-  // 1. Datos precargados de la cita médica (bloqueados)
-  const [datosCita] = useState(DATOS_CITA_PRECARGADOS);
-
-  // 2. Estado de la solicitud
+  const { sesion } = useAuth();
+  const [datosCita, setDatosCita] = useState(null);
+  const [cargandoCita, setCargandoCita] = useState(true);
+  const [errorCita, setErrorCita] = useState("");
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
-
-  // 3. Discapacidad y adaptaciones automáticas
+  const [solicitudId, setSolicitudId] = useState(null);
+  const [estadoSolicitud, setEstadoSolicitud] = useState("solicitada");
+  const [enviando, setEnviando] = useState(false);
+  const [errorSolicitud, setErrorSolicitud] = useState("");
   const [tipoDiscapacidad, setTipoDiscapacidad] = useState("");
   const [requerimientosSeleccionados, setRequerimientosSeleccionados] = useState([]);
   const [requerimientosRecomendados, setRequerimientosRecomendados] = useState([]);
-
-  // 4. Modal de confirmación para desmarcar requerimientos recomendados
   const [modalConfirmacion, setModalConfirmacion] = useState({
     isOpen: false,
     reqId: null,
     reqTitulo: ""
   });
-
-  // 4b. Modal de confirmación para limpiar todos los campos
   const [modalLimpiar, setModalLimpiar] = useState(false);
-
-  // 5. Acompañante (por defecto 'no'; solo muestra nombre si se elige 'si')
   const [viajaAcompanante, setViajaAcompanante] = useState("no");
   const [nombreAcompanante, setNombreAcompanante] = useState("");
-
-  // 6. Datos de recogida ingresados por el usuario
   const [direccionOrigen, setDireccionOrigen] = useState("");
   const [barrioSector, setBarrioSector] = useState("");
   const [puntosReferencia, setPuntosReferencia] = useState("");
   const [modalidadViaje, setModalidadViaje] = useState("ida-y-regreso");
   const [declaracionVeracidad, setDeclaracionVeracidad] = useState(false);
 
-  // Manejo de cambio de tipo de discapacidad -> Selecciona automáticamente requerimientos recomendados
-  const handleDiscapacidadChange = (e) => {
-    const valor = e.target.value;
+  useEffect(() => {
+    let activa = true;
+    const autorizacion = { Authorization: `Bearer ${sesion.accessToken}` };
+    Promise.all([
+      apiRequest("/citas", { headers: autorizacion }),
+      apiRequest("/transporte", { headers: autorizacion })
+    ]).then(([respuestaCitas, respuestaSolicitudes]) => {
+      if (!activa) return;
+      const cita = respuestaCitas.data
+        .filter((item) => item.estado === "confirmada" && instanteCita(item) > Date.now())
+        .sort((a, b) => instanteCita(a) - instanteCita(b))[0];
+      if (!cita) {
+        setErrorCita("Agenda una cita confirmada para solicitar transporte.");
+        return;
+      }
+
+      setDatosCita(crearDatosCita(sesion.usuario, cita));
+      const solicitud = respuestaSolicitudes.data.find((item) => item.cita_id === cita.id_cita);
+      if (solicitud) {
+        setSolicitudId(solicitud.id);
+        setEstadoSolicitud(solicitud.estado);
+        setSolicitudEnviada(true);
+      }
+    }).catch((error) => {
+      if (activa) setErrorCita(mensajeError(error));
+    }).finally(() => {
+      if (activa) setCargandoCita(false);
+    });
+
+    return () => {
+      activa = false;
+    };
+  }, [sesion.accessToken, sesion.usuario]);
+
+  const handleDiscapacidadChange = (event) => {
+    const valor = event.target.value;
     setTipoDiscapacidad(valor);
-
-    if (!valor) {
-      setRequerimientosRecomendados([]);
-      return;
-    }
-
     const recomendados = RECOMENDACIONES_POR_DISCAPACIDAD[valor] || [];
     setRequerimientosRecomendados(recomendados);
-
-    // Agrega los recomendados sin perder los que el usuario haya marcado manualmente
-    setRequerimientosSeleccionados((prev) => {
-      const nuevoSet = new Set([...prev, ...recomendados]);
-      return Array.from(nuevoSet);
-    });
+    setRequerimientosSeleccionados((actuales) =>
+      Array.from(new Set([...actuales, ...recomendados]))
+    );
   };
 
-  // Manejo de clic en checkbox de requerimiento
   const handleToggleRequerimiento = (reqId) => {
-    const yaEstaSeleccionado = requerimientosSeleccionados.includes(reqId);
-    const esRecomendado = requerimientosRecomendados.includes(reqId);
-
-    if (yaEstaSeleccionado) {
-      // Si el usuario intenta quitar un requerimiento recomendado, pedir confirmación
-      if (esRecomendado) {
-        const item = REQUERIMIENTOS_VEHICULO.find((r) => r.id === reqId);
+    if (requerimientosSeleccionados.includes(reqId)) {
+      if (requerimientosRecomendados.includes(reqId)) {
+        const item = REQUERIMIENTOS_VEHICULO.find((requerimiento) => requerimiento.id === reqId);
         setModalConfirmacion({
           isOpen: true,
-          reqId: reqId,
-          reqTitulo: item ? item.titulo : reqId
+          reqId,
+          reqTitulo: item?.titulo || reqId
         });
       } else {
-        // Si fue agregado manualmente, se retira directamente
-        setRequerimientosSeleccionados((prev) => prev.filter((id) => id !== reqId));
+        setRequerimientosSeleccionados((actuales) => actuales.filter((id) => id !== reqId));
       }
     } else {
-      // Marcar nuevo requerimiento
-      setRequerimientosSeleccionados((prev) => [...prev, reqId]);
+      setRequerimientosSeleccionados((actuales) => [...actuales, reqId]);
     }
   };
 
-  // Confirmar eliminación del requerimiento recomendado desde la ventana modal
   const confirmarQuitarRequerimiento = () => {
-    const idAQuitar = modalConfirmacion.reqId;
-    if (idAQuitar) {
-      setRequerimientosSeleccionados((prev) => prev.filter((id) => id !== idAQuitar));
-      setRequerimientosRecomendados((prev) => prev.filter((id) => id !== idAQuitar));
+    const id = modalConfirmacion.reqId;
+    if (id) {
+      setRequerimientosSeleccionados((actuales) => actuales.filter((actual) => actual !== id));
+      setRequerimientosRecomendados((actuales) => actuales.filter((actual) => actual !== id));
     }
     setModalConfirmacion({ isOpen: false, reqId: null, reqTitulo: "" });
   };
 
-  // Cancelar eliminación (mantener requerimiento)
   const cancelarQuitarRequerimiento = () => {
     setModalConfirmacion({ isOpen: false, reqId: null, reqTitulo: "" });
   };
 
-  // Manejo del envío del formulario
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSolicitudEnviada(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!datosCita?.citaId) return;
+    setErrorSolicitud("");
+    setEnviando(true);
+    try {
+      const respuesta = await apiRequest("/transporte", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sesion.accessToken}` },
+        body: JSON.stringify({
+          citaId: datosCita.citaId,
+          tipoDiscapacidad,
+          requerimientos: requerimientosSeleccionados,
+          viajaAcompanante: viajaAcompanante === "si",
+          nombreAcompanante,
+          direccionOrigen,
+          barrioSector,
+          puntosReferencia,
+          modalidadViaje,
+          declaracionVeracidad
+        })
+      });
+      setSolicitudId(respuesta.data.id);
+      setEstadoSolicitud(respuesta.data.estado);
+      setSolicitudEnviada(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      setErrorSolicitud(mensajeError(error));
+    } finally {
+      setEnviando(false);
+    }
   };
 
-  // Solicitar confirmación antes de limpiar campos
-  const handleSolicitarLimpiar = () => {
-    setModalLimpiar(true);
-  };
+  const handleSolicitarLimpiar = () => setModalLimpiar(true);
+  const cancelarLimpiar = () => setModalLimpiar(false);
 
-  // Confirmar limpieza de campos desde el modal
-  const confirmarLimpiar = () => {
-    setModalLimpiar(false);
-    handleNuevaSolicitud();
-  };
-
-  // Cancelar limpieza de campos
-  const cancelarLimpiar = () => {
-    setModalLimpiar(false);
-  };
-
-  // Restablecer formulario
-  const handleNuevaSolicitud = () => {
+  const handleNuevaSolicitud = useCallback(() => {
     setSolicitudEnviada(false);
+    setSolicitudId(null);
+    setEstadoSolicitud("solicitada");
     setTipoDiscapacidad("");
     setRequerimientosSeleccionados([]);
     setRequerimientosRecomendados([]);
@@ -135,43 +191,42 @@ export function useTransporte() {
     setBarrioSector("");
     setPuntosReferencia("");
     setDeclaracionVeracidad(false);
+    setErrorSolicitud("");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const confirmarLimpiar = () => {
+    setModalLimpiar(false);
+    handleNuevaSolicitud();
   };
 
   return {
-    // Cita (bloqueados)
     datosCita,
-
-    // Formulario y Envío
+    citaCargando: cargandoCita,
+    errorCita,
     solicitudEnviada,
+    solicitudId,
+    estadoSolicitud,
+    enviando,
+    errorSolicitud,
     handleSubmit,
     handleNuevaSolicitud,
-
-    // Discapacidad y Requerimientos
     tipoDiscapacidad,
     handleDiscapacidadChange,
     requerimientosSeleccionados,
     requerimientosRecomendados,
     handleToggleRequerimiento,
-
-    // Modal de Confirmación (requerimientos)
     modalConfirmacion,
     confirmarQuitarRequerimiento,
     cancelarQuitarRequerimiento,
-
-    // Modal de Confirmación (limpiar campos)
     modalLimpiar,
     handleSolicitarLimpiar,
     confirmarLimpiar,
     cancelarLimpiar,
-
-    // Acompañante
     viajaAcompanante,
     setViajaAcompanante,
     nombreAcompanante,
     setNombreAcompanante,
-
-    // Recogida y Destino
     direccionOrigen,
     setDireccionOrigen,
     barrioSector,

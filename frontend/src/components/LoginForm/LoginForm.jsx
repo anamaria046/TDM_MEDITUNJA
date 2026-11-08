@@ -161,14 +161,19 @@ function LoginForm() {
 
             <hr className={styles.divider}></hr>
 
-            <button type="button" className={styles.nfcButton}>
+            <button
+                type="button"
+                className={styles.nfcButton}
+                disabled
+                title="El inicio de sesión NFC requiere soporte de autenticación de TunjaAPI."
+            >
                 <span className={styles.nfcIcon}>
                     <Nfc size={28} />
                 </span>
                 <span>
-                    <strong>Iniciar sesión con tarjeta NFC</strong>
+                    <strong>Inicio de sesión NFC no disponible</strong>
                     <br />
-                    <small>Acerca tu tarjeta al lector</small>
+                    <small>TunjaAPI aún no ofrece autenticación con tarjeta</small>
                 </span>
             </button>
             <p className={styles.registerLink}>

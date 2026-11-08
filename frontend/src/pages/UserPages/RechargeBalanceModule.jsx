@@ -1,109 +1,61 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../auth/useAuth.js";
+import { apiRequest, mensajeError } from "../../auth/api.js";
 import NavbarUser from "../../components/user/NavbarUser/NavbarUser.jsx";
 
-const montos = ["$10.000", "$20.000", "$50.000", "$100.000"];
-
 function RechargeBalanceModule() {
+    const { sesion } = useAuth();
+    const [tarjeta, setTarjeta] = useState(null);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let activa = true;
+        apiRequest("/nfc/tarjeta", {
+            headers: { Authorization: `Bearer ${sesion.accessToken}` },
+        }).then((respuesta) => {
+            if (activa) setTarjeta(respuesta.data.vinculada ? respuesta.data : null);
+        }).catch((errorSolicitud) => {
+            if (activa) setError(mensajeError(errorSolicitud));
+        }).finally(() => {
+            if (activa) setCargando(false);
+        });
+        return () => {
+            activa = false;
+        };
+    }, [sesion.accessToken]);
+
     return (
         <>
             <NavbarUser />
             <main>
                 <header>
                     <span>BILLETERA MEDITUNJA</span>
-                    <h1>Recarga tu saldo</h1>
-                    <p>
-                        Agrega saldo a tu tarjeta MediTunja de forma fácil y segura.
-                    </p>
+                    <h1>Recarga de tarjeta</h1>
+                    <p>Consulta el estado de la tarjeta asociada a tu cuenta.</p>
                 </header>
 
-                <section aria-label="Resumen de saldo">
-                    <div>
-                        <span>Saldo disponible</span>
-                        <p><strong>$25.000</strong></p>
-                        <span>Saldo de muestra</span>
-                    </div>
-                    <div>
-                        <span>Tarjeta vinculada</span>
-                        <p><strong>•••• •••• •••• 4829</strong></p>
-                        <span>Activa</span>
-                    </div>
+                <section aria-label="Estado de la tarjeta">
+                    <h2>Tarjeta NFC</h2>
+                    {cargando && <p role="status">Consultando la tarjeta...</p>}
+                    {!cargando && !error && (
+                        tarjeta
+                            ? <p>Vinculada · identificador terminado en {tarjeta.identificador}</p>
+                            : <p>No tienes una tarjeta vinculada.</p>
+                    )}
+                    {error && <p role="alert">{error}</p>}
+                    <Link to="/vinculacionNFC">Administrar tarjeta</Link>
                 </section>
 
-                <div>
-                    <section aria-labelledby="recharge-title">
-                        <h2 id="recharge-title">1. ¿Cuánto deseas recargar?</h2>
-                        <p>Selecciona un valor o ingresa otro monto.</p>
-
-                        <fieldset>
-                            <legend>Montos sugeridos</legend>
-                            {montos.map((monto, index) => (
-                                <label key={monto}>
-                                    <input
-                                        type="radio"
-                                        name="monto-recarga"
-                                        value={monto}
-                                        defaultChecked={index === 1}
-                                    />
-                                    {monto}
-                                </label>
-                            ))}
-                        </fieldset>
-
-                        <label htmlFor="otro-monto">Otro monto</label>
-                        <div>
-                            <span>$</span>
-                            <input
-                                id="otro-monto"
-                                type="number"
-                                min="1000"
-                                step="1000"
-                                placeholder="Ingresa el valor"
-                            />
-                        </div>
-
-                        <h2>2. Elige tu medio de pago</h2>
-                        <p>Selecciona cómo deseas realizar la recarga.</p>
-
-                        <fieldset>
-                            <legend>Medio de pago</legend>
-                            <label>
-                                <input type="radio" name="medio-pago" defaultChecked />
-                                <strong>PSE</strong> - Paga desde tu banco
-                            </label>
-                            <label>
-                                <input type="radio" name="medio-pago" />
-                                <strong>Billetera digital</strong> - Nequi o Daviplata
-                            </label>
-                            <label>
-                                <input type="radio" name="medio-pago" />
-                                <strong>Tarjeta débito o crédito</strong> - Visa o Mastercard
-                            </label>
-                        </fieldset>
-
-                        <button type="button">
-                            Continuar con la recarga
-                        </button>
-
-                        <p>
-                            Esta es una vista de demostración. No se realizará ningún cobro
-                            ni se modificará el saldo.
-                        </p>
-                    </section>
-
-                    <aside aria-labelledby="summary-title">
-                        <h2 id="summary-title">Resumen de recarga</h2>
-                        <p>Monto seleccionado: <strong>$20.000</strong></p>
-                        <p>Comisión: <strong>$0</strong></p>
-                        <p>Total a pagar: <strong>$20.000</strong></p>
-                        <p>
-                            <strong>Tu información está protegida</strong>
-                            <br />
-                            Pago seguro y datos cifrados.
-                        </p>
-                        <p>
-                            El saldo se acreditará en tu tarjeta una vez confirmado el pago.
-                        </p>
-                    </aside>
-                </div>
+                <section aria-labelledby="recharge-status-title">
+                    <h2 id="recharge-status-title">Recargas no disponibles</h2>
+                    <p role="status">
+                        Esta aplicación todavía no tiene una pasarela de pago ni un servicio
+                        de saldo conectado. No se aceptará un pago ni se modificará el saldo
+                        hasta integrar y configurar un proveedor.
+                    </p>
+                </section>
             </main>
         </>
     );

@@ -1,28 +1,7 @@
 // Datos constantes y configuración para el Módulo de Transporte Preferencial
 // MediTunja - Usabilidad y Taller de Diseño Multimedia
 
-// 1. Datos precargados que provienen de la cita médica agendada previamente
-// Estos datos se presentan bloqueados (no editables) en el formulario de transporte
-export const DATOS_CITA_PRECARGADOS = {
-  // Datos del Paciente
-  tipoDocumento: "CC",
-  tipoDocumentoTexto: "Cédula de Ciudadanía (C.C.)",
-  numeroDocumento: "1049654321",
-  nombresPaciente: "María Clemencia Rodríguez Soler",
-  epsPaciente: "nueva-eps",
-  epsPacienteTexto: "Nueva EPS",
-  telefonoPaciente: "3123456789",
-  telefonoCuidador: "3209876543 (Carlos Rodríguez)",
-
-  // Datos de la Cita Médica agendada
-  ipsDestino: "hospital-san-rafael",
-  ipsDestinoTexto: "Hospital Universitario San Rafael de Tunja (Sede Central)",
-  tipoAtencion: "Consulta Externa - Cardiología",
-  fechaCita: "2026-11-10",
-  horaCita: "08:00"
-};
-
-// 2. Tipos de condición médica o discapacidad
+// Tipos de condición médica o discapacidad
 export const TIPOS_DISCAPACIDAD = [
   { value: "motora-silla-ruedas", label: "Discapacidad Motora / Movilidad Reducida (Usuario de silla de ruedas)" },
   { value: "motora-andador", label: "Discapacidad Motora (Uso de caminador, andador o muletas)" },

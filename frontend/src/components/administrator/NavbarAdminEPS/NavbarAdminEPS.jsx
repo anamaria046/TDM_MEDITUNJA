@@ -1,6 +1,6 @@
 import logo from "../../../assets/logo.png";
 import { NavLink } from "react-router-dom";
-import { House, CalendarDays, FileText, UserRound, UsersRound, Handshake } from "lucide-react";
+import { House, CalendarDays, FileText, UserRound, UsersRound, Handshake, Bus } from "lucide-react";
 import { useAdminAuth } from "../../../auth/useAdminAuth.js";
 import styles from "./NavbarAdminEPS.module.css";
 
@@ -16,13 +16,16 @@ function NavbarAdminEPS() {
                 </div>
                 <ul className={styles.links}>
                     <li>
-                        <NavLink to="/gestionUsuarios" className={({ isActive }) => isActive ? styles.active : styles.link}><House className={styles.mobileIcon} size={22} />Inicio</NavLink>
+                        <NavLink to="/admin" className={({ isActive }) => isActive ? styles.active : styles.link}><House className={styles.mobileIcon} size={22} />Inicio</NavLink>
                     </li>
                     <li>
                         <NavLink to="/gestionUsuarios" className={({ isActive }) => isActive ? styles.active : styles.link}><UsersRound className={styles.mobileIcon} size={22} />Usuarios</NavLink>
                     </li>
                     <li>
                         <NavLink to="/gestionCitas" className={({ isActive }) => isActive ? styles.active : styles.link}><CalendarDays className={styles.mobileIcon} size={22} />Citas</NavLink>
+                    </li>
+                    <li>
+                        <NavLink to="/gestionTransporte" className={({ isActive }) => isActive ? styles.active : styles.link}><Bus className={styles.mobileIcon} size={22} />Transporte</NavLink>
                     </li>
                     <li>
                         <NavLink to="/convenios" className={({ isActive }) => isActive ? styles.active : styles.link}><Handshake className={styles.mobileIcon} size={22} />Convenios</NavLink>

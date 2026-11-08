@@ -1,0 +1,147 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    padding: 24px;
+    margin: 20px auto;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.container input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.note {
+    margin: 0;
+    color: var(--color-text-secundary);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.cardHeader h2,
+.cardHeader p {
+    margin: 0 0 6px;
+}
+
+.status {
+    padding: 7px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.solicitada {
+    background: var(--color-tertiary);
+}
+
+.aceptada {
+    background: #d8f3e5;
+    color: #155e36;
+}
+
+.rechazada {
+    background: #fde2e2;
+    color: #8a1f1f;
+}
+
+.details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 20px;
+    margin: 0;
+}
+
+.details div {
+    min-width: 0;
+}
+
+.details dt {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.wide {
+    grid-column: 1 / -1;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+}
+
+.actions button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.accept {
+    background: var(--color-primary);
+    color: var(--color-bg);
+}
+
+.reject {
+    background: var(--hover-secundary);
+    color: var(--color-text);
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 14px;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    .cardHeader {
+        flex-direction: column;
+    }
+
+    .details {
+        grid-template-columns: 1fr;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+}

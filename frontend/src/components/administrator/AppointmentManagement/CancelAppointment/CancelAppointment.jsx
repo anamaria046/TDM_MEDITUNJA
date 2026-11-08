@@ -1,7 +1,16 @@
 import { Ban } from "lucide-react";
 import styles from "./cancelAppointment.module.css";
 
-function CancelAppointment({ cita, onClose }) {
+function CancelAppointment({ cita, enviando, error, onSubmit, onClose }) {
+    function enviar(event) {
+        event.preventDefault();
+        const datos = new FormData(event.currentTarget);
+        const detalle = datos.get("detalle").trim();
+        onSubmit({
+            motivo: [datos.get("motivoCancelacion"), detalle].filter(Boolean).join(": "),
+        });
+    }
+
     return (
         <div className={styles.modalOverlay}>
             <div className={styles.cancelform} role="dialog" aria-modal="true" aria-labelledby="cancel-appointment-title">
@@ -12,7 +21,7 @@ function CancelAppointment({ cita, onClose }) {
                 <h3 id="cancel-appointment-title">Cancelación de Cita</h3>
                 <p>Estás a punto de anular la cita de <em>{cita?.paciente || "este afiliado"}</em>.</p>
 
-                <form>
+                <form onSubmit={enviar}>
                     <div className={styles.group}>
                         <label htmlFor="motivo-cancelacion"><strong>Causa / Motivo de Cancelación:</strong></label>
                         <br />
@@ -34,17 +43,14 @@ function CancelAppointment({ cita, onClose }) {
                             name="detalle"
                             rows="3"
                             placeholder="Escriba aquí detalles para el registro de auditoría..."
+                            maxLength={500}
                         ></textarea>
                     </div>
 
-                    <div className={styles.checkboxContainer}>
-                        <input type="checkbox" id="reembolso" name="reembolso" className={styles.checkbox} defaultChecked />
-                        <label htmlFor="reembolso"> Autorizar devolución o crédito de copago / tarifa particular al usuario</label>
-                    </div>
-
+                    {error && <p role="alert">{error}</p>}
                     <div className={styles.actions}>
-                        <button className={styles.cancel} type="submit">Confirmar Cancelación</button>
-                        <button className={styles.discard} onClick={onClose} type="button">Descartar</button>
+                        <button className={styles.cancel} type="submit" disabled={enviando}>{enviando ? "Cancelando..." : "Confirmar Cancelación"}</button>
+                        <button className={styles.discard} onClick={onClose} type="button" disabled={enviando}>Descartar</button>
                     </div>
                 </form>
             </div>

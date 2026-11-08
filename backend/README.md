@@ -1,6 +1,26 @@
 # Administración de EPS
 
-Las rutas de administración usan la base SQLite del backend, requieren una sesión local y solo permiten operar sobre afiliados y convenios de la EPS asignada al administrador.
+Las rutas de administración usan la base SQLite del backend, requieren una sesión local y solo permiten operar sobre datos de la EPS asignada al administrador. La base se inicializa y migra automáticamente al iniciar el servidor.
+
+## Integraciones de la aplicación
+
+- Registro, inicio/cierre de sesión, renovación y consulta del perfil de paciente se realizan mediante TunjaAPI.
+- Citas: `GET /api/citas/disponibilidad`, `GET/POST /api/citas` y `PUT /api/citas/:id/cancelar`.
+- Solicitudes de transporte: `GET/POST /api/transporte`; deben corresponder a una cita confirmada del usuario. La respuesta queda en estado `solicitada`. El administrador de la EPS puede consultar y aceptar/rechazar solicitudes mediante `GET /api/admin/transporte` y `PUT /api/admin/transporte/:id/estado`; la aceptación no asigna automáticamente un vehículo.
+- Administración de citas: `GET /api/admin/resumen`, `GET /api/admin/citas`, `PUT /api/admin/citas/:id/reprogramar` y `PUT /api/admin/citas/:id/cancelar`. Las operaciones comprueban la EPS del afiliado y guardan el motivo administrativo.
+- Administración de afiliados, convenios y resultados usa rutas `/api/admin/*` y verifica el rol y la EPS en el servidor.
+
+## Lector ACR122U
+
+La vinculación de tarjeta usa `nfc-pcsc` y PC/SC para leer el UID de una tarjeta con el ACR122U. El lector debe estar conectado al mismo equipo que ejecuta el backend; no se comunica directamente con el navegador. Las rutas `/api/nfc/tarjeta` requieren un usuario autenticado y con afiliación aprobada.
+
+`nfc-pcsc` es una dependencia opcional porque necesita compilar un módulo nativo. En Windows, instala Python y Visual Studio Build Tools con la carga de trabajo de C++ antes de instalar las dependencias del backend para activar el lector. Si el módulo o el lector no están disponibles, la API devuelve un error y no finge una lectura.
+
+El UID solo se usa para vincular la tarjeta al perfil. No es una prueba criptográfica de identidad y no debe usarse por sí solo para iniciar sesión, autorizar pagos o acceder a información médica.
+
+## Pagos y recargas
+
+No hay un proveedor de pagos ni un servicio de saldo conectado. La interfaz mantiene deshabilitados los cobros y las recargas: no se almacena saldo ficticio ni se crean recibos de éxito. Para activar esas operaciones debe integrarse una pasarela y definir su configuración y flujo de confirmación/webhooks.
 
 ## Cuentas administradoras de EPS
 

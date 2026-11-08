@@ -44,6 +44,7 @@ CREATE INDEX IF NOT EXISTS idx_sesiones_usuario_expiracion
 CREATE TABLE IF NOT EXISTS usuarios_tunja (
     tipo_documento VARCHAR(10) NOT NULL,
     numero_documento VARCHAR(30) NOT NULL,
+    tunja_usuario_id TEXT,
     email VARCHAR(254) NOT NULL,
     nombres VARCHAR(100),
     apellidos VARCHAR(100),
@@ -75,6 +76,8 @@ CREATE TABLE IF NOT EXISTS citas (
     descuento_aplicado INTEGER NOT NULL DEFAULT 0 CHECK (descuento_aplicado >= 0),
     estado TEXT NOT NULL DEFAULT 'confirmada'
         CHECK (estado IN ('confirmada', 'cancelada')),
+    motivo_administrativo TEXT,
+    modificada_en TEXT,
     creada_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -84,6 +87,36 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_citas_ips_fecha_hora_confirmada
 
 CREATE INDEX IF NOT EXISTS idx_citas_usuario_fecha
     ON citas (usuario_id, fecha, hora);
+
+CREATE TABLE IF NOT EXISTS tarjetas_nfc (
+    id_tarjeta INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id TEXT NOT NULL UNIQUE,
+    email VARCHAR(254) NOT NULL,
+    uid TEXT NOT NULL UNIQUE,
+    vinculada_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS solicitudes_transporte (
+    id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id TEXT NOT NULL,
+    cita_id INTEGER NOT NULL UNIQUE,
+    tipo_discapacidad TEXT NOT NULL,
+    requerimientos TEXT NOT NULL,
+    viaja_acompanante INTEGER NOT NULL CHECK (viaja_acompanante IN (0, 1)),
+    nombre_acompanante TEXT,
+    direccion_origen TEXT NOT NULL,
+    barrio_sector TEXT NOT NULL,
+    puntos_referencia TEXT,
+    modalidad_viaje TEXT NOT NULL
+        CHECK (modalidad_viaje IN ('ida-y-regreso', 'solo-ida', 'solo-regreso')),
+    estado TEXT NOT NULL DEFAULT 'solicitada'
+        CHECK (estado IN ('solicitada', 'aceptada', 'rechazada')),
+    creada_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cita_id) REFERENCES citas (id_cita)
+);
+
+CREATE INDEX IF NOT EXISTS idx_transporte_usuario_fecha
+    ON solicitudes_transporte (usuario_id, creada_en DESC);
 
 CREATE TABLE IF NOT EXISTS resultados_procedimientos (
     id_resultado INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -3,12 +3,15 @@ import NfcStatus from "../../NFCStatus/NFCStatus.jsx";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../auth/useAuth.js";
+import { apiRequest, mensajeError } from "../../../auth/api.js";
 import styles from "./personalDataUser.module.css";
 
 function PersonalDataUser() {
     const { sesion, actualizarUsuario } = useAuth();
     const [actualizandoEstado, setActualizandoEstado] = useState(false);
     const [errorEstado, setErrorEstado] = useState("");
+    const [tarjeta, setTarjeta] = useState(null);
+    const [errorTarjeta, setErrorTarjeta] = useState("");
     const usuario = sesion?.usuario || {};
     const estado = usuario.estado_afiliacion || "pendiente";
     const nombre = (usuario.nombres || usuario.nombre || "").trim();
@@ -30,6 +33,20 @@ function PersonalDataUser() {
             setErrorEstado(error instanceof Error ? error.message : "No se pudo actualizar el perfil.");
         });
     }, [actualizarUsuario]);
+
+    useEffect(() => {
+        let activa = true;
+        apiRequest("/nfc/tarjeta", {
+            headers: { Authorization: `Bearer ${sesion.accessToken}` },
+        }).then((respuesta) => {
+            if (activa) setTarjeta(respuesta.data.vinculada ? respuesta.data : null);
+        }).catch((error) => {
+            if (activa) setErrorTarjeta(mensajeError(error));
+        });
+        return () => {
+            activa = false;
+        };
+    }, [sesion.accessToken]);
 
     async function consultarEstado() {
         setActualizandoEstado(true);
@@ -116,7 +133,8 @@ function PersonalDataUser() {
                         <div>
                             <h3>Tarjeta NFC</h3>
                             <div>
-                                <NfcStatus tarjeta={usuario.tarjetaNfc || usuario.tarjeta_nfc} />
+                                <NfcStatus tarjeta={tarjeta} />
+                                {errorTarjeta && <p role="alert">{errorTarjeta}</p>}
                             </div>
                         </div>
                     </fieldset>

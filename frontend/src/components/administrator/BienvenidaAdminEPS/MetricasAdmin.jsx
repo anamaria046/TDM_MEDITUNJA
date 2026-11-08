@@ -3,7 +3,7 @@
 
 import styles from "./BienvenidaAdminEPS.module.css";
 
-function MetricasAdmin({ badge, titulo, subtitulo, metricas }) {
+function MetricasAdmin({ badge, titulo, subtitulo, metricas, cargando, error }) {
   return (
     <section className={styles.seccionMetricas} aria-label="Métricas de operación">
       {/* 1. Encabezado de la bienvenida */}
@@ -15,6 +15,8 @@ function MetricasAdmin({ badge, titulo, subtitulo, metricas }) {
 
       {/* 2. Rejilla de tarjetas de métricas */}
       <div className={styles.rejillaMetricas} role="region" aria-label="Tarjetas de estadísticas">
+        {cargando && <p role="status">Cargando métricas...</p>}
+        {error && <p role="alert">{error}</p>}
         {metricas.map((metrica) => (
           <article key={metrica.id} className={styles.tarjetaMetrica}>
             <span className={styles.valorMetrica}>{metrica.valor}</span>

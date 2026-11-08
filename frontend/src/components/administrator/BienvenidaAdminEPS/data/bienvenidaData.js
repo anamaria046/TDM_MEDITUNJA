@@ -39,24 +39,3 @@ export const MENU_ITEMS_SIDEBAR = [
     activo: false
   }
 ];
-
-export const METRICAS_OPERACION = [
-  {
-    id: "afiliados",
-    valor: "1.248",
-    etiqueta: "Afiliados activos",
-    descripcion: "Pacientes con cobertura vigente en la red Tunja y Boyacá"
-  },
-  {
-    id: "citas",
-    valor: "84",
-    etiqueta: "Citas este mes",
-    descripcion: "Citas médicas gestionadas, agendadas o en trámite"
-  },
-  {
-    id: "resultados",
-    valor: "27",
-    etiqueta: "Resultados pendientes",
-    descripcion: "Procedimientos y análisis clínicos en espera de validación"
-  }
-];

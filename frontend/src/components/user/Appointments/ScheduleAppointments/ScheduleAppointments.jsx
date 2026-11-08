@@ -1,152 +1,200 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { apiRequest, mensajeError } from "../../../../auth/api.js";
+import { useAuth } from "../../../../auth/useAuth.js";
 import styles from "./ScheduleAppointment.module.css";
 
-function ScheduleAppointment() {
-    const [selectTime, setSelectTime] = useState("");
+const ipsDisponibles = [
+    { id: "san-rafael", nombre: "Hospital San Rafael de Tunja" },
+    { id: "santiago-tunja", nombre: "E.S.E. Santiago de Tunja" },
+    { id: "clinica-medilaser", nombre: "Clínica Medilaser" },
+    { id: "clinica-andes", nombre: "Clínica Los Andes" },
+    { id: "clinica-chia", nombre: "Clínica de Chía" },
+];
 
-    const schedules = [
-        "08:00 AM",
-        "08:30 AM",
-        "09:00 AM",
-        "09:30 AM",
-        "10:00 AM",
-        "10:30 AM",
-        "11:00 AM",
-        "11:30 AM",
-        "02:00 PM",
-        "02:30 PM",
-        "03:00 PM",
-        "03:30 PM",
-        "04:00 PM",
-        "04:30 PM",
-        "05:00 PM",
-        "05:30 PM"
-    ];
+const serviciosDisponibles = [
+    { id: "cardio", nombre: "Cardiología" },
+    { id: "radio", nombre: "Radiología" },
+];
+
+function fechaHoyColombia() {
+    return new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function ScheduleAppointment() {
+    const { sesion } = useAuth();
+    const [ips, setIps] = useState(ipsDisponibles[0].id);
+    const [servicio, setServicio] = useState(serviciosDisponibles[0].id);
+    const [fecha, setFecha] = useState("");
+    const [modalidad, setModalidad] = useState("presencial");
+    const [hora, setHora] = useState("");
+    const [disponibilidad, setDisponibilidad] = useState({ clave: "", horarios: [], error: "" });
+    const [enviando, setEnviando] = useState(false);
+    const [error, setError] = useState("");
+    const [mensaje, setMensaje] = useState("");
+    const [actualizacion, setActualizacion] = useState(0);
+    const claveDisponibilidad = fecha
+        ? `${sesion?.accessToken}|${ips}|${fecha}|${actualizacion}`
+        : "";
+    const cargandoHorarios = Boolean(claveDisponibilidad) &&
+        disponibilidad.clave !== claveDisponibilidad;
+    const horarios = disponibilidad.clave === claveDisponibilidad
+        ? disponibilidad.horarios
+        : [];
+    const errorDisponibilidad = disponibilidad.clave === claveDisponibilidad
+        ? disponibilidad.error
+        : "";
+
+    useEffect(() => {
+        let activa = true;
+        if (!sesion?.accessToken || !fecha) return undefined;
+
+        apiRequest(`/citas/disponibilidad?ips=${encodeURIComponent(ips)}&fecha=${encodeURIComponent(fecha)}`, {
+            headers: { Authorization: `Bearer ${sesion.accessToken}` },
+        }).then((respuesta) => {
+            if (activa) setDisponibilidad({
+                clave: claveDisponibilidad,
+                horarios: respuesta.horarios,
+                error: "",
+            });
+        }).catch((errorSolicitud) => {
+            if (activa) setDisponibilidad({
+                clave: claveDisponibilidad,
+                horarios: [],
+                error: mensajeError(errorSolicitud),
+            });
+        });
+
+        return () => {
+            activa = false;
+        };
+    }, [sesion?.accessToken, ips, fecha, actualizacion, claveDisponibilidad]);
+
+    async function confirmarCita(event) {
+        event.preventDefault();
+        setError("");
+        setMensaje("");
+        setEnviando(true);
+
+        try {
+            const respuesta = await apiRequest("/citas", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${sesion.accessToken}` },
+                body: JSON.stringify({ ips, servicio, fecha, hora, modalidad }),
+            });
+            setMensaje(`${respuesta.mensaje} Código: ${respuesta.cita.codigo_cita}.`);
+            setHora("");
+            setActualizacion((valor) => valor + 1);
+            window.dispatchEvent(new Event("citas-actualizadas"));
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+            setActualizacion((valor) => valor + 1);
+        } finally {
+            setEnviando(false);
+        }
+    }
+
+    const ipsNombre = ipsDisponibles.find((opcion) => opcion.id === ips)?.nombre;
+    const servicioNombre = serviciosDisponibles.find((opcion) => opcion.id === servicio)?.nombre;
 
     return (
         <div className={styles.appointmentContainer}>
             <section className={styles.form}>
-                <form>
+                <form onSubmit={confirmarCita}>
                     <fieldset>
-                        <h3><span className={styles.Number}>1</span>Datos del paciente</h3>
-                        <div className={styles.formGrid}> 
-                            <div className={styles.formGroup}>
-                                <label htmlFor="TipoDocumento">Tipo de documento</label>
-                                <select id="TipoDocumento" name="TipoDocumento">
-                                    <option>Cédula Ciudadana</option>
-                                    <option>Cédula de Extranjeria</option>
-                                    <option>Pasaporte</option>
-                                    <option>Tarjeta de Identidad</option>
-                                </select>
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="NumeroDocumento">Número de documento</label>
-                                <input type="number" id="NumeroDocumento" name="NumeroDocumento" />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="CorreoElectronico">Correo Electrónico</label>
-                                <input type="email" id="CorreoElectronico" name="CorreoElectronico" />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="Telefono">Teléfono</label>
-                                <input type="number" id="Telefono" name="Telefono" />
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <h3><span className={styles.Number}>2</span>Información de la cita</h3>
+                        <h3><span className={styles.Number}>1</span>Información de la cita</h3>
+                        <p>La identidad del paciente se verifica con la sesión iniciada.</p>
                         <div className={styles.formGrid}>
                             <div className={styles.formGroup}>
-                                <label htmlFor="especialidad">Especialidad</label>
-                                <select id="especialidad" name="especialidad">
-                                    <option>Cardiología</option>
-                                    <option>Medicina General</option>
+                                <label htmlFor="especialidad">Servicio</label>
+                                <select id="especialidad" value={servicio} onChange={(event) => setServicio(event.target.value)} required>
+                                    {serviciosDisponibles.map((opcion) => (
+                                        <option key={opcion.id} value={opcion.id}>{opcion.nombre}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className={styles.formGroup}>
-                                <label htmlFor="TipoConsulta">Tipo de consulta</label>
-                                <select id="TipoConsulta" name="TipoConsulta">
-                                    <option>Primera vez</option>
-                                    <option>Consulta</option>
-                                    <option>Lectura de resultados</option>
-                                    <option>Procedimiento</option> 
+                                <label htmlFor="ips">IPS</label>
+                                <select id="ips" value={ips} onChange={(event) => {
+                                    setIps(event.target.value);
+                                    setHora("");
+                                    setError("");
+                                }} required>
+                                    {ipsDisponibles.map((opcion) => (
+                                        <option key={opcion.id} value={opcion.id}>{opcion.nombre}</option>
+                                    ))}
                                 </select>
                             </div>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="IPS">IPS</label>
-                                <select id="IPS" name="IPS">
-                                    <option>Hospital San Rafael de Tunja</option>
-                                    <option>E.S.E Santiago de Tunja</option>
-                                    <option>Clínica Medilaser</option>
-                                    <option>Clínica los Andes</option> 
-                                    <option>Clínica de Chía S.A</option>
-                                </select>
-                            </div >
                             <div className={styles.formGroup}>
                                 <label htmlFor="fecha">Fecha</label>
-                                <input type="date" id="fecha" name="fecha" />
+                                <input
+                                    type="date"
+                                    id="fecha"
+                                    value={fecha}
+                                    min={fechaHoyColombia()}
+                                    onChange={(event) => {
+                                        setFecha(event.target.value);
+                                        setHora("");
+                                        setError("");
+                                    }}
+                                    required
+                                />
                             </div>
                             <div className={styles.formGroup}>
-                                <label htmlFor="entidad">Entidad</label>
-                                <select id="entidad" name="entidad">
-                                    <option>EPS</option>
-                                    <option>Particular</option>
+                                <label htmlFor="modalidad">Modalidad</label>
+                                <select id="modalidad" value={modalidad} onChange={(event) => setModalidad(event.target.value)}>
+                                    <option value="presencial">Presencial</option>
+                                    <option value="telemedicina">Telemedicina</option>
                                 </select>
                             </div>
                         </div>
                     </fieldset>
 
                     <fieldset>
-                        <h3><span className={styles.Number}>3</span> Horario</h3>
-                        <div className={styles.formGrid}>
-                            <div className={styles.gridHours}>
-
-                                {schedules.map((hour) => (
-                                    <button
-                                        key={hour}
-                                        type="button"
-                                        className={
-                                            selectTime === hour
-                                                ? styles.select
-                                                : styles.hour
-                                        }
-                                        onClick={() => setSelectTime(hour)}
-                                    >
-                                        {hour}
-                                    </button>
-                                ))}
-
-                            </div>
+                        <h3><span className={styles.Number}>2</span>Horarios disponibles</h3>
+                        {!fecha && <p>Selecciona una fecha para consultar la disponibilidad en tiempo real.</p>}
+                        {cargandoHorarios && <p role="status">Consultando disponibilidad...</p>}
+                        {errorDisponibilidad && <p role="alert">{errorDisponibilidad}</p>}
+                        {!cargandoHorarios && fecha && horarios.length === 0 && !errorDisponibilidad && (
+                            <p>No hay horarios disponibles para esta fecha.</p>
+                        )}
+                        <div className={styles.gridHours}>
+                            {horarios.map((opcion) => (
+                                <button
+                                    key={opcion.hora}
+                                    type="button"
+                                    disabled={!opcion.disponible || cargandoHorarios}
+                                    aria-pressed={hora === opcion.hora}
+                                    className={hora === opcion.hora ? styles.select : styles.hour}
+                                    onClick={() => setHora(opcion.hora)}
+                                >
+                                    {opcion.hora}
+                                    {!opcion.disponible && <span className={styles.slotStatus}> · No disponible</span>}
+                                </button>
+                            ))}
                         </div>
                     </fieldset>
+                    {error && <p role="alert">{error}</p>}
+                    {mensaje && <p role="status">{mensaje}</p>}
                 </form>
             </section>
 
             <section className={styles.summary}>
                 <div className={styles.summaryContainer}>
                     <h4>Resumen de tu cita</h4>
-                    <span>Especialidad</span>
-                    <hr className={styles.divider}></hr>
+                    <span>{servicioNombre}</span>
+                    <hr className={styles.divider} />
                     <div className={styles.summaryDetails}>
-                        <div>
-                            <span>IPS</span>
-                            <strong>Hola</strong>
-                        </div>
-
-                        <div>
-                            <span>Fecha</span>
-                            <strong>Hola</strong>
-                        </div>
-
-                        <div>
-                            <span>Hora</span>
-                            <strong>Hola</strong>
-                        </div>
+                        <div><span>IPS</span><strong>{ipsNombre}</strong></div>
+                        <div><span>Fecha</span><strong>{fecha || "Selecciona una fecha"}</strong></div>
+                        <div><span>Hora</span><strong>{hora || "Selecciona un horario"}</strong></div>
+                        <div><span>Modalidad</span><strong>{modalidad === "telemedicina" ? "Telemedicina" : "Presencial"}</strong></div>
                     </div>
-
-                    <button type="button">
-                        Confirmar cita
+                    <button
+                        type="button"
+                        disabled={!fecha || !hora || cargandoHorarios || enviando}
+                        onClick={confirmarCita}
+                    >
+                        {enviando ? "Agendando..." : "Confirmar cita"}
                     </button>
                 </div>
             </section>

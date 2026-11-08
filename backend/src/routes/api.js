@@ -17,9 +17,13 @@ import {
 import {
   autenticarUsuarioTunja,
   cancelarCita,
+  cancelarCitaAdministrador,
   crearCita,
+  listarCitasAdministrador,
   listarCitas,
-  obtenerDisponibilidad
+  obtenerResumenAdministrador,
+  obtenerDisponibilidad,
+  reprogramarCitaAdministrador
 } from '../controllers/citas.js';
 import {
   crearResultado,
@@ -27,6 +31,17 @@ import {
   listarResultadosAdministrador,
   listarResultadosUsuario
 } from '../controllers/resultados.js';
+import {
+  desvincularTarjeta,
+  leerYVincularTarjeta,
+  obtenerTarjeta
+} from '../controllers/nfc.js';
+import {
+  crearSolicitudTransporte,
+  listarSolicitudesTransporte,
+  listarSolicitudesTransporteAdministrador,
+  actualizarEstadoSolicitudTransporteAdministrador
+} from '../controllers/transporte.js';
 import * as sesiones from '../repositories/sesiones.js';
 import {
   cerrarSesionTunja,
@@ -54,6 +69,11 @@ router.get('/citas', autenticarUsuarioTunja, listarCitas);
 router.post('/citas', autenticarUsuarioTunja, crearCita);
 router.put('/citas/:id/cancelar', autenticarUsuarioTunja, cancelarCita);
 router.get('/resultados', autenticarUsuarioTunja, listarResultadosUsuario);
+router.get('/nfc/tarjeta', autenticarUsuarioTunja, obtenerTarjeta);
+router.post('/nfc/tarjeta', autenticarUsuarioTunja, leerYVincularTarjeta);
+router.delete('/nfc/tarjeta', autenticarUsuarioTunja, desvincularTarjeta);
+router.get('/transporte', autenticarUsuarioTunja, listarSolicitudesTransporte);
+router.post('/transporte', autenticarUsuarioTunja, crearSolicitudTransporte);
 
 router.use(autenticarSesion);
 router.get('/sesion', (req, res) => {
@@ -67,6 +87,12 @@ router.get('/admin/sesion', exigirAdministrador, (req, res) => {
   res.status(200).json({ data: req.usuario });
 });
 router.get('/admin/afiliados', exigirAdministrador, listarAfiliados);
+router.get('/admin/resumen', exigirAdministrador, obtenerResumenAdministrador);
+router.get('/admin/citas', exigirAdministrador, listarCitasAdministrador);
+router.get('/admin/transporte', exigirAdministrador, listarSolicitudesTransporteAdministrador);
+router.put('/admin/transporte/:id/estado', exigirAdministrador, actualizarEstadoSolicitudTransporteAdministrador);
+router.put('/admin/citas/:id/reprogramar', exigirAdministrador, reprogramarCitaAdministrador);
+router.put('/admin/citas/:id/cancelar', exigirAdministrador, cancelarCitaAdministrador);
 router.get('/admin/solicitudes-afiliacion', exigirAdministrador, listarSolicitudesAfiliacion);
 router.get(
   '/admin/solicitudes-afiliacion/:tipoDocumento/:numeroDocumento/comprobante',

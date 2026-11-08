@@ -3,16 +3,16 @@ import styles from "./NFCStatus.module.css";
 
 function obtenerIdentificador(tarjeta) {
     if (typeof tarjeta === "string") return tarjeta;
-    return tarjeta?.id || tarjeta?.uid || "Tarjeta registrada";
+    return tarjeta?.identificador || tarjeta?.id || tarjeta?.uid || "Tarjeta registrada";
 }
 
 function NfcStatus({ tarjeta }) {
     if (tarjeta) {
         return (
             <section className={`${styles.nfcCard} ${styles.nfcLinked}`}>
-                <p className={styles.nfcStatus} role="status">Tarjeta de demostración vinculada</p>
+                <p className={styles.nfcStatus} role="status">Tarjeta vinculada</p>
                 <p className={styles.nfcDescription}>
-                    Identificador de demostración: <strong>{obtenerIdentificador(tarjeta)}</strong>
+                    Identificador terminado en: <strong>{obtenerIdentificador(tarjeta)}</strong>
                 </p>
                 <Link
                     to="/vinculacionNFC"
@@ -30,8 +30,8 @@ function NfcStatus({ tarjeta }) {
             <div className={styles.nfcCard}>
                 <p className={styles.nfcDescription}>
                     Aún no tienes una tarjeta física asociada a tu cuenta. Vincúlala para
-                    iniciar sesión al instante, pagar tu cita con el saldo de tu tarjeta y
-                    validar tus citas en taquilla
+                    asociarla a tu perfil. El inicio de sesión NFC y los pagos estarán
+                    disponibles cuando exista un mecanismo de autenticación y pago habilitado.
                 </p>
                 <Link
                     to="/vinculacionNFC"

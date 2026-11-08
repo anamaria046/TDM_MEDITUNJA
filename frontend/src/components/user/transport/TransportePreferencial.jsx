@@ -13,7 +13,13 @@ import ResumenExito from "./ResumenExito";
 function TransportePreferencial() {
   const {
     datosCita,
+    citaCargando,
+    errorCita,
     solicitudEnviada,
+    solicitudId,
+    estadoSolicitud,
+    enviando,
+    errorSolicitud,
     handleSubmit,
     handleNuevaSolicitud,
     tipoDiscapacidad,
@@ -93,23 +99,23 @@ function TransportePreferencial() {
           </div>
         </div>
 
-        {/* Banner de soporte */}
-        <div className={styles.bannerSoporte} role="complementary">
-          <span className={styles.iconoSoporte} aria-hidden="true">📞</span>
-          <div>
-            <strong>¿Necesitas ayuda para completar esta solicitud?</strong>
-            <p>
-              Llama gratis a la Línea Preferencial EPS Tunja: <a href="tel:018000912345">01 8000 912345</a> o solicita asistencia por WhatsApp al <a href="https://wa.me/573100000000" target="_blank" rel="noreferrer">310 000 0000</a>.
-            </p>
-          </div>
-        </div>
       </header>
 
       {/* 3. Contenido Principal */}
       <main className={styles.contenidoPrincipal}>
-        {solicitudEnviada ? (
+        {citaCargando ? (
+          <p role="status">Consultando tus citas confirmadas...</p>
+        ) : !datosCita ? (
+          <section role="alert">
+            <h2>No hay una cita disponible para transporte</h2>
+            <p>{errorCita}</p>
+            <Link to="/citas">Consultar o agendar una cita</Link>
+          </section>
+        ) : solicitudEnviada ? (
           <ResumenExito
             datosCita={datosCita}
+            solicitudId={solicitudId}
+            estadoSolicitud={estadoSolicitud}
             requerimientosSeleccionados={requerimientosSeleccionados}
             catalogoRequerimientos={REQUERIMIENTOS_VEHICULO}
             onNuevaSolicitud={handleNuevaSolicitud}
@@ -500,8 +506,9 @@ function TransportePreferencial() {
               <Link to="/pagos" className={styles.btnOmitirTransporte}>
                 Omitir transporte e ir a Pagos →
               </Link>
-              <button type="submit" className={styles.btnSolicitarTransporte}>
-                🚐 Confirmar Transporte y Continuar
+              {errorSolicitud && <p role="alert">{errorSolicitud}</p>}
+              <button type="submit" className={styles.btnSolicitarTransporte} disabled={enviando}>
+                {enviando ? "Registrando solicitud..." : "Registrar solicitud de transporte"}
               </button>
             </div>
           </form>

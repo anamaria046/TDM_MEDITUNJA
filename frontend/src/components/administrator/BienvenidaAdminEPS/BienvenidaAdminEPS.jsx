@@ -14,6 +14,8 @@ function BienvenidaAdminEPS() {
     infoPanel,
     menuItems,
     metricas,
+    cargando,
+    error,
     darkMode,
     handleToggleDarkMode,
     handleAyuda
@@ -45,6 +47,8 @@ function BienvenidaAdminEPS() {
             titulo={infoPanel.tituloPrincipal}
             subtitulo={infoPanel.subtitulo}
             metricas={metricas}
+            cargando={cargando}
+            error={error}
           />
         </main>
 
