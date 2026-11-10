@@ -102,7 +102,6 @@ function ScheduleAppointment() {
                 <form onSubmit={confirmarCita}>
                     <fieldset>
                         <h3><span className={styles.Number}>1</span>Información de la cita</h3>
-                        <p>La identidad del paciente se verifica con la sesión iniciada.</p>
                         <div className={styles.formGrid}>
                             <div className={styles.formGroup}>
                                 <label htmlFor="especialidad">Servicio</label>
