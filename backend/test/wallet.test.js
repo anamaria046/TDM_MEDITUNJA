@@ -22,8 +22,14 @@ await ejecutar(
   'run',
   `INSERT INTO usuarios_tunja (
     tipo_documento, numero_documento, email, estado_afiliacion
-  ) VALUES (?, ?, ?, ?)`,
-  ['CC', '1234567890', 'wallet@example.com', 'aprobado']
+  ) VALUES
+    ('CC', '1234567890', 'wallet@example.com', 'aprobado'),
+    ('CC', '1234567891', 'wallet-sin-tarjeta@example.com', 'aprobado')`
+);
+await ejecutar(
+  'run',
+  `INSERT INTO tarjetas_nfc (usuario_id, email, uid)
+   VALUES ('17', 'wallet@example.com', 'AABBCCDD')`
 );
 
 const llamadasTunja = [];
@@ -43,6 +49,15 @@ globalThis.fetch = async (input, opciones = {}) => {
   });
 
   if (url.pathname === '/api/v1/auth/me') {
+    if (headers.get('authorization') === 'Bearer wallet-sin-tarjeta') {
+      return Response.json({
+        usuario: {
+          id: 18,
+          email: 'wallet-sin-tarjeta@example.com',
+          descuento: 0
+        }
+      });
+    }
     return Response.json({
       usuario: {
         id: 17,
@@ -133,5 +148,37 @@ test('rechaza montos fuera de rango antes de llamar a TunjaAPI', async () => {
   assert.equal(
     llamadasTunja.filter((llamada) => llamada.path === '/api/v1/wallet/topup').length,
     llamadasAntes
+  );
+});
+
+test('no consulta ni recarga saldo si el usuario no tiene tarjeta vinculada', async () => {
+  const llamadasSaldoAntes = llamadasTunja.filter((llamada) =>
+    llamada.path === '/api/v1/wallet' ||
+    llamada.path === '/api/v1/wallet/topup'
+  ).length;
+  const autorizacion = { Authorization: 'Bearer wallet-sin-tarjeta' };
+
+  const consulta = await fetchOriginal(`${baseUrl}/api/wallet`, {
+    headers: autorizacion
+  });
+  assert.equal(consulta.status, 403);
+  assert.equal((await consulta.json()).error, 'tarjeta_no_vinculada');
+
+  const recarga = await fetchOriginal(`${baseUrl}/api/wallet/topup`, {
+    method: 'POST',
+    headers: {
+      ...autorizacion,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ monto: 20000 })
+  });
+  assert.equal(recarga.status, 403);
+  assert.equal((await recarga.json()).error, 'tarjeta_no_vinculada');
+  assert.equal(
+    llamadasTunja.filter((llamada) =>
+      llamada.path === '/api/v1/wallet' ||
+      llamada.path === '/api/v1/wallet/topup'
+    ).length,
+    llamadasSaldoAntes
   );
 });

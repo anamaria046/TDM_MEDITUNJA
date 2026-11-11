@@ -36,8 +36,14 @@ await ejecutar(
     tipo_documento, numero_documento, email, nombres, apellidos, eps, estado_afiliacion
   ) VALUES
     ('CC', '1234567890', 'afiliado@sura.test', 'Afiliado', 'Sura', 'EPS Sura', 'aprobado'),
+    ('CC', '1234567891', 'sin-tarjeta@sura.test', 'Sin Tarjeta', 'Sura', 'EPS Sura', 'aprobado'),
     ('CC', '9876543210', 'afiliado@otra.test', 'Afiliado', 'Otra EPS', 'Otra EPS', 'aprobado'),
     ('CC', '5555555555', 'pendiente@sura.test', 'Pendiente', 'Sura', 'Sura', 'pendiente')`
+);
+await ejecutar(
+  'run',
+  `INSERT INTO tarjetas_nfc (usuario_id, email, uid)
+   VALUES ('17', 'afiliado@sura.test', 'AABBCC17')`
 );
 
 const llamadasTunja = [];
@@ -57,9 +63,9 @@ globalThis.fetch = async (input, opciones = {}) => {
 
   if (url.pathname === '/api/v1/users' && (!opciones.method || opciones.method === 'GET')) {
     const desde = Number(url.searchParams.get('desde') || 0);
-    if (desde > 0) return Response.json({ total: 3, limite: 200, desde, usuarios: [] });
+    if (desde > 0) return Response.json({ total: 4, limite: 200, desde, usuarios: [] });
     return Response.json({
-      total: 3,
+      total: 4,
       limite: 200,
       desde: 0,
       usuarios: [
@@ -78,6 +84,14 @@ globalThis.fetch = async (input, opciones = {}) => {
           documento: '9876543210',
           email: 'afiliado@otra.test',
           saldo: 10000
+        },
+        {
+          id: 20,
+          nombre: 'Afiliado sin tarjeta',
+          activo: true,
+          documento: '1234567891',
+          email: 'sin-tarjeta@sura.test',
+          saldo: 9000
         },
         {
           id: 19,
@@ -108,6 +122,16 @@ globalThis.fetch = async (input, opciones = {}) => {
       documento: '9876543210',
       email: 'afiliado@otra.test',
       saldo: 10000
+    });
+  }
+  if (url.pathname === '/api/v1/users/20') {
+    return Response.json({
+      id: 20,
+      nombre: 'Afiliado sin tarjeta',
+      activo: true,
+      documento: '1234567891',
+      email: 'sin-tarjeta@sura.test',
+      saldo: 9000
     });
   }
   if (url.pathname === '/api/v1/users/17/wallet/topup' && opciones.method === 'POST') {
@@ -216,6 +240,20 @@ test('rechaza recargar afiliados ajenos o medios inválidos sin acreditar saldo'
     body: JSON.stringify({ monto: 10000, metodoPago: 'efectivo' })
   });
   assert.equal(metodoInvalido.status, 400);
+  assert.equal(
+    llamadasTunja.filter((llamada) => llamada.path.endsWith('/wallet/topup')).length,
+    cantidadRecargas
+  );
+
+  const sinTarjeta = await fetchOriginal(`${baseUrl}/api/admin/recargas/afiliados/20`, {
+    method: 'POST',
+    headers: {
+      ...autorizacion,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ monto: 10000, metodoPago: 'pse' })
+  });
+  assert.equal(sinTarjeta.status, 404);
   assert.equal(
     llamadasTunja.filter((llamada) => llamada.path.endsWith('/wallet/topup')).length,
     cantidadRecargas

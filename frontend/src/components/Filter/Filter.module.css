@@ -2,63 +2,57 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 880px;
-    margin-inline: auto;
-    padding: clamp(1.25rem, 4vw, 2rem);
+    padding: 18px;
     background-color: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-radius: 10px;
+    border-radius: 12px;
     box-sizing: border-box;
-
     box-shadow:
-    0 24px 60px rgba(24, 39, 75, 0.08),
-    0 4px 12px rgba(24, 39, 75, 0.02);
+        0 24px 60px rgba(24, 39, 75, 0.08),
+        0 4px 12px rgba(24, 39, 75, 0.02);
 }
 
 .formFilter {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
+    align-items: end;
+    gap: 14px;
+    width: 100%;
+}
+
+.field {
     display: flex;
-    align-items: center;
-    gap: 16px;
-    width: 100%;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
 }
 
-.formFilter input {
-    flex: 2;
-    min-width: 0;
+.field label {
+    color: var(--color-text);
+    font-family: var(--text);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.field input,
+.field select {
     width: 100%;
     min-height: 46px;
-    padding: 10px;
+    padding: 10px 12px;
     box-sizing: border-box;
     border: 1px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: 9px;
     background-color: var(--color-bg);
     color: var(--color-text);
     font-family: var(--text);
-    font-size: 16px;
+    font-size: 15px;
     transition:
         border-color 0.25s ease,
         box-shadow 0.2s ease;
 }
 
-.formFilter select {
-    flex: 1;
-    min-width: 0;
-    width: 100%;
-    min-height: 46px;
-    padding: 10px;
-    box-sizing: border-box;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    background-color: var(--color-bg);
-    color: var(--color-text);
-    font-family: var(--text);
-    font-size: 16px;
-    transition:
-        border-color 0.25s ease,
-        box-shadow 0.2s ease;
-}
-
-.formFilter input:focus,.formFilter select:focus {
+.field input:focus-visible,
+.field select:focus-visible {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 4px rgba(149, 39, 245, 0.18);
@@ -66,18 +60,17 @@
 
 @media (max-width: 480px) {
     .container {
-        width: calc(100% - 20px);
         padding: 14px;
-        margin: 10px auto;
     }
 
     .formFilter {
-        gap: 8px;
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    .formFilter input, .formFilter select {
-        min-height: 38px;
-        padding: 6px;
-        font-size: 12px;
+    .field input,
+    .field select {
+        min-height: 44px;
+        font-size: 14px;
     }
 }

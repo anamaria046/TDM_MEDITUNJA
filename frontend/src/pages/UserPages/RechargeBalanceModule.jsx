@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth.js";
 import { apiRequest, mensajeError } from "../../auth/api.js";
 import NavbarUser from "../../components/user/NavbarUser/NavbarUser.jsx";
+import styles from "./RechargeBalanceModule.module.css";
 
 const montosSugeridos = [10000, 20000, 50000, 100000];
 const metodosPago = [
@@ -38,27 +39,32 @@ function RechargeBalanceModule() {
         const headers = { Authorization: "Bearer " + accessToken };
 
         apiRequest("/nfc/tarjeta", { headers })
-            .then((respuesta) => {
-                if (activa) {
-                    setTarjeta(respuesta.data.vinculada ? respuesta.data : null);
+            .then(async (respuestaTarjeta) => {
+                if (!activa) return;
+                if (!respuestaTarjeta.data.vinculada) {
+                    setTarjeta(null);
+                    setCargandoTarjeta(false);
+                    setCargandoSaldo(false);
+                    return;
+                }
+
+                setTarjeta(respuestaTarjeta.data);
+                setCargandoTarjeta(false);
+                try {
+                    const respuestaSaldo = await apiRequest("/wallet", { headers });
+                    if (activa) setSaldo(respuestaSaldo.data.saldo);
+                } catch (errorSolicitud) {
+                    if (activa) setErrorSaldo(mensajeError(errorSolicitud));
                 }
             })
             .catch((errorSolicitud) => {
                 if (activa) setErrorTarjeta(mensajeError(errorSolicitud));
             })
             .finally(() => {
-                if (activa) setCargandoTarjeta(false);
-            });
-
-        apiRequest("/wallet", { headers })
-            .then((respuesta) => {
-                if (activa) setSaldo(respuesta.data.saldo);
-            })
-            .catch((errorSolicitud) => {
-                if (activa) setErrorSaldo(mensajeError(errorSolicitud));
-            })
-            .finally(() => {
-                if (activa) setCargandoSaldo(false);
+                if (activa) {
+                    setCargandoTarjeta(false);
+                    setCargandoSaldo(false);
+                }
             });
 
         return () => {
@@ -75,6 +81,11 @@ function RechargeBalanceModule() {
 
     async function enviarRecarga(evento) {
         evento.preventDefault();
+        if (!tarjeta) {
+            setErrorRecarga("Vincula una tarjeta NFC antes de recargar saldo.");
+            setMensaje("");
+            return;
+        }
         const montoFinal = otroMonto === "" ? monto : Number(otroMonto);
         if (!Number.isSafeInteger(montoFinal) || montoFinal < 100 || montoFinal > 500000) {
             setErrorRecarga("Ingresa un monto entero entre $100 y $500.000.");
@@ -115,8 +126,8 @@ function RechargeBalanceModule() {
     return (
         <>
             <NavbarUser />
-            <main>
-                <header>
+            <main className={styles.page}>
+                <header className={styles.header}>
                     <span>BILLETERA MEDITUNJA</span>
                     <h1>Recarga de saldo</h1>
                     <p>
@@ -125,102 +136,140 @@ function RechargeBalanceModule() {
                     </p>
                 </header>
 
-                <section aria-label="Resumen de billetera">
-                    <h2>Saldo de billetera</h2>
-                    {cargandoSaldo ? (
-                        <p role="status">Consultando saldo...</p>
-                    ) : saldo !== null ? (
-                        <p><strong>{formatoPesos.format(saldo)}</strong></p>
-                    ) : (
-                        <p role="alert">{errorSaldo}</p>
+                <section className={styles.walletPanel} aria-label="Resumen de billetera">
+                    <div className={styles.walletSummary}>
+                        <div>
+                            <span>Saldo de billetera</span>
+                            {cargandoTarjeta || cargandoSaldo ? (
+                                <strong role="status">Consultando saldo...</strong>
+                            ) : tarjeta && saldo !== null ? (
+                                <strong className={styles.balance}>{formatoPesos.format(saldo)}</strong>
+                            ) : tarjeta && (
+                                <p className={styles.error} role="alert">{errorSaldo}</p>
+                            )}
+                        </div>
+                        <div>
+                            <span>Tarjeta NFC vinculada</span>
+                            {cargandoTarjeta ? (
+                                <strong role="status">Consultando tarjeta...</strong>
+                            ) : tarjeta ? (
+                                <strong>•••• {tarjeta.identificador}</strong>
+                            ) : errorTarjeta ? (
+                                <p className={styles.error} role="alert">{errorTarjeta}</p>
+                            ) : (
+                                <strong>No tienes una tarjeta vinculada</strong>
+                            )}
+                            <Link className={styles.cardLink} to="/vinculacionNFC">
+                                Administrar tarjeta NFC
+                            </Link>
+                        </div>
+                    </div>
+                    {errorSaldo && saldo !== null && (
+                        <p className={styles.error} role="alert">{errorSaldo}</p>
                     )}
-                    {errorSaldo && saldo !== null && <p role="alert">{errorSaldo}</p>}
-
-                    <h3>Tarjeta NFC vinculada</h3>
-                    {cargandoTarjeta ? (
-                        <p role="status">Consultando tarjeta...</p>
-                    ) : tarjeta ? (
-                        <p>Identificador terminado en {tarjeta.identificador}</p>
-                    ) : errorTarjeta ? (
-                        <p role="alert">{errorTarjeta}</p>
-                    ) : (
-                        <p>No tienes una tarjeta vinculada.</p>
+                    {!cargandoTarjeta && !errorTarjeta && !tarjeta && (
+                        <p className={styles.notice} role="status">
+                            Vincula una tarjeta NFC para consultar o utilizar el saldo de tu billetera.
+                        </p>
                     )}
-                    <Link to="/vinculacionNFC">Administrar tarjeta NFC</Link>
+                    {errorTarjeta && (
+                        <p className={styles.error} role="alert">{errorTarjeta}</p>
+                    )}
                 </section>
 
-                <form onSubmit={enviarRecarga} aria-labelledby="recharge-title">
+                <section className={styles.rechargePanel} aria-labelledby="recharge-title">
                     <h2 id="recharge-title">Acreditar saldo</h2>
-                    <p>Selecciona un monto. El mínimo es $100 y el máximo por recarga es $500.000.</p>
-                    <fieldset>
-                        <legend>Medio de pago (simulado)</legend>
-                        {metodosPago.map(({ id, nombre }) => (
-                            <label key={id}>
-                                <input
-                                    type="radio"
-                                    name="metodo-pago"
-                                    value={id}
-                                    checked={metodoPago === id}
-                                    onChange={() => setMetodoPago(id)}
-                                />
-                                {nombre}
-                            </label>
-                        ))}
-                    </fieldset>
-                    <p>
-                        El pago con estos medios es simulado: no se solicitan datos
-                        bancarios ni se realiza un cobro. Al confirmar, se solicitará a
-                        TunjaAPI la acreditación del monto; el saldo cambiará si la API
-                        confirma la operación.
+                    {cargandoTarjeta && (
+                        <p className={styles.notice} role="status">Verificando tarjeta NFC...</p>
+                    )}
+                    {!cargandoTarjeta && !errorTarjeta && !tarjeta && (
+                        <p className={styles.notice}>
+                            Para recargar saldo, primero vincula una tarjeta NFC.
+                            <Link to="/vinculacionNFC"> Vincular tarjeta</Link>
+                        </p>
+                    )}
+                    <p className={styles.panelDescription}>
+                        Selecciona un monto. El mínimo es $100 y el máximo por recarga es $500.000.
                     </p>
-                    <fieldset>
-                        <legend>Montos sugeridos</legend>
-                        {montosSugeridos.map((montoSugerido) => (
-                            <label key={montoSugerido}>
-                                <input
-                                    type="radio"
-                                    name="monto-recarga"
-                                    value={montoSugerido}
-                                    checked={otroMonto === "" && monto === montoSugerido}
-                                    onChange={() => {
-                                        setMonto(montoSugerido);
-                                        setOtroMonto("");
-                                    }}
-                                />
-                                {formatoPesos.format(montoSugerido)}
-                            </label>
-                        ))}
-                    </fieldset>
+                    {tarjeta && <form onSubmit={enviarRecarga}>
+                        <fieldset className={styles.fieldset}>
+                            <legend>Medio de pago (simulado)</legend>
+                            <div className={styles.options}>
+                                {metodosPago.map(({ id, nombre }) => (
+                                    <label key={id} className={styles.option}>
+                                        <input
+                                            type="radio"
+                                            name="metodo-pago"
+                                            value={id}
+                                            checked={metodoPago === id}
+                                            onChange={() => setMetodoPago(id)}
+                                        />
+                                        {nombre}
+                                    </label>
+                                ))}
+                            </div>
+                        </fieldset>
+                        <p className={styles.simulationNotice}>
+                            El pago con estos medios es simulado: no se solicitan datos
+                            bancarios ni se realiza un cobro. Al confirmar, se solicitará a
+                            TunjaAPI la acreditación del monto; el saldo cambiará si la API
+                            confirma la operación.
+                        </p>
+                        <fieldset className={styles.fieldset}>
+                            <legend>Montos sugeridos</legend>
+                            <div className={styles.options}>
+                                {montosSugeridos.map((montoSugerido) => (
+                                    <label key={montoSugerido} className={styles.option}>
+                                        <input
+                                            type="radio"
+                                            name="monto-recarga"
+                                            value={montoSugerido}
+                                            checked={otroMonto === "" && monto === montoSugerido}
+                                            onChange={() => {
+                                                setMonto(montoSugerido);
+                                                setOtroMonto("");
+                                            }}
+                                        />
+                                        {formatoPesos.format(montoSugerido)}
+                                    </label>
+                                ))}
+                            </div>
+                        </fieldset>
 
-                    <label htmlFor="otro-monto">Otro monto</label>
-                    <input
-                        id="otro-monto"
-                        type="number"
-                        min="100"
-                        max="500000"
-                        step="1"
-                        value={otroMonto}
-                        onChange={(evento) => setOtroMonto(evento.target.value)}
-                        placeholder="Ingresa un monto en pesos"
-                    />
+                        <div className={styles.customAmountGroup}>
+                            <label htmlFor="otro-monto">Otro monto</label>
+                            <input
+                                className={styles.customAmount}
+                                id="otro-monto"
+                                type="number"
+                                min="100"
+                                max="500000"
+                                step="1"
+                                value={otroMonto}
+                                onChange={(evento) => setOtroMonto(evento.target.value)}
+                                placeholder="Ingresa un monto en pesos"
+                            />
+                        </div>
 
-                    <p>
-                        Monto a acreditar:{" "}
-                        <strong>
-                            {formatoPesos.format(otroMonto === "" ? monto : Number(otroMonto) || 0)}
-                        </strong>
-                    </p>
-                    <button
-                        type="submit"
-                        disabled={procesando || cargandoSaldo || saldo === null}
-                    >
-                        {procesando ? "Confirmando recarga..." : "Simular pago y recargar"}
-                    </button>
-                    {mensaje && <p role="status">{mensaje}</p>}
-                    {errorRecarga && <p role="alert">{errorRecarga}</p>}
-                </form>
+                        <p className={styles.amountTotal}>
+                            <span>Monto a acreditar</span>
+                            <strong>
+                                {formatoPesos.format(otroMonto === "" ? monto : Number(otroMonto) || 0)}
+                            </strong>
+                        </p>
+                        <button
+                            className={styles.submitButton}
+                            type="submit"
+                            disabled={procesando || cargandoSaldo || saldo === null}
+                        >
+                            {procesando ? "Confirmando recarga..." : "Simular pago y recargar"}
+                        </button>
+                        {mensaje && <p className={styles.success} role="status">{mensaje}</p>}
+                        {errorRecarga && <p className={styles.error} role="alert">{errorRecarga}</p>}
+                    </form>}
+                </section>
 
-                <aside>
+                <aside className={styles.importantPanel}>
                     <h2>Importante</h2>
                     <p>
                         Nequi, Daviplata, tarjeta débito o crédito y PSE solo simulan el

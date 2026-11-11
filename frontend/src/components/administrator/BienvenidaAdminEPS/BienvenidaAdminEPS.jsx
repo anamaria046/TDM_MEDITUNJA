@@ -4,7 +4,6 @@
 
 import styles from "./BienvenidaAdminEPS.module.css";
 import { useBienvenidaAdmin } from "./hooks/useBienvenidaAdmin.js";
-import SidebarAdmin from "./SidebarAdmin.jsx";
 import HeaderAdmin from "./HeaderAdmin.jsx";
 import MetricasAdmin from "./MetricasAdmin.jsx";
 
@@ -12,7 +11,6 @@ function BienvenidaAdminEPS() {
   const {
     nombreEps,
     infoPanel,
-    menuItems,
     metricas,
     cargando,
     error,
@@ -27,10 +25,7 @@ function BienvenidaAdminEPS() {
         darkMode ? styles.modoOscuro : ""
       }`}
     >
-      {/* 1. Barra Lateral de Navegación (Sidebar) */}
-      <SidebarAdmin menuItems={menuItems} />
-
-      {/* 2. Área Central / Contenedor de la Vista */}
+      {/* Área de trabajo del panel */}
       <div className={styles.contenedorAreaTrabajo}>
         {/* Cabecera Superior */}
         <HeaderAdmin

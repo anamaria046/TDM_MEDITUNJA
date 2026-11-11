@@ -3,6 +3,7 @@ import { iniciarSesion, iniciarSesionAdministrador } from '../controllers/login.
 import { registrarUsuario } from '../controllers/registro.js';
 import { autenticarSesion } from '../middleware/autenticarSesion.js';
 import { exigirAdministrador } from '../middleware/exigirAdministrador.js';
+import { exigirTarjetaVinculada } from '../middleware/exigirTarjetaVinculada.js';
 import {
   actualizarAfiliado,
   actualizarEstadoAfiliado,
@@ -69,16 +70,16 @@ router.post('/admin/login', iniciarSesionAdministrador);
 
 router.get('/citas/disponibilidad', autenticarUsuarioTunja, obtenerDisponibilidad);
 router.get('/citas', autenticarUsuarioTunja, listarCitas);
-router.post('/citas', autenticarUsuarioTunja, crearCita);
+router.post('/citas', autenticarUsuarioTunja, exigirTarjetaVinculada, crearCita);
 router.put('/citas/:id/cancelar', autenticarUsuarioTunja, cancelarCita);
 router.get('/resultados', autenticarUsuarioTunja, listarResultadosUsuario);
 router.get('/nfc/tarjeta', autenticarUsuarioTunja, obtenerTarjeta);
 router.post('/nfc/tarjeta', autenticarUsuarioTunja, leerYVincularTarjeta);
 router.delete('/nfc/tarjeta', autenticarUsuarioTunja, desvincularTarjeta);
-router.get('/wallet', autenticarUsuarioTunja, obtenerSaldo);
-router.post('/wallet/topup', autenticarUsuarioTunja, recargarSaldo);
+router.get('/wallet', autenticarUsuarioTunja, exigirTarjetaVinculada, obtenerSaldo);
+router.post('/wallet/topup', autenticarUsuarioTunja, exigirTarjetaVinculada, recargarSaldo);
 router.get('/transporte', autenticarUsuarioTunja, listarSolicitudesTransporte);
-router.post('/transporte', autenticarUsuarioTunja, crearSolicitudTransporte);
+router.post('/transporte', autenticarUsuarioTunja, exigirTarjetaVinculada, crearSolicitudTransporte);
 
 router.use(autenticarSesion);
 router.get('/sesion', (req, res) => {

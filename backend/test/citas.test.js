@@ -23,7 +23,14 @@ await ejecutar(
      tipo_documento, numero_documento, email, eps, estado_afiliacion
    ) VALUES ('CC', '1000000001', 'usuario1@example.com', 'Nueva EPS', 'aprobado'),
             ('CC', '1000000002', 'usuario2@example.com', 'Nueva EPS', 'aprobado'),
-            ('CC', '1000000003', 'usuario3@example.com', 'Nueva EPS', 'pendiente')`
+            ('CC', '1000000003', 'usuario3@example.com', 'Nueva EPS', 'pendiente'),
+            ('CC', '1000000004', 'usuario4@example.com', 'Nueva EPS', 'aprobado')`
+);
+await ejecutar(
+  'run',
+  `INSERT INTO tarjetas_nfc (usuario_id, email, uid) VALUES
+    ('1', 'usuario1@example.com', 'AABBCC01'),
+    ('2', 'usuario2@example.com', 'AABBCC02')`
 );
 const servidor = app.listen(0);
 await once(servidor, 'listening');
@@ -35,6 +42,17 @@ globalThis.fetch = async (url, opciones) => {
     return new Response(JSON.stringify({
       id: 3,
       email: 'usuario3@example.com',
+      perfil: 'general',
+      descuento: 0
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  if (token.includes('usuario-sin-tarjeta')) {
+    return new Response(JSON.stringify({
+      id: 4,
+      email: 'usuario4@example.com',
       perfil: 'general',
       descuento: 0
     }), {
@@ -78,6 +96,19 @@ test('reservas validan disponibilidad, descuento, usuario y cancelación', async
     assert.equal((await accesoPendiente.json()).error, 'afiliacion_pendiente');
 
     const fecha = fechaEnDias(3);
+    const citaSinTarjeta = await peticion('/api/citas', 'usuario-sin-tarjeta', {
+      method: 'POST',
+      body: JSON.stringify({
+        ips: 'san-rafael',
+        servicio: 'cardio',
+        fecha,
+        hora: '08:00',
+        modalidad: 'presencial'
+      })
+    });
+    assert.equal(citaSinTarjeta.status, 403);
+    assert.equal((await citaSinTarjeta.json()).error, 'tarjeta_no_vinculada');
+
     const disponibilidad = await peticion(
       `/api/citas/disponibilidad?ips=san-rafael&fecha=${fecha}`,
       'usuario-uno'

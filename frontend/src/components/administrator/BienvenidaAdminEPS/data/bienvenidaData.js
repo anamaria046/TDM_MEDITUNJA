@@ -8,34 +8,3 @@ export const INFO_PANEL = {
   tituloPrincipal: "Bienvenido de nuevo",
   subtitulo: "Aquí tienes un resumen de la operación de MediTunja."
 };
-
-export const MENU_ITEMS_SIDEBAR = [
-  {
-    id: "inicio",
-    label: "Inicio",
-    icono: "House",
-    ruta: "/admin",
-    activo: true
-  },
-  {
-    id: "usuarios",
-    label: "Usuarios",
-    icono: "UsersRound",
-    ruta: "/gestionUsuarios",
-    activo: false
-  },
-  {
-    id: "citas",
-    label: "Citas",
-    icono: "CalendarDays",
-    ruta: "/gestionCitas",
-    activo: false
-  },
-  {
-    id: "resultados",
-    label: "Resultados",
-    icono: "FileText",
-    ruta: "/resultados-administrador",
-    activo: false
-  }
-];

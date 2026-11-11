@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiRequest, mensajeError } from "../../auth/api.js";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
+import Filter from "../Filter/Filter.jsx";
 
 function ResultadosAdministrador() {
     const { token } = useAdminAuth();
@@ -251,27 +252,21 @@ function ResultadosAdministrador() {
 
             <section aria-labelledby="listado-resultados">
                 <h2 id="listado-resultados">Resultados registrados</h2>
-                <div>
-                    <label htmlFor="buscar-resultado">Buscar por usuario, documento o procedimiento</label>
-                    <input
-                        id="buscar-resultado"
-                        type="search"
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="filtrar-estado">Filtrar por estado</label>
-                    <select
-                        id="filtrar-estado"
-                        value={statusFilter}
-                        onChange={(event) => setStatusFilter(event.target.value)}
-                    >
-                        <option value="todos">Todos los estados</option>
-                        <option value="En proceso">En proceso</option>
-                        <option value="Disponible">Disponible</option>
-                    </select>
-                </div>
+                <Filter
+                    id="resultados-admin"
+                    searchValue={search}
+                    onSearchChange={setSearch}
+                    searchLabel="Buscar resultados"
+                    searchPlaceholder="Usuario, documento o procedimiento"
+                    filterValue={statusFilter}
+                    onFilterChange={setStatusFilter}
+                    filterLabel="Estado"
+                    filterOptions={[
+                        { value: "todos", label: "Todos los estados" },
+                        { value: "En proceso", label: "En proceso" },
+                        { value: "Disponible", label: "Disponible" },
+                    ]}
+                />
 
                 {message && <p role="status">{message}</p>}
                 {error && <p role="alert">{error}</p>}

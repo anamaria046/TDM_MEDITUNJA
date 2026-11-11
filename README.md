@@ -55,7 +55,8 @@ El lector registra localmente el UID para vincular una tarjeta. Ese identificado
 no es una credencial criptográfica ni se sincroniza con las tarjetas de
 TunjaAPI; la recarga acredita el saldo de la billetera del usuario y no confirma
 que ese saldo esté disponible en la tarjeta física. TunjaAPI autentica con correo
-y contraseña.
+y contraseña. En MediTunja, la tarjeta NFC debe estar vinculada para consultar o
+recargar el saldo, reservar citas o solicitar transporte.
 
 ## Pruebas
 

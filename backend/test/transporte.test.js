@@ -22,7 +22,14 @@ await ejecutar(
   `INSERT INTO usuarios_tunja (
      tipo_documento, numero_documento, email, nombres, apellidos, eps, estado_afiliacion
    ) VALUES ('CC', '8000000001', 'transporte@example.test', 'Usuario', 'Transporte',
+     'Nueva EPS', 'aprobado'),
+     ('CC', '8000000002', 'sin-tarjeta@example.test', 'Usuario', 'Sin Tarjeta',
      'Nueva EPS', 'aprobado')`
+);
+await ejecutar(
+  'run',
+  `INSERT INTO tarjetas_nfc (usuario_id, email, uid)
+   VALUES ('101', 'transporte@example.test', 'AABBCC03')`
 );
 const { lastID: citaId } = await ejecutar(
   'run',
@@ -36,15 +43,18 @@ const servidor = app.listen(0);
 await once(servidor, 'listening');
 const baseUrl = `http://127.0.0.1:${servidor.address().port}`;
 const fetchOriginal = globalThis.fetch;
-globalThis.fetch = async (url) => new Response(JSON.stringify({
-  id: 101,
-  email: 'transporte@example.test',
-  perfil: 'general',
-  descuento: 0
-}), {
-  status: 200,
-  headers: { 'Content-Type': 'application/json' }
-});
+globalThis.fetch = async (url, opciones = {}) => {
+  const sinTarjeta = opciones.headers?.Authorization === 'Bearer sin-tarjeta';
+  return new Response(JSON.stringify({
+    id: sinTarjeta ? 102 : 101,
+    email: sinTarjeta ? 'sin-tarjeta@example.test' : 'transporte@example.test',
+    perfil: 'general',
+    descuento: 0
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
 
 async function peticion(ruta, opciones = {}) {
   return fetchOriginal(`${baseUrl}${ruta}`, {
@@ -80,6 +90,14 @@ test('solicitudes de transporte se guardan ligadas a una cita confirmada del pac
     const respuestaCrear = await crear.json();
     assert.equal(respuestaCrear.data.estado, 'solicitada');
     assert.equal(respuestaCrear.data.citaId, citaId);
+
+    const sinTarjeta = await peticion('/api/transporte', {
+      method: 'POST',
+      body: JSON.stringify(solicitud),
+      headers: { Authorization: 'Bearer sin-tarjeta' }
+    });
+    assert.equal(sinTarjeta.status, 403);
+    assert.equal((await sinTarjeta.json()).error, 'tarjeta_no_vinculada');
 
     const listar = await peticion('/api/transporte');
     assert.equal(listar.status, 200);

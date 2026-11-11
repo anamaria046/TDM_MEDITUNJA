@@ -9,7 +9,7 @@ Las rutas de administración usan la base SQLite del backend, requieren una sesi
 - Solicitudes de transporte: `GET/POST /api/transporte`; deben corresponder a una cita confirmada del usuario. La respuesta queda en estado `solicitada`. No existe gestión administrativa de estas solicitudes.
 - Administración de citas: `GET /api/admin/resumen`, `GET /api/admin/citas`, `PUT /api/admin/citas/:id/reprogramar` y `PUT /api/admin/citas/:id/cancelar`. Las operaciones comprueban la EPS del afiliado y guardan el motivo administrativo.
 - Administración de afiliados, convenios y resultados usa rutas `/api/admin/*` y verifica el rol y la EPS en el servidor.
-- Recargas administrativas: `GET /api/admin/recargas/afiliados` lista las afiliaciones aprobadas de la EPS que también están activas en TunjaAPI; `POST /api/admin/recargas/afiliados/:id` acredita una recarga en ventanilla usando `POST /users/:id/wallet/topup` de TunjaAPI. El administrador debe enviar un `monto` entero entre 100 y 500.000 y uno de los medios simulados (`nequi`, `daviplata`, `tarjeta`, `pse`). La clave de TunjaAPI solo se usa desde el backend y cada recarga vuelve a validar la afiliación y la EPS.
+- Recargas administrativas: `GET /api/admin/recargas/afiliados` lista las afiliaciones aprobadas de la EPS que están activas en TunjaAPI y tienen una tarjeta NFC vinculada; `POST /api/admin/recargas/afiliados/:id` acredita una recarga en ventanilla usando `POST /users/:id/wallet/topup` de TunjaAPI. El administrador debe enviar un `monto` entero entre 100 y 500.000 y uno de los medios simulados (`nequi`, `daviplata`, `tarjeta`, `pse`). La clave de TunjaAPI solo se usa desde el backend y cada recarga vuelve a validar la afiliación, la EPS y la tarjeta vinculada.
 
 ## Lector ACR122U
 
@@ -21,7 +21,7 @@ El UID solo se usa para vincular la tarjeta al perfil. No es una prueba criptogr
 
 ## Pagos y recargas
 
-El saldo se consulta y recarga en la billetera de TunjaAPI mediante `GET /wallet` y `POST /wallet/topup`, siguiendo el contrato de la documentación de la API. La clave de API se conserva en el backend; no se envía al navegador.
+El saldo solo se consulta o recarga mediante `GET /wallet` y `POST /wallet/topup` cuando el afiliado tiene una tarjeta NFC vinculada en MediTunja; el backend vuelve a verificar esa condición. La clave de API se conserva en el backend; no se envía al navegador. Reservar citas y solicitar transporte también requiere tarjeta vinculada.
 
 Nequi, Daviplata, tarjeta débito o crédito y PSE son opciones simuladas en la interfaz: no se conecta una pasarela ni se cobran esos medios. Al confirmar la simulación, el backend solicita a TunjaAPI la acreditación del saldo. La tarjeta NFC vinculada en MediTunja no sincroniza su UID con las tarjetas de TunjaAPI; el saldo acreditado pertenece a la billetera del usuario.
 

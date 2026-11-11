@@ -1,16 +1,44 @@
 import styles from "./Filter.module.css";
 
-function Filter() {
+function Filter({
+    id,
+    searchValue,
+    onSearchChange,
+    searchLabel,
+    searchPlaceholder,
+    filterValue,
+    onFilterChange,
+    filterLabel,
+    filterOptions,
+}) {
     return (
         <section className={styles.container}>
-            <form className={styles.formFilter}>
-                <input type="text" placeholder="Busca por nombre, documento o correo" />
-                <select>
-                    <option>Todos</option>
-                    <option>Activos</option>
-                    <option>Pendientes</option>
-                </select>               
-            </form>
+            <div className={styles.formFilter}>
+                <div className={styles.field}>
+                    <label htmlFor={`${id}-search`}>{searchLabel}</label>
+                    <input
+                        id={`${id}-search`}
+                        type="search"
+                        value={searchValue}
+                        onChange={(event) => onSearchChange(event.target.value)}
+                        placeholder={searchPlaceholder}
+                    />
+                </div>
+                <div className={styles.field}>
+                    <label htmlFor={`${id}-filter`}>{filterLabel}</label>
+                    <select
+                        id={`${id}-filter`}
+                        value={filterValue}
+                        onChange={(event) => onFilterChange(event.target.value)}
+                    >
+                        {filterOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
         </section>
     );
 }

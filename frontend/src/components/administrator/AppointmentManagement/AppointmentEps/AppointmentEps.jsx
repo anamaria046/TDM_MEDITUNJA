@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest, mensajeError } from "../../../../auth/api.js";
 import { useAdminAuth } from "../../../../auth/useAdminAuth.js";
+import Filter from "../../../Filter/Filter.jsx";
 import ModifyAppointment from "../ModifyAppointment/ModifyAppointment.jsx";
 import CancelAppointment from "../CancelAppointment/CancelAppointment.jsx";
 import styles from "./AppointmentEps.module.css";
@@ -17,6 +18,7 @@ function AppointmentEps() {
     const { token } = useAdminAuth();
     const [citas, setCitas] = useState([]);
     const [busqueda, setBusqueda] = useState("");
+    const [estadoFiltro, setEstadoFiltro] = useState("todos");
     const [modalActivo, setModalActivo] = useState(null);
     const [citaSeleccionada, setCitaSeleccionada] = useState(null);
     const [cargando, setCargando] = useState(true);
@@ -43,16 +45,20 @@ function AppointmentEps() {
 
     const citasVisibles = useMemo(() => {
         const termino = busqueda.trim().toLocaleLowerCase("es");
-        return citas.filter((cita) =>
-            !termino || [
+        return citas.filter((cita) => {
+            const coincideBusqueda = !termino || [
                 cita.paciente,
                 cita.tipo_documento,
                 cita.numero_documento,
                 cita.correo,
                 cita.codigo_cita,
-            ].join(" ").toLocaleLowerCase("es").includes(termino)
-        );
-    }, [citas, busqueda]);
+                cita.especialidad,
+                cita.ips,
+            ].join(" ").toLocaleLowerCase("es").includes(termino);
+            const coincideEstado = estadoFiltro === "todos" || cita.estado === estadoFiltro;
+            return coincideBusqueda && coincideEstado;
+        });
+    }, [citas, busqueda, estadoFiltro]);
 
     function abrirModal(tipo, cita) {
         setCitaSeleccionada(cita);
@@ -112,8 +118,21 @@ function AppointmentEps() {
 
     return (
         <section className={styles.container}>
-            <label htmlFor="buscar-cita">Buscar por afiliado, documento, correo o código</label>
-            <input id="buscar-cita" type="search" value={busqueda} onChange={(event) => setBusqueda(event.target.value)} />
+            <Filter
+                id="citas-admin"
+                searchValue={busqueda}
+                onSearchChange={setBusqueda}
+                searchLabel="Buscar citas"
+                searchPlaceholder="Afiliado, documento, correo, código, IPS o especialidad"
+                filterValue={estadoFiltro}
+                onFilterChange={setEstadoFiltro}
+                filterLabel="Estado"
+                filterOptions={[
+                    { value: "todos", label: "Todos los estados" },
+                    { value: "confirmada", label: "Confirmadas" },
+                    { value: "cancelada", label: "Canceladas" },
+                ]}
+            />
             {error && <p role="alert">{error}</p>}
             {mensaje && <p role="status">{mensaje}</p>}
             {cargando && <p role="status">Cargando citas de la EPS...</p>}
@@ -121,19 +140,28 @@ function AppointmentEps() {
                 <p>No hay citas que coincidan con la búsqueda.</p>
             )}
             <div className={styles.list}>
+                {citasVisibles.length > 0 && (
+                    <div className={styles.listHeader}>
+                        <span>Afiliado</span>
+                        <span>Detalle de la cita</span>
+                        <span>Fecha y hora</span>
+                        <span>Estado</span>
+                        <span>Acciones</span>
+                    </div>
+                )}
                 {citasVisibles.map((cita) => (
                     <article className={styles.Appointment} key={cita.id}>
                         <div className={styles.patient}>
                             <h3>{cita.paciente || "Afiliado"}</h3>
-                            <span>{cita.codigo_cita}</span>
+                            <span className={styles.patientMeta}>
+                                {cita.tipo_documento} {cita.numero_documento}
+                            </span>
+                            <span className={styles.patientMeta}>{cita.correo}</span>
                         </div>
-                        <div className={styles.document}>
-                            <span>{cita.tipo_documento} {cita.numero_documento}</span>
-                        </div>
-                        <div className={styles.email}><span>{cita.correo}</span></div>
                         <div className={styles.details}>
                             <span>{cita.especialidad}</span>
                             <span>{nombresIps[cita.ips] || cita.ips}</span>
+                            <span className={styles.patientMeta}>Código: {cita.codigo_cita}</span>
                         </div>
                         <div className={styles.schedule}>
                             <span>{cita.fecha}</span>
@@ -142,16 +170,18 @@ function AppointmentEps() {
                         <span className={`${styles.status} ${styles[cita.estado] || ""}`}>
                             {cita.estado === "confirmada" ? "Confirmada" : "Cancelada"}
                         </span>
-                        {cita.estado === "confirmada" ? (
-                            <>
+                        <div className={styles.actions}>
+                            {cita.estado === "confirmada" ? (
+                                <>
                                 <button type="button" className={styles.Modify} onClick={() => abrirModal("modificar", cita)}>
                                     Reprogramar
                                 </button>
                                 <button type="button" className={styles.cancel} onClick={() => abrirModal("cancelar", cita)}>
                                     Cancelar
                                 </button>
-                            </>
-                        ) : <span>Sin acciones</span>}
+                                </>
+                            ) : <span>Sin acciones</span>}
+                        </div>
                     </article>
                 ))}
             </div>

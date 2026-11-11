@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useAdminAuth } from "../../../../auth/useAdminAuth.js";
 import { apiRequest, mensajeError } from "../../../../auth/api.js";
-import { INFO_PANEL, MENU_ITEMS_SIDEBAR } from "../data/bienvenidaData.js";
+import { INFO_PANEL } from "../data/bienvenidaData.js";
 
 export function useBienvenidaAdmin() {
   const { token, usuario } = useAdminAuth();
@@ -64,7 +64,6 @@ export function useBienvenidaAdmin() {
     usuario,
     nombreEps,
     infoPanel: INFO_PANEL,
-    menuItems: MENU_ITEMS_SIDEBAR,
     metricas,
     cargando,
     error,

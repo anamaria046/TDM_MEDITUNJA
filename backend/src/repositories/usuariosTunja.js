@@ -81,16 +81,17 @@ export async function listarSolicitudesPorEps(eps) {
 export async function listarAprobadosPorEps(eps) {
   return ejecutar(
     'all',
-    `SELECT tipo_documento, numero_documento, email, nombres, apellidos, eps
-     FROM usuarios_tunja
-     WHERE estado_afiliacion = 'aprobado'
+    `SELECT u.tipo_documento, u.numero_documento, u.email, u.nombres, u.apellidos, u.eps
+     FROM usuarios_tunja u
+     INNER JOIN tarjetas_nfc t ON lower(trim(t.email)) = lower(trim(u.email))
+     WHERE u.estado_afiliacion = 'aprobado'
        AND (
-         lower(trim(eps)) = lower(trim(?))
-         OR lower(trim(eps)) = lower('EPS ' || trim(?))
-         OR lower(trim(replace(lower(eps), 'eps ', ''))) =
+         lower(trim(u.eps)) = lower(trim(?))
+         OR lower(trim(u.eps)) = lower('EPS ' || trim(?))
+         OR lower(trim(replace(lower(u.eps), 'eps ', ''))) =
             lower(trim(replace(lower(?), 'eps ', '')))
        )
-     ORDER BY nombres COLLATE NOCASE, apellidos COLLATE NOCASE`,
+     ORDER BY u.nombres COLLATE NOCASE, u.apellidos COLLATE NOCASE`,
     [eps, eps, eps]
   );
 }
@@ -98,13 +99,14 @@ export async function listarAprobadosPorEps(eps) {
 export async function buscarAprobadoPorEmail(eps, email) {
   return ejecutar(
     'get',
-    `SELECT tipo_documento, numero_documento, email, nombres, apellidos, eps
-     FROM usuarios_tunja
-     WHERE lower(email) = lower(?) AND estado_afiliacion = 'aprobado'
+    `SELECT u.tipo_documento, u.numero_documento, u.email, u.nombres, u.apellidos, u.eps
+     FROM usuarios_tunja u
+     INNER JOIN tarjetas_nfc t ON lower(trim(t.email)) = lower(trim(u.email))
+     WHERE lower(u.email) = lower(?) AND u.estado_afiliacion = 'aprobado'
        AND (
-         lower(trim(eps)) = lower(trim(?))
-         OR lower(trim(eps)) = lower('EPS ' || trim(?))
-         OR lower(trim(replace(lower(eps), 'eps ', ''))) =
+         lower(trim(u.eps)) = lower(trim(?))
+         OR lower(trim(u.eps)) = lower('EPS ' || trim(?))
+         OR lower(trim(replace(lower(u.eps), 'eps ', ''))) =
             lower(trim(replace(lower(?), 'eps ', '')))
        )`,
     [email, eps, eps, eps]
