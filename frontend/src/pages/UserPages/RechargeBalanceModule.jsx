@@ -5,6 +5,12 @@ import { apiRequest, mensajeError } from "../../auth/api.js";
 import NavbarUser from "../../components/user/NavbarUser/NavbarUser.jsx";
 
 const montosSugeridos = [10000, 20000, 50000, 100000];
+const metodosPago = [
+    { id: "nequi", nombre: "Nequi" },
+    { id: "daviplata", nombre: "Daviplata" },
+    { id: "tarjeta", nombre: "Tarjeta débito o crédito" },
+    { id: "pse", nombre: "PSE" },
+];
 const formatoPesos = new Intl.NumberFormat("es-CO", {
     style: "currency",
     currency: "COP",
@@ -18,6 +24,7 @@ function RechargeBalanceModule() {
     const [saldo, setSaldo] = useState(null);
     const [monto, setMonto] = useState(20000);
     const [otroMonto, setOtroMonto] = useState("");
+    const [metodoPago, setMetodoPago] = useState("nequi");
     const [cargandoTarjeta, setCargandoTarjeta] = useState(true);
     const [cargandoSaldo, setCargandoSaldo] = useState(true);
     const [procesando, setProcesando] = useState(false);
@@ -84,7 +91,10 @@ function RechargeBalanceModule() {
                 headers: { Authorization: "Bearer " + accessToken },
                 body: JSON.stringify({ monto: montoFinal }),
             });
-            setMensaje(respuesta.mensaje);
+            const metodoSeleccionado = metodosPago.find(({ id }) => id === metodoPago);
+            setMensaje(
+                `Simulación de pago con ${metodoSeleccionado.nombre} aprobada. ${respuesta.mensaje}`
+            );
             try {
                 await actualizarSaldo();
                 setErrorSaldo("");
@@ -109,7 +119,10 @@ function RechargeBalanceModule() {
                 <header>
                     <span>BILLETERA MEDITUNJA</span>
                     <h1>Recarga de saldo</h1>
-                    <p>Consulta tu billetera TunjaAPI y acredita saldo a tu cuenta.</p>
+                    <p>
+                        Consulta tu billetera TunjaAPI y recarga saldo para utilizarlo en
+                        citas y transporte.
+                    </p>
                 </header>
 
                 <section aria-label="Resumen de billetera">
@@ -139,6 +152,27 @@ function RechargeBalanceModule() {
                 <form onSubmit={enviarRecarga} aria-labelledby="recharge-title">
                     <h2 id="recharge-title">Acreditar saldo</h2>
                     <p>Selecciona un monto. El mínimo es $100 y el máximo por recarga es $500.000.</p>
+                    <fieldset>
+                        <legend>Medio de pago (simulado)</legend>
+                        {metodosPago.map(({ id, nombre }) => (
+                            <label key={id}>
+                                <input
+                                    type="radio"
+                                    name="metodo-pago"
+                                    value={id}
+                                    checked={metodoPago === id}
+                                    onChange={() => setMetodoPago(id)}
+                                />
+                                {nombre}
+                            </label>
+                        ))}
+                    </fieldset>
+                    <p>
+                        El pago con estos medios es simulado: no se solicitan datos
+                        bancarios ni se realiza un cobro. Al confirmar, se solicitará a
+                        TunjaAPI la acreditación del monto; el saldo cambiará si la API
+                        confirma la operación.
+                    </p>
                     <fieldset>
                         <legend>Montos sugeridos</legend>
                         {montosSugeridos.map((montoSugerido) => (
@@ -180,7 +214,7 @@ function RechargeBalanceModule() {
                         type="submit"
                         disabled={procesando || cargandoSaldo || saldo === null}
                     >
-                        {procesando ? "Procesando recarga..." : "Acreditar saldo"}
+                        {procesando ? "Confirmando recarga..." : "Simular pago y recargar"}
                     </button>
                     {mensaje && <p role="status">{mensaje}</p>}
                     {errorRecarga && <p role="alert">{errorRecarga}</p>}
@@ -189,13 +223,15 @@ function RechargeBalanceModule() {
                 <aside>
                     <h2>Importante</h2>
                     <p>
-                        TunjaAPI acredita este monto directamente en tu billetera. Esta
-                        operación no cobra a una tarjeta bancaria ni procesa pagos PSE.
+                        Nequi, Daviplata, tarjeta débito o crédito y PSE solo simulan el
+                        pago; no hay una pasarela conectada ni se cobra a esos medios.
+                        La acreditación del saldo de la billetera se solicita mediante
+                        TunjaAPI y depende de la confirmación de esa API.
                     </p>
                     <p>
                         La tarjeta NFC mostrada se administra en MediTunja; su UID no está
-                        sincronizado con las tarjetas de TunjaAPI, por lo que la recarga
-                        acredita el saldo de la billetera de tu cuenta.
+                        sincronizado con las tarjetas de TunjaAPI. La recarga acredita el
+                        saldo de la billetera de tu cuenta.
                     </p>
                 </aside>
             </main>

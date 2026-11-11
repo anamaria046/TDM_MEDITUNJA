@@ -1,0 +1,571 @@
+.moduloConvenios {
+  width: 100%;
+  padding: clamp(16px, 3vw, 36px);
+  color: var(--color-text);
+  font-family: var(--text);
+}
+
+.contenedorPrincipal {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: min(100%, 1440px);
+  margin: 0 auto;
+}
+
+.cabeceraConvenios {
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px solid var(--color-border);
+  border-left: 5px solid var(--color-primary);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at top right, rgba(96, 69, 244, 0.1), transparent 55%),
+    var(--color-bg);
+  box-shadow: 0 16px 40px rgba(24, 39, 75, 0.07);
+}
+
+.tituloCabecera {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--heading);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.3;
+}
+
+.tituloCabecera > span {
+  margin-right: 8px;
+}
+
+.subtituloCabecera {
+  max-width: 850px;
+  margin: 12px 0 0;
+  color: var(--color-text-secundary);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.alertaNotificacion {
+  padding: 14px 18px;
+  border: 1px solid #a9dec0;
+  border-left: 4px solid #26834d;
+  border-radius: 10px;
+  background: #effaf3;
+  color: #155e36;
+  line-height: 1.5;
+}
+
+.contenedorPrincipal > [role="status"] {
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+  color: var(--color-text-secundary);
+}
+
+.formularioConvenios {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.seccionConvenio {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-bg);
+  box-shadow:
+    0 18px 45px rgba(24, 39, 75, 0.06),
+    0 3px 10px rgba(24, 39, 75, 0.02);
+}
+
+.tituloSeccion {
+  max-width: 100%;
+  padding: 0 10px;
+  color: var(--color-text);
+  font-family: var(--heading);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.seccionListado > .tituloSeccion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+}
+
+.numeroPaso {
+  display: inline-grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.descripcionSeccion {
+  margin: 10px 0 20px;
+  color: var(--color-text-secundary);
+  line-height: 1.6;
+}
+
+.filaFormulario {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.campoFormulario {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.campoFormulario label,
+.contenedorFiltroServicios > label {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.campoFormulario select {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 42px 11px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.campoFormulario select:focus-visible,
+.barraFiltroCategorias button:focus-visible,
+.barraAccionesFiltro button:focus-visible,
+.barraBotonesAccion button:focus-visible,
+.tablaConvenios button:focus-visible,
+.checkServicio:focus-visible,
+.checkClausula:focus-visible {
+  outline: 3px solid rgba(96, 69, 244, 0.3);
+  outline-offset: 3px;
+}
+
+.contenedorFiltroServicios {
+  margin-top: 24px;
+}
+
+.barraFiltroCategorias {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0;
+  overflow-x: auto;
+  padding: 3px 2px 8px;
+  scrollbar-width: thin;
+}
+
+.pestanaCategoria {
+  flex: 0 0 auto;
+  padding: 9px 15px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-text-secundary);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.pestanaCategoria:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pestanaActiva {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.pestanaActiva:hover {
+  background: var(--hover-primary);
+  color: #fff;
+}
+
+.barraAccionesFiltro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #f8f7ff;
+  color: var(--color-text-secundary);
+  line-height: 1.5;
+}
+
+.barraAccionesFiltro strong {
+  color: var(--color-primary);
+}
+
+.botonesSeleccionRapida {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btnAccionFiltro {
+  padding: 8px 12px;
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.btnAccionFiltro:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.rejillaServicios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 10px;
+  max-height: 340px;
+  margin-top: 14px;
+  padding: 4px;
+  overflow-y: auto;
+}
+
+.tarjetaServicio {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.tarjetaServicio:hover {
+  border-color: var(--color-primary);
+}
+
+.servicioSeleccionado {
+  border-color: var(--color-primary);
+  background: #f6f4ff;
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.checkServicio,
+.checkClausula {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.infoServicio {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.codigoServicio {
+  color: var(--color-text-secundary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.nombreServicio {
+  color: var(--color-text);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.cajaClausulaTransporte {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #a9dec0;
+  border-left: 4px solid #26834d;
+  border-radius: 12px;
+  background: #effaf3;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.clausulaInactiva {
+  border-color: #efc178;
+  border-left-color: #cc8515;
+  background: #fff9ed;
+}
+
+.controlClausula {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.contenidoClausula {
+  flex: 1;
+  min-width: 0;
+}
+
+.encabezadoClausula {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tituloClausula {
+  color: var(--color-text);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.badgeClausula,
+.badgeTransporteSi,
+.badgeTransporteNo,
+.badgeEstadoActivo,
+.badgeEstadoRevision {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.badgeIncluido,
+.badgeTransporteSi,
+.badgeEstadoActivo {
+  background: #d8f3e5;
+  color: #155e36;
+}
+
+.badgeExcluido,
+.badgeTransporteNo {
+  background: #fff0d6;
+  color: #81500a;
+}
+
+.descripcionClausula {
+  margin: 8px 0 0;
+  color: var(--color-text-secundary);
+  line-height: 1.6;
+}
+
+.barraBotonesAccion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btnRestablecer,
+.btnFormalizar,
+.btnDesactivar {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.btnRestablecer {
+  border-color: var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.btnRestablecer:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btnFormalizar {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btnFormalizar:hover {
+  background: var(--hover-primary);
+  transform: translateY(-1px);
+}
+
+.seccionListado {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-bg);
+  box-shadow:
+    0 18px 45px rgba(24, 39, 75, 0.06),
+    0 3px 10px rgba(24, 39, 75, 0.02);
+}
+
+.seccionListado > .descripcionSeccion {
+  margin: 10px 0 20px;
+}
+
+.tablaContenedor {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  scrollbar-width: thin;
+}
+
+.tablaConvenios {
+  width: 100%;
+  min-width: 1050px;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.tablaConvenios th,
+.tablaConvenios td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.tablaConvenios th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f6f4ff;
+  color: var(--color-text);
+  font-family: var(--heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tablaConvenios tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tablaConvenios tbody tr:not(:has(.mensajeVacio)):hover {
+  background: #faf9ff;
+}
+
+.tablaConvenios td strong {
+  color: var(--color-text);
+}
+
+.tablaConvenios td small {
+  display: inline-block;
+  margin-top: 3px;
+  color: var(--color-text-secundary) !important;
+  line-height: 1.45;
+}
+
+.badgeEstadoRevision {
+  background: #e9e9ee;
+  color: #4b4b58;
+}
+
+.btnDesactivar {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-color: #efb4b4;
+  background: #fff5f5;
+  color: #9b2929;
+  font-size: 0.85rem;
+}
+
+.btnDesactivar:hover {
+  border-color: #c83d3d;
+  background: #c83d3d;
+  color: #fff;
+}
+
+.mensajeVacio {
+  padding: 28px !important;
+  color: var(--color-text-secundary);
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .moduloConvenios {
+    padding: 14px;
+  }
+
+  .contenedorPrincipal {
+    gap: 16px;
+  }
+
+  .cabeceraConvenios {
+    border-radius: 14px;
+  }
+
+  .barraAccionesFiltro {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .botonesSeleccionRapida {
+    justify-content: flex-start;
+  }
+
+  .rejillaServicios {
+    max-height: 420px;
+  }
+
+  .encabezadoClausula {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .barraBotonesAccion {
+    flex-direction: column-reverse;
+  }
+
+  .barraBotonesAccion button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pestanaCategoria,
+  .btnAccionFiltro,
+  .tarjetaServicio,
+  .cajaClausulaTransporte,
+  .btnRestablecer,
+  .btnFormalizar,
+  .btnDesactivar {
+    transition: none;
+  }
+}

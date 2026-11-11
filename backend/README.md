@@ -20,7 +20,9 @@ El UID solo se usa para vincular la tarjeta al perfil. No es una prueba criptogr
 
 ## Pagos y recargas
 
-No hay un proveedor de pagos ni un servicio de saldo conectado. La interfaz mantiene deshabilitados los cobros y las recargas: no se almacena saldo ficticio ni se crean recibos de éxito. Para activar esas operaciones debe integrarse una pasarela y definir su configuración y flujo de confirmación/webhooks.
+El saldo se consulta y recarga en la billetera de TunjaAPI mediante `GET /wallet` y `POST /wallet/topup`, siguiendo el contrato de la documentación de la API. La clave de API se conserva en el backend; no se envía al navegador.
+
+Nequi, Daviplata, tarjeta débito o crédito y PSE son opciones simuladas en la interfaz: no se conecta una pasarela ni se cobran esos medios. Al confirmar la simulación, el backend solicita a TunjaAPI la acreditación del saldo. La tarjeta NFC vinculada en MediTunja no sincroniza su UID con las tarjetas de TunjaAPI; el saldo acreditado pertenece a la billetera del usuario.
 
 ## Cuentas administradoras de EPS
 
