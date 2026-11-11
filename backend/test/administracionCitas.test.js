@@ -48,7 +48,7 @@ async function iniciarSesion(numeroDocumento) {
   return (await respuesta.json()).token;
 }
 
-test('gestión de citas, transporte y métricas se limita a la EPS autenticada', async () => {
+test('gestión de citas y métricas se limita a la EPS autenticada', async () => {
   try {
     await ejecutar(
       'run',
@@ -85,17 +85,6 @@ test('gestión de citas, transporte y métricas se limita a la EPS autenticada',
          ('CITA-NUEVA-1', 'nueva-1', 'clinica-chia', 'Cardiología', 'Cardiología',
           '2099-12-30', '09:30', 'presencial', 120000, 0)`
     );
-    await ejecutar(
-      'run',
-      `INSERT INTO solicitudes_transporte (
-         usuario_id, cita_id, tipo_discapacidad, requerimientos,
-         viaja_acompanante, direccion_origen, barrio_sector, modalidad_viaje
-       )
-       SELECT c.usuario_id, c.id_cita, 'motora-silla-ruedas', '["rampa"]',
-              0, 'Carrera 10 # 20-30', 'Centro', 'ida-y-regreso'
-       FROM citas c WHERE c.codigo_cita IN ('CITA-SURA-1', 'CITA-NUEVA-1')`
-    );
-
     const sinSesion = await peticion('/api/admin/citas');
     assert.equal(sinSesion.status, 401);
 
@@ -109,48 +98,17 @@ test('gestión de citas, transporte y métricas se limita a la EPS autenticada',
     assert.equal(citasSura.length, 2);
     assert.ok(citasSura.every((cita) => cita.correo.endsWith('@example.test')));
 
-    const solicitudesTransporte = await peticion('/api/admin/transporte', {
+    const gestionTransporte = await peticion('/api/admin/transporte', {
       headers: authSura
     });
-    assert.equal(solicitudesTransporte.status, 200);
-    const transportesSura = (await solicitudesTransporte.json()).data;
-    assert.equal(transportesSura.length, 1);
-    assert.equal(transportesSura[0].codigo_cita, 'CITA-SURA-1');
-    assert.deepEqual(JSON.parse(transportesSura[0].requerimientos), ['rampa']);
+    assert.equal(gestionTransporte.status, 404);
 
-    const transporteNueva = (await (await peticion('/api/admin/transporte', {
-      headers: { Authorization: `Bearer ${tokenNueva}` }
-    })).json()).data[0];
-    const decisionTransporte = await peticion(
-      `/api/admin/transporte/${transportesSura[0].id}/estado`,
-      {
-        method: 'PUT',
-        headers: authSura,
-        body: JSON.stringify({ estado: 'aceptada' })
-      }
-    );
-    assert.equal(decisionTransporte.status, 200);
-
-    const accesoTransporteAjeno = await peticion(
-      `/api/admin/transporte/${transporteNueva.id}/estado`,
-      {
-        method: 'PUT',
-        headers: authSura,
-        body: JSON.stringify({ estado: 'rechazada' })
-      }
-    );
-    assert.equal(accesoTransporteAjeno.status, 404);
-
-    const decisionDuplicada = await peticion(
-      `/api/admin/transporte/${transportesSura[0].id}/estado`,
-      {
-        method: 'PUT',
-        headers: authSura,
-        body: JSON.stringify({ estado: 'rechazada' })
-      }
-    );
-    assert.equal(decisionDuplicada.status, 409);
-
+    const actualizarTransporte = await peticion('/api/admin/transporte/1/estado', {
+      method: 'PUT',
+      headers: authSura,
+      body: JSON.stringify({ estado: 'aceptada' })
+    });
+    assert.equal(actualizarTransporte.status, 404);
     const resumen = await peticion('/api/admin/resumen', { headers: authSura });
     assert.equal(resumen.status, 200);
     const metricas = (await resumen.json()).data;

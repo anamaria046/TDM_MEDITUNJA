@@ -38,10 +38,12 @@ import {
 } from '../controllers/nfc.js';
 import { obtenerSaldo, recargarSaldo } from '../controllers/wallet.js';
 import {
+  listarAfiliadosParaRecarga,
+  recargarAfiliado
+} from '../controllers/recargasAdministrador.js';
+import {
   crearSolicitudTransporte,
-  listarSolicitudesTransporte,
-  listarSolicitudesTransporteAdministrador,
-  actualizarEstadoSolicitudTransporteAdministrador
+  listarSolicitudesTransporte
 } from '../controllers/transporte.js';
 import * as sesiones from '../repositories/sesiones.js';
 import {
@@ -90,10 +92,10 @@ router.get('/admin/sesion', exigirAdministrador, (req, res) => {
   res.status(200).json({ data: req.usuario });
 });
 router.get('/admin/afiliados', exigirAdministrador, listarAfiliados);
+router.get('/admin/recargas/afiliados', exigirAdministrador, listarAfiliadosParaRecarga);
+router.post('/admin/recargas/afiliados/:id', exigirAdministrador, recargarAfiliado);
 router.get('/admin/resumen', exigirAdministrador, obtenerResumenAdministrador);
 router.get('/admin/citas', exigirAdministrador, listarCitasAdministrador);
-router.get('/admin/transporte', exigirAdministrador, listarSolicitudesTransporteAdministrador);
-router.put('/admin/transporte/:id/estado', exigirAdministrador, actualizarEstadoSolicitudTransporteAdministrador);
 router.put('/admin/citas/:id/reprogramar', exigirAdministrador, reprogramarCitaAdministrador);
 router.put('/admin/citas/:id/cancelar', exigirAdministrador, cancelarCitaAdministrador);
 router.get('/admin/solicitudes-afiliacion', exigirAdministrador, listarSolicitudesAfiliacion);

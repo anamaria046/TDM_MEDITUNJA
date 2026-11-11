@@ -6,9 +6,10 @@ Las rutas de administración usan la base SQLite del backend, requieren una sesi
 
 - Registro, inicio/cierre de sesión, renovación y consulta del perfil de paciente se realizan mediante TunjaAPI.
 - Citas: `GET /api/citas/disponibilidad`, `GET/POST /api/citas` y `PUT /api/citas/:id/cancelar`.
-- Solicitudes de transporte: `GET/POST /api/transporte`; deben corresponder a una cita confirmada del usuario. La respuesta queda en estado `solicitada`. El administrador de la EPS puede consultar y aceptar/rechazar solicitudes mediante `GET /api/admin/transporte` y `PUT /api/admin/transporte/:id/estado`; la aceptación no asigna automáticamente un vehículo.
+- Solicitudes de transporte: `GET/POST /api/transporte`; deben corresponder a una cita confirmada del usuario. La respuesta queda en estado `solicitada`. No existe gestión administrativa de estas solicitudes.
 - Administración de citas: `GET /api/admin/resumen`, `GET /api/admin/citas`, `PUT /api/admin/citas/:id/reprogramar` y `PUT /api/admin/citas/:id/cancelar`. Las operaciones comprueban la EPS del afiliado y guardan el motivo administrativo.
 - Administración de afiliados, convenios y resultados usa rutas `/api/admin/*` y verifica el rol y la EPS en el servidor.
+- Recargas administrativas: `GET /api/admin/recargas/afiliados` lista las afiliaciones aprobadas de la EPS que también están activas en TunjaAPI; `POST /api/admin/recargas/afiliados/:id` acredita una recarga en ventanilla usando `POST /users/:id/wallet/topup` de TunjaAPI. El administrador debe enviar un `monto` entero entre 100 y 500.000 y uno de los medios simulados (`nequi`, `daviplata`, `tarjeta`, `pse`). La clave de TunjaAPI solo se usa desde el backend y cada recarga vuelve a validar la afiliación y la EPS.
 
 ## Lector ACR122U
 

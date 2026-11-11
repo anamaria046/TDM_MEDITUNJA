@@ -78,6 +78,39 @@ export async function listarSolicitudesPorEps(eps) {
   );
 }
 
+export async function listarAprobadosPorEps(eps) {
+  return ejecutar(
+    'all',
+    `SELECT tipo_documento, numero_documento, email, nombres, apellidos, eps
+     FROM usuarios_tunja
+     WHERE estado_afiliacion = 'aprobado'
+       AND (
+         lower(trim(eps)) = lower(trim(?))
+         OR lower(trim(eps)) = lower('EPS ' || trim(?))
+         OR lower(trim(replace(lower(eps), 'eps ', ''))) =
+            lower(trim(replace(lower(?), 'eps ', '')))
+       )
+     ORDER BY nombres COLLATE NOCASE, apellidos COLLATE NOCASE`,
+    [eps, eps, eps]
+  );
+}
+
+export async function buscarAprobadoPorEmail(eps, email) {
+  return ejecutar(
+    'get',
+    `SELECT tipo_documento, numero_documento, email, nombres, apellidos, eps
+     FROM usuarios_tunja
+     WHERE lower(email) = lower(?) AND estado_afiliacion = 'aprobado'
+       AND (
+         lower(trim(eps)) = lower(trim(?))
+         OR lower(trim(eps)) = lower('EPS ' || trim(?))
+         OR lower(trim(replace(lower(eps), 'eps ', ''))) =
+            lower(trim(replace(lower(?), 'eps ', '')))
+       )`,
+    [email, eps, eps, eps]
+  );
+}
+
 export async function buscarSolicitud(tipoDocumento, numeroDocumento, eps) {
   return ejecutar(
     'get',

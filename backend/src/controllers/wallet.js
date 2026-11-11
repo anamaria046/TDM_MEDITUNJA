@@ -27,7 +27,7 @@ function extraerSaldo(respuesta) {
   return saldo;
 }
 
-function responderFalloTunja(res, error) {
+export function responderFalloTunja(res, error) {
   if (error.code === 'TUNJA_KEY_MISSING') {
     return responderError(
       res,
