@@ -20,6 +20,7 @@
 @media (max-width: 480px) {
     .brand {
         gap: 8px;
+        padding-left: 27px;
     }
 
     .brand img {
