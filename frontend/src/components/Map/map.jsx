@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import nfcStyles from "../NFCStatus/NFCStatus.module.css";
-import NavbarUser from "../user/NavbarUser/NavbarUser.jsx";
-import Hero from "../Hero/Hero.jsx";
 import styles from "./Map.module.css";
 
 const TUNJA = [5.548, -73.35];
@@ -67,6 +64,7 @@ function MapaTunja({
         L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
             {
+                maxZoom: 20,
                 attribution:
                     'Tiles &copy; <a href="https://www.esri.com/">Esri</a>; Sources: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, and the GIS User Community',
             },
@@ -109,9 +107,9 @@ function MapaTunja({
         const capa = L.layerGroup().addTo(instancia);
         L.circle([lat, lng], {
             radius: accuracy,
-            color: "#0284c7",
+            color: "#26fff0",
             weight: 1,
-            fillColor: "#38bdf8",
+            fillColor: "#000f54",
             fillOpacity: 0.12,
             interactive: false,
         }).addTo(capa);
@@ -119,7 +117,7 @@ function MapaTunja({
             radius: 8,
             color: "#ffffff",
             weight: 3,
-            fillColor: "#0284c7",
+            fillColor: "#70ff9e",
             fillOpacity: 1,
             bubblingMouseEvents: false,
         })
@@ -236,13 +234,6 @@ function Map() {
 
     return (
         <main>
-            <NavbarUser />
-            <Hero
-                label="Red de salud"
-                title="Encuentra tu IPS en Tunja"
-                description="Consulta en el mapa las instituciones prestadoras de salud disponibles y sus direcciones."
-            />
-
             <section className={styles.mapSection} aria-label="Mapa de IPS en Tunja">
                 <aside className={styles.sidebar}>
                     <label htmlFor="buscar-ips">Buscar una IPS</label>
@@ -282,7 +273,7 @@ function Map() {
                     )}
                     <button
                         type="button"
-                        className={`${nfcStyles.nfcButton} ${styles.locationControl}`}
+                        className={`${styles.myUbication} ${styles.locationControl}`}
                         onClick={alternarSeguimiento}
                         aria-pressed={siguiendoUbicacion}
                     >

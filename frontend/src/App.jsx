@@ -23,7 +23,7 @@ import NFCVinculation from "./components/NFCVinculation/NFCVinculation.jsx";
 import RequireAdmin from "./auth/RequireAdmin.jsx";
 import RequireAuth from "./auth/RequireAuth.jsx";
 
-const Map = lazy(() => import("./components/Map/map.jsx"));
+const Map = lazy(() => import("./pages/UserPages/MapModules.jsx"));
 
 function AdminLayout() {
     return (

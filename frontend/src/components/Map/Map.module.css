@@ -1,24 +1,31 @@
 .mapSection {
     display: grid;
     grid-template-columns: minmax(250px, 340px) minmax(0, 1fr);
-    gap: 24px;
-    padding: 0 60px;
+    gap: 0;
+    width: calc(100% - 120px);
+    margin: 20px auto;
+    padding: 12px;
     align-items: stretch;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    box-sizing: border-box;
+    box-shadow:
+        0 24px 60px rgba(24, 39, 75, 0.08),
+        0 4px 12px rgba(24, 39, 75, 0.02);
 }
 
 .sidebar {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
     min-width: 0;
     padding: 20px;
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    background: var(--color-bg);
-}
-
-.locationControl {
-    align-self: stretch;
-    width: 100%;
     box-sizing: border-box;
-    text-align: center;
+    border: none;
+    border-right: 1px solid var(--color-border);
+    border-radius: 0;
+    background: transparent;
 }
 
 .sidebar label {
@@ -29,30 +36,31 @@
     font-weight: 600;
 }
 
-.locationMessage {
-    margin: 16px 0 0;
-    color: var(--color-text-secundary);
-    font-family: var(--text);
-    font-size: 13px;
-    line-height: 1.45;
-}
-
-.locationMessage[role="alert"] {
-    color: #b42318;
-}
-
 .sidebar input {
     width: 100%;
-    min-height: 44px;
-    padding: 10px 12px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+    min-height: 46px;
+    padding: 10px;
+    margin-bottom: 8px;
     box-sizing: border-box;
-    font: inherit;
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--text);
+    font-size: 16px;
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.2s ease;
+}
+
+.sidebar input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(149, 39, 245, 0.18);
 }
 
 .resultsCount {
-    margin: 18px 0 10px;
+    margin: 18px 10px;
     color: var(--color-text-secundary);
     font-family: var(--text);
     font-size: 14px;
@@ -73,7 +81,7 @@
     gap: 6px;
     width: 100%;
     padding: 12px;
-    border: 1px solid transparent;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     background: transparent;
     color: var(--color-text);
@@ -81,37 +89,85 @@
     cursor: pointer;
 }
 
-.locationButton:hover,
-.selectedLocation {
-    border-color: var(--color-primary);
-    background: color-mix(in srgb, var(--color-primary) 7%, white);
-}
-
 .locationButton strong {
     font-family: var(--heading);
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .locationButton span {
     color: var(--color-text-secundary);
+    font-family: var(--sm);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.locationButton:hover, .selectedLocation {
+    border-color: var(--color-primary);
+    background: var(--hover-secundary);
+}
+
+.locationControl {
+    align-self: stretch;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.locationMessage {
+    margin: 16px 0 0;
+    color: var(--color-text);
     font-family: var(--text);
     font-size: 13px;
     line-height: 1.45;
 }
 
+.locationMessage[role="alert"] {
+    color: var(--color-primary);
+}
+
+.locationMessage[role="status"] {
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.myUbication {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+    font-family: var(--sm);
+    font-size: 16px;
+    transition:
+        background-color 0.25s ease,
+        transform 0.2s ease,
+        box-shadow 0.25s ease;
+}
+
 .mapFrame {
+    flex: 1;
+    width: 100%;
     min-width: 0;
     min-height: 520px;
     overflow: hidden;
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
+    border: none;
+    border-radius: 12px;
     background: #edf0f7;
+    box-sizing: border-box;
 }
 
 .mapColumn {
     display: flex;
-    min-width: 0;
     flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
 }
 
 .map {
@@ -121,19 +177,19 @@
 }
 
 .mapCredits {
-    margin: 8px 0 0;
-    color: var(--color-text-secundary);
+    margin: 8px;
+    color: var(--color-text);
     font-family: var(--text);
     font-size: 10px;
     line-height: 1.4;
 }
 
 .mapCredits a {
-    color: var(--color-text-secundary);
+    color: var(--color-primary);
 }
 
 .mapDisclaimer {
-    margin: 6px 0 0;
+    margin: 6px;
     color: var(--color-text);
     font-family: var(--text);
     font-size: 13px;
@@ -157,6 +213,38 @@
 .map :global(.leaflet-popup-content) {
     line-height: 1.5;
 }
+
+.map :global(.leaflet-control-zoom) {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+.map :global(.leaflet-control-zoom a) {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg);
+    color: var(--color-primary);
+    border: none;
+    font-size: 20px;
+    transition: background-color 0.2s ease;
+}
+
+.map :global(.leaflet-control-zoom a:hover) {
+    background-color: var(--color-tertiary);
+    color: var(--color-primary);
+}
+
+.map :global(.leaflet-control-attribution) {
+    background: rgba(255, 255, 255, 0.85);
+    color: #64748b;
+    font-size: 10px;
+}
+
 
 @media (max-width: 800px) {
     .mapSection {

@@ -1,6 +1,7 @@
 p {
     font-family: var(--text);
     color: var(--color-text);
+    margin: 10px;
 }
 
 .appointmentContainer {
