@@ -19,9 +19,7 @@
     color: var(--hover-primary);
 }
 
-.backLink:focus-visible,
-.primaryButton:focus-visible,
-.secondaryButton:focus-visible {
+.backLink:focus-visible, .primaryButton:focus-visible, .secondaryButton:focus-visible {
     outline: 3px solid var(--color-primary);
     outline-offset: 3px;
 }
@@ -31,10 +29,10 @@
     align-items: flex-start;
     gap: 14px;
     padding: 18px 20px;
-    border: 1px solid #e6d69c;
+    border: 1px solid var(--color-tertiary);
     border-radius: 16px;
-    background: #fff9e8;
-    color: #594800;
+    background: #D6FFE3;
+    color: #219C4E;
 }
 
 .demoNotice svg {
@@ -42,21 +40,56 @@
     margin-top: 2px;
 }
 
-.demoNotice p,
-.description {
+.demoNotice p, .description {
     font-family: var(--text);
     font-size: 15px;
     line-height: 1.65;
 }
 
-.card,
-.formCard {
+.card, .formCard {
     margin-top: 22px;
     padding: clamp(22px, 4vw, 32px);
     border: 1px solid var(--color-border);
     border-radius: 22px;
     background: var(--color-bg);
     box-shadow: 0 16px 42px rgb(0 15 84 / 6%);
+}
+
+.nfcIcon {
+    width: 145px;
+    height: 145px;
+    border: 1.5px solid var(--color-secundary);
+    border-radius: 50%;
+    background-color: #e0fffc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin: 70px auto 70px;
+    isolation: isolate;
+}
+
+.nfcIcon img {
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+    z-index: 2;
+    position: relative;
+}
+
+.nfcIcon::before, .nfcIcon::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--color-secundary);
+    border-radius: 50%;
+    z-index: -1;
+    animation: nfcSignal 2.5s ease-out infinite;
+}
+
+.nfcIcon::after {
+    animation-delay: 1.25s;
 }
 
 .card {
@@ -76,16 +109,13 @@
     color: var(--color-primary);
 }
 
-.cardDetails h2,
-.formCard h2 {
+.cardDetails h2, .formCard h2 {
     color: var(--color-text);
     font-family: var(--heading);
     font-size: 21px;
 }
 
-.linkedStatus,
-.unlinkedStatus,
-.cardId {
+.linkedStatus, .unlinkedStatus, .cardId {
     margin-top: 8px;
     color: var(--color-text-secundary);
     font-family: var(--text);
@@ -94,7 +124,7 @@
 }
 
 .linkedStatus {
-    color: #16834a;
+    color: var(--color-tertiary);
     font-weight: 700;
 }
 
@@ -116,6 +146,7 @@
 .description {
     margin-top: 10px;
     color: var(--color-text-secundary);
+    text-align: center;
 }
 
 .description code {
@@ -130,8 +161,8 @@
 .form {
     display: grid;
     gap: 10px;
-    max-width: 520px;
-    margin-top: 22px;
+    width: min(100%, 520px);
+    margin: 22px auto 0;
 }
 
 .form label {
@@ -159,8 +190,7 @@
     box-shadow: 0 0 0 4px rgb(96 69 244 / 14%);
 }
 
-.primaryButton,
-.secondaryButton {
+.primaryButton, .secondaryButton {
     min-height: 46px;
     padding: 0 18px;
     border-radius: 10px;
@@ -172,7 +202,7 @@
 }
 
 .primaryButton {
-    justify-self: start;
+    justify-self: center;
     margin-top: 6px;
     border: 1px solid var(--color-primary);
     background: var(--color-primary);
@@ -192,12 +222,11 @@
 }
 
 .secondaryButton:hover {
-    border-color: #b42318;
-    color: #b42318;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
-.successMessage,
-.errorMessage {
+.successMessage, .errorMessage {
     margin-top: 14px;
     font-family: var(--text);
     font-size: 14px;
@@ -205,11 +234,11 @@
 }
 
 .successMessage {
-    color: #16834a;
+    color: var(--color-tertiary);
 }
 
 .errorMessage {
-    color: #b42318;
+    color: var(--color-primary);
 }
 
 @media (max-width: 600px) {
@@ -242,8 +271,17 @@
         font-size: 18px;
     }
 
-    .primaryButton {
-        justify-self: stretch;
+}
+
+@keyframes nfcSignal {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
     }
 }
 

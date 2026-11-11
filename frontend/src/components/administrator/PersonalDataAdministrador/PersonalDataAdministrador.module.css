@@ -6,7 +6,7 @@
     box-sizing: border-box;
 }
 
-.headerAdministrador {
+.profileContent .headerAdministrador {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
@@ -178,7 +178,7 @@
         margin: 14px auto;
     }
 
-     .headerAdministrador {
+     .profileContent .headerAdministrador {
         grid-template-columns: 1fr;
         justify-items: center;
         text-align: center;
@@ -188,7 +188,7 @@
         border-radius: 14px;
     }
 
-    .headerAdministrador > :last-child {
+    .profileContent .headerAdministrador > :last-child {
         grid-column: auto;
         justify-self: center;
         width: 100%;

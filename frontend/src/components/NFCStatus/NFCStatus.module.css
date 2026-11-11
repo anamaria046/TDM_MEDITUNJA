@@ -10,6 +10,21 @@
     border-radius: 20px;
 }
 
+.nfcUnlinked {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 20px;
+}
+
+.nfcContent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 0;
+}
+
 .nfcHeader {
     display: flex;
     align-items: center;
@@ -59,18 +74,41 @@
     color: var(--color-primary);
 }
 
+.nfcIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    background-color: var(--color-secundary);
+    color: var(--color-text);
+    border-radius: 15px;
+}
+
+.nfcIcon svg {
+    display: block;
+    background: transparent;
+    color: inherit;
+    stroke: currentColor;
+}
+
 .nfcLinked {
     border-color: var(--color-secundary);
 }
 
 .nfcLinked .nfcStatus::before {
     content: "✓ ";
-    color: #16834a;
+    color: var(--color-tertiary);
 }
 
 @media (max-width: 600px) {
     .nfcCard {
         padding: 18px;
+        gap: 12px;
+    }
+
+    .nfcUnlinked {
         gap: 12px;
     }
 

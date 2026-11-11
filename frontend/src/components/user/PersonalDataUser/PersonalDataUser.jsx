@@ -63,7 +63,10 @@ function PersonalDataUser() {
     return (
         <div className={styles.profileContainer}>
             <section className={styles.profileSidebar}>
-                <ProfileHeader nombre={nombre || undefined} />
+                <ProfileHeader
+                    nombre={nombre || undefined}
+                    className={styles.profileHeader}
+                />
             </section>
             <section className={styles.profileContent}>
                 {estado !== "aprobado" && (

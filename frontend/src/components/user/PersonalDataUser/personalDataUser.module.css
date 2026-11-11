@@ -11,6 +11,14 @@
     min-width: 0;
 }
 
+.profileSidebar .profileHeader {
+    text-align: center;
+}
+
+.profileSidebar .profileHeader > :last-child {
+    width: 100%;
+}
+
 .profileContent {
     width: 100%;
     min-width: 0;

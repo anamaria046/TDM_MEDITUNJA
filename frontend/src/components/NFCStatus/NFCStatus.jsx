@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Nfc } from "lucide-react";
 import styles from "./NFCStatus.module.css";
 
 function obtenerIdentificador(tarjeta) {
@@ -27,19 +28,24 @@ function NfcStatus({ tarjeta }) {
 
     return (
         <section>
-            <div className={styles.nfcCard}>
-                <p className={styles.nfcDescription}>
-                    Aún no tienes una tarjeta física asociada a tu cuenta. Vincúlala para
-                    asociarla a tu perfil. El inicio de sesión NFC y los pagos estarán
-                    disponibles cuando exista un mecanismo de autenticación y pago habilitado.
-                </p>
-                <Link
-                    to="/vinculacionNFC"
-                    state={{ origen: "/perfilUsuario" }}
-                    className={styles.nfcButton}
-                >
-                    Vincular tarjeta NFC
-                </Link>
+            <div className={`${styles.nfcCard} ${styles.nfcUnlinked}`}>
+                <span className={styles.nfcIcon}>
+                    <Nfc size={28} />
+                </span>
+                <div className={styles.nfcContent}>
+                    <p className={styles.nfcDescription}>
+                        Aún no tienes una tarjeta física asociada a tu cuenta. Vincúlala para
+                        asociarla a tu perfil. El inicio de sesión NFC y los pagos estarán
+                        disponibles cuando exista un mecanismo de autenticación y pago habilitado.
+                    </p>
+                    <Link
+                        to="/vinculacionNFC"
+                        state={{ origen: "/perfilUsuario" }}
+                        className={styles.nfcButton}
+                    >
+                        Vincular tarjeta NFC
+                    </Link>
+                </div>
             </div>
         </section>
     );

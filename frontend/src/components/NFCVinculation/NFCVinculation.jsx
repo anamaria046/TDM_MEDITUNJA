@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { CreditCard, MoveLeft, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../auth/useAuth.js";
 import { apiRequest, mensajeError } from "../../auth/api.js";
+import Nfcimage from "../../assets/NfcVinculation.svg";
 import Hero from "../Hero/Hero.jsx";
 import NavbarUser from "../user/NavbarUser/NavbarUser.jsx";
 import styles from "./NFCVinculation.module.css";
@@ -116,6 +117,9 @@ function NFCVinculation() {
                     <h2 id="link-card-heading">
                         {tarjeta ? "Cambiar tarjeta vinculada" : "Vincular tarjeta"}
                     </h2>
+                    <div className={styles.nfcIcon}>
+                        <img src={Nfcimage}  />
+                    </div>
                     <p className={styles.description}>
                         Acerca la tarjeta al lector ACR122U y espera a que se complete la lectura.
                     </p>
