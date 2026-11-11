@@ -55,12 +55,17 @@ export async function registrarUsuario(req, res) {
   }
 
   const tipoDocumento = typeof tipo_documento === 'string' ? tipo_documento.trim().toUpperCase() : '';
-  const numeroDocumento = numero_documento.trim();
+  const numeroDocumento = tipoDocumento === 'PAS'
+    ? numero_documento.trim().toUpperCase()
+    : numero_documento.trim();
   const correo = email.trim().toLowerCase();
   const telefonoNormalizado = typeof telefono === 'string' ? telefono.trim() : null;
+  const documentoValido = tipoDocumento === 'PAS'
+    ? /^[A-Za-z]{2}\d{6}$/.test(numeroDocumento)
+    : /^\d{1,10}$/.test(numeroDocumento);
 
   if (!tiposDocumentoPermitidos.has(tipoDocumento) ||
-      !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumento) ||
+      !documentoValido ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) ||
       (telefonoNormalizado && !/^\+?[0-9\s()-]{7,30}$/.test(telefonoNormalizado))) {
     return responderError(res, 400, 'Datos inválidos', 'Revisa el tipo y número de documento, correo y teléfono.');

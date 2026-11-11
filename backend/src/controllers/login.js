@@ -41,10 +41,15 @@ async function procesarInicioSesion(req, res, soloAdministrador) {
   }
 
   const tipoDocumento = tipo_documento.trim().toUpperCase();
-  const numeroDocumento = numero_documento.trim();
+  const numeroDocumento = numero_documento.trim().toUpperCase();
+  const documentoValido = tipoDocumento === 'PAS'
+    ? /^[A-Z]{2}\d{6}$/.test(numeroDocumento)
+    : tipoDocumento === 'NIT'
+      ? /^\d{9}-\d$/.test(numeroDocumento)
+      : /^\d{1,10}$/.test(numeroDocumento);
   if (!tiposDocumentoPermitidos.has(tipoDocumento) ||
       (tipoDocumento === 'NIT' && !soloAdministrador) ||
-      !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumento)) {
+      !documentoValido) {
     return responderError(res, 400, 'Datos inválidos', 'Revisa el tipo y número de documento.');
   }
 

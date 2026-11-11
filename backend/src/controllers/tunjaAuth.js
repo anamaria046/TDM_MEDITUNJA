@@ -122,10 +122,13 @@ export async function registrarEnTunja(req, res) {
     : '';
   const registroConTipoDocumento = tipo_documento !== undefined;
   const numeroDocumento = typeof numero_documento === 'string'
-    ? numero_documento.trim()
+    ? numero_documento.trim().toUpperCase()
     : !registroConTipoDocumento && typeof documento === 'string'
       ? documento.trim()
       : '';
+  const documentoValido = tipoDocumento === 'PAS'
+    ? /^[A-Za-z]{2}\d{6}$/.test(numeroDocumento)
+    : /^\d{1,10}$/.test(numeroDocumento);
 
   if (typeof email !== 'string' || typeof contrasena !== 'string' ||
       typeof nombre !== 'string' ||
@@ -140,7 +143,7 @@ export async function registrarEnTunja(req, res) {
       numeroDocumento.length === 0 || numeroDocumento.length > 40 ||
       (registroConTipoDocumento &&
         (!tiposDocumentoPermitidos.has(tipoDocumento) ||
-          !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumento))) ||
+          !documentoValido)) ||
       !registroConTipoDocumento ||
       !epsPermitidas.some((epsPermitida) =>
         epsPermitida.toLocaleLowerCase('es') ===
@@ -246,10 +249,13 @@ export async function iniciarSesionTunja(req, res) {
     ? tipo_documento.trim().toUpperCase()
     : '';
   const numeroDocumento = typeof numero_documento === 'string'
-    ? numero_documento.trim()
+    ? numero_documento.trim().toUpperCase()
     : '';
+  const documentoValido = tipoDocumento === 'PAS'
+    ? /^[A-Z]{2}\d{6}$/.test(numeroDocumento)
+    : /^\d{1,10}$/.test(numeroDocumento);
   if (!tiposDocumentoPermitidos.has(tipoDocumento) ||
-      !/^[A-Za-z0-9.-]{4,30}$/.test(numeroDocumento) ||
+      !documentoValido ||
       typeof contrasena !== 'string' || !contrasena.length || contrasena.length > 128) {
     return responderError(
       res,

@@ -13,6 +13,7 @@ function LoginForm() {
     const navigate = useNavigate();
     const location = useLocation();
     const [tipoDocumento, setTipoDocumento] = useState("CC");
+    const [numeroDocumento, setNumeroDocumento] = useState("");
     const [error, setError] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [esperaReintento, setEsperaReintento] = useState(0);
@@ -90,6 +91,7 @@ function LoginForm() {
                             value={tipoDocumento}
                             onChange={(event) => {
                                 setTipoDocumento(event.target.value);
+                                setNumeroDocumento("");
                                 setError("");
                             }}
                             required
@@ -109,9 +111,43 @@ function LoginForm() {
                             id="numero-documento"
                             name="numeroDocumento"
                             autoComplete="username"
-                            maxLength="30"
+                            inputMode={tipoDocumento === "PAS" || tipoDocumento === "NIT" ? "text" : "numeric"}
+                            maxLength={tipoDocumento === "PAS" ? 8 : tipoDocumento === "NIT" ? 11 : 10}
+                            pattern={
+                                tipoDocumento === "PAS"
+                                    ? "[A-Za-z]{2}[0-9]{6}"
+                                    : tipoDocumento === "NIT"
+                                        ? "[0-9]{9}-[0-9]"
+                                        : "[0-9]{1,10}"
+                            }
+                            value={numeroDocumento}
+                            onChange={(event) => {
+                                const valor = event.target.value.toUpperCase();
+                                if (tipoDocumento === "PAS") {
+                                    const letras = valor.match(/^[A-Z]{0,2}/)?.[0] || "";
+                                    const numeros = valor.slice(letras.length).replace(/\D/g, "").slice(0, 6);
+                                    setNumeroDocumento(letras + numeros);
+                                } else if (tipoDocumento === "NIT") {
+                                    const digitos = valor.replace(/\D/g, "").slice(0, 10);
+                                    setNumeroDocumento(
+                                        digitos.length > 9
+                                            ? `${digitos.slice(0, 9)}-${digitos.slice(9)}`
+                                            : digitos
+                                    );
+                                } else {
+                                    setNumeroDocumento(valor.replace(/\D/g, "").slice(0, 10));
+                                }
+                            }}
+                            aria-describedby="ayuda-numero-documento-login"
                             required
                         />
+                        <small className={styles.fieldHint} id="ayuda-numero-documento-login">
+                            {tipoDocumento === "PAS"
+                                ? "Dos letras al inicio seguidas de 6 números (ej.: AB123456)."
+                                : tipoDocumento === "NIT"
+                                    ? "9 números, guion y dígito de verificación (ej.: 900156264-2)."
+                                    : "Solo números, máximo 10 dígitos."}
+                        </small>
                     </div>
                 </div>
 

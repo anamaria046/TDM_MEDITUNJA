@@ -60,6 +60,15 @@
     margin-bottom: 8px;
 }
 
+.fieldHint {
+    margin-top: -10px;
+    margin-bottom: 16px;
+    color: var(--color-text-secundary);
+    font-family: var(--text);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .formGroup input, .formGroup select {
     width: 100%;
     min-height: 46px;

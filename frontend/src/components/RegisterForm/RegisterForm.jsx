@@ -13,6 +13,8 @@ function RegisterForm() {
     const [enviando, setEnviando] = useState(false);
     const [mostrarContrasena, setMostrarContrasena] = useState(false);
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+    const [tipoDocumento, setTipoDocumento] = useState("CC");
+    const [numeroDocumento, setNumeroDocumento] = useState("");
     const pasos = ["Identificación", "Afiliación", "Acceso"];
 
     if (sesion) {
@@ -99,7 +101,16 @@ function RegisterForm() {
                     </div>
                     <div className={styles.field}>
                         <label htmlFor="tipo-documento-registro">Tipo de documento</label>
-                        <select id="tipo-documento-registro" name="tipoDocumento" defaultValue="CC" required={paso === 1}>
+                        <select
+                            id="tipo-documento-registro"
+                            name="tipoDocumento"
+                            value={tipoDocumento}
+                            onChange={(evento) => {
+                                setTipoDocumento(evento.target.value);
+                                setNumeroDocumento("");
+                            }}
+                            required={paso === 1}
+                        >
                             <option value="CC">Cédula de ciudadanía</option>
                             <option value="TI">Tarjeta de identidad</option>
                             <option value="CE">Cédula de extranjería</option>
@@ -108,7 +119,33 @@ function RegisterForm() {
                     </div>
                     <div className={styles.field}>
                         <label htmlFor="numero-documento-registro">Número de documento</label>
-                        <input type="text" id="numero-documento-registro" name="numeroDocumento" autoComplete="off" maxLength="30" required={paso === 1} />
+                        <input
+                            type="text"
+                            id="numero-documento-registro"
+                            name="numeroDocumento"
+                            autoComplete="off"
+                            inputMode={tipoDocumento === "PAS" ? "text" : "numeric"}
+                            maxLength={tipoDocumento === "PAS" ? 8 : 10}
+                            pattern={tipoDocumento === "PAS" ? "[A-Za-z]{2}[0-9]{6}" : "[0-9]{1,10}"}
+                            value={numeroDocumento}
+                            onChange={(evento) => {
+                                const valor = evento.target.value.toUpperCase();
+                                if (tipoDocumento === "PAS") {
+                                    const letras = valor.match(/^[A-Z]{0,2}/)?.[0] || "";
+                                    const numeros = valor.slice(letras.length).replace(/\D/g, "").slice(0, 6);
+                                    setNumeroDocumento(letras + numeros);
+                                } else {
+                                    setNumeroDocumento(valor.replace(/\D/g, "").slice(0, 10));
+                                }
+                            }}
+                            aria-describedby="ayuda-numero-documento"
+                            required={paso === 1}
+                        />
+                        <small className={styles.fieldHint} id="ayuda-numero-documento">
+                            {tipoDocumento === "PAS"
+                                ? "Dos letras al inicio seguidas de 6 números (ej.: AB123456)."
+                                : "Solo números, máximo 10 dígitos."}
+                        </small>
                     </div>
                 </section>
 
@@ -142,7 +179,18 @@ function RegisterForm() {
                 <section className={styles.fields} hidden={paso !== 3}>
                     <div className={styles.field}>
                         <label htmlFor="email-registro">Correo electrónico</label>
-                        <input type="email" id="email-registro" name="email" autoComplete="email" maxLength="254" required={paso === 3} />
+                        <input
+                            type="email"
+                            id="email-registro"
+                            name="email"
+                            autoComplete="email"
+                            maxLength="254"
+                            aria-describedby="ayuda-correo"
+                            required={paso === 3}
+                        />
+                        <small className={styles.fieldHint} id="ayuda-correo">
+                            Formato: nombre@dominio.com
+                        </small>
                     </div>
                     <div className={styles.field}>
                         <label htmlFor="telefono-registro">Teléfono</label>
@@ -161,6 +209,7 @@ function RegisterForm() {
                                 {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
+                        <small className={styles.fieldHint}>Entre 8 y 128 caracteres.</small>
                     </div>
                     <div className={styles.field}>
                         <label htmlFor="confirmar-contrasena">Confirmar contraseña</label>
@@ -175,6 +224,7 @@ function RegisterForm() {
                                 {mostrarConfirmacion ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
+                        <small className={styles.fieldHint}>Debe coincidir con la contraseña anterior.</small>
                     </div>
                 </section>
 

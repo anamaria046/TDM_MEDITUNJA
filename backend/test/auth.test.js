@@ -116,6 +116,34 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
     });
     assert.equal(sexoInvalido.status, 400);
 
+    for (const [tipo_documento, numero_documento] of [
+      ['CC', '1234AB'],
+      ['TI', '12345678901'],
+      ['PAS', 'A1234567']
+    ]) {
+      const documentoInvalido = await post('/api/registro', {
+        tipo_documento,
+        numero_documento,
+        nombres: 'Ana',
+        apellidos: 'Pérez',
+        email: `${tipo_documento}-${numero_documento}@example.com`,
+        contrasena,
+        eps: 'EPS Sura'
+      });
+      assert.equal(documentoInvalido.status, 400);
+    }
+
+    const pasaporteValido = await post('/api/registro', {
+      tipo_documento: 'PAS',
+      numero_documento: 'ab123456',
+      nombres: 'Ana',
+      apellidos: 'Pérez',
+      email: 'pasaporte@example.com',
+      contrasena,
+      eps: 'EPS Sura'
+    });
+    assert.equal(pasaporteValido.status, 201);
+
     const duplicado = await registrar('1020304050');
     assert.equal(duplicado.status, 409);
     assert.equal((await duplicado.json()).error, 'Documento duplicado');
@@ -132,6 +160,18 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
       contrasena
     });
     assert.equal(nitEnLoginDeAfiliados.status, 400);
+    for (const [tipo_documento, numero_documento] of [
+      ['CC', '1234AB'],
+      ['TI', '12345678901'],
+      ['PAS', 'A1234567']
+    ]) {
+      const documentoInvalido = await post('/api/login', {
+        tipo_documento,
+        numero_documento,
+        contrasena
+      });
+      assert.equal(documentoInvalido.status, 400);
+    }
 
     const credenciales = {
       tipo_documento: 'CC',
@@ -335,6 +375,41 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
       }, 'no es un PDF');
       assert.equal(comprobanteInvalido.status, 400);
 
+      const llamadasAntesDeDocumentosInvalidos = peticionesTunja.length;
+      for (const [tipo_documento, numero_documento] of [
+        ['CC', '1234AB'],
+        ['CE', '12345678901'],
+        ['PAS', 'A1234567']
+      ]) {
+        const documentoInvalido = await postRegistroTunja({
+          email: `${tipo_documento}-${numero_documento}@example.com`,
+          contrasena: 'clave Tunja segura',
+          nombre: 'Persona Prueba',
+          nombres: 'Persona',
+          apellidos: 'Prueba',
+          tipo_documento,
+          numero_documento,
+          eps: 'Nueva EPS',
+          perfil: 'general'
+        });
+        assert.equal(documentoInvalido.status, 400);
+      }
+      assert.equal(peticionesTunja.length, llamadasAntesDeDocumentosInvalidos);
+
+      const pasaporteValido = await postRegistroTunja({
+        email: 'pasaporte@example.com',
+        contrasena: 'clave Tunja segura',
+        nombre: 'Persona Pasaporte',
+        nombres: 'Persona',
+        apellidos: 'Pasaporte',
+        tipo_documento: 'PAS',
+        numero_documento: 'ab123456',
+        eps: 'Nueva EPS',
+        perfil: 'general'
+      });
+      assert.equal(pasaporteValido.status, 201);
+      assert.equal(JSON.parse(peticionesTunja.at(-1).opciones.body).numero_documento, 'AB123456');
+
       const tunjaRegistro = await postRegistroTunja({
         email: 'ANA@example.com',
         contrasena: 'clave Tunja segura',
@@ -415,6 +490,20 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
         contrasena: 'clave Tunja segura'
       });
       assert.equal(loginSinDocumento.status, 400);
+      const llamadasAntesDeLoginInvalido = peticionesTunja.length;
+      for (const [tipo_documento, numero_documento] of [
+        ['CC', '1234AB'],
+        ['TI', '12345678901'],
+        ['PAS', 'A1234567']
+      ]) {
+        const documentoInvalido = await post('/api/tunja/auth/login', {
+          tipo_documento,
+          numero_documento,
+          contrasena: 'clave Tunja segura'
+        });
+        assert.equal(documentoInvalido.status, 400);
+      }
+      assert.equal(peticionesTunja.length, llamadasAntesDeLoginInvalido);
 
       const tunjaMe = await fetchLocal(`${baseUrl}/api/tunja/auth/me`, {
         headers: { Authorization: 'Bearer tunja-access-token' }
