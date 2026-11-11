@@ -9,6 +9,7 @@ import TransportModule from "./pages/UserPages/TransportModule.jsx";
 import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
 import ResultadosAdministrador from "./components/administrator/resultados_administrador.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
+import MyAppoitmentModule from "./pages/UserPages/MyAppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
 import RechargeBalanceModule from "./pages/UserPages/RechargeBalanceModule.jsx";
 import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrator.jsx";
@@ -61,6 +62,7 @@ function App() {
                 <Route element={<RequireAuth />}>
                     <Route path="/" element={<HomeUserModule />} />
                     <Route path="/citas" element={<AppointmentModule />} />
+                    <Route path="/mis-citas" element={<MyAppoitmentModule />} />
                     <Route path="/home" element={<HomeUserModule />} />
                     <Route path="/pagos" element={<PaymentModule />} />
                     <Route path="/recargar-saldo" element={<RechargeBalanceModule />} />

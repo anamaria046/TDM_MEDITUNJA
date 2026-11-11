@@ -1,0 +1,254 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    width: 100%;
+    padding: 10px 0;
+    box-sizing: border-box;
+}
+
+.appointmentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.appointmentCard {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+
+    width: 100%;
+    padding: 24px;
+
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    box-sizing: border-box;
+
+    box-shadow:
+        0 12px 30px rgba(24, 39, 75, 0.05),
+        0 3px 8px rgba(24, 39, 75, 0.02);
+
+    transition: box-shadow 0.2s ease;
+}
+
+.appointmentCard:hover {
+    box-shadow: 0 12px 30px rgba(24, 39, 75, 0.09);
+}
+
+.iconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 56px;
+    height: 56px;
+
+    color: var(--color-primary);
+    background-color: var(--color-tertiary);
+    border-radius: 17px;
+    flex-shrink: 0;
+}
+
+.appointmentInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.titleRow h3 {
+    margin: 0;
+    color: var(--color-text);
+    font-family: var(--heading);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.schedule, .ips {
+    margin: 0;
+    color: var(--color-text);
+    font-family: var(--sm);
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    padding: 5px 12px;
+
+    border-radius: 30px;
+    font-family: var(--sm);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.confirmada {
+    color: #087A43;
+    background-color: #D1FAE5;
+}
+
+.pendiente {
+    color: #087E8B;
+    background-color: #CFFAFE;
+}
+
+.finalizada {
+    color: #64748B;
+    background-color: #F1F5F9;
+}
+
+.cancelada {
+    color: #B42318;
+    background-color: #FEE4E2;
+}
+
+.extraInfo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 4px;
+}
+
+.extraInfo span {
+    color: var(--color-text);
+    font-family: var(--sm);
+    font-size: 12px;
+    opacity: 0.65;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modify, .cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 18px;
+    border-radius: 13px;
+
+    font-family: var(--sm);
+    font-size: 13px;
+    font-weight: 700;
+
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modify {
+    color: var(--color-primary);
+    background-color: transparent;
+    border: 1px solid var(--color-primary);
+}
+
+.modify:hover {
+    color: white;
+    background-color: var(--color-primary);
+}
+
+.cancel {
+    color: var(--color-text);
+    background-color: var(--color-tertiary);
+    border: 1px solid transparent;
+}
+
+.cancel:hover {
+    background-color: var(--color-border);
+}
+
+.modify:disabled, .cancel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.noCancelable, .noActions {
+    max-width: 150px;
+    color: var(--color-text);
+    font-family: var(--sm);
+    font-size: 11px;
+    opacity: 0.65;
+}
+
+.error {
+    color: #DC2626;
+    font-family: var(--sm);
+}
+
+.message {
+    padding: 24px;
+    color: var(--color-text);
+    font-family: var(--sm);
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .container {
+        gap: 18px;
+    }
+
+    .appointmentCard {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 12px;
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .iconContainer {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+    }
+
+    .titleRow {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .titleRow h3 {
+        font-size: 17px;
+    }
+
+    .schedule, .ips {
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .extraInfo {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .actions {
+        grid-column: 1 / -1;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .modify, .cancel {
+        flex: 1;
+        padding: 11px 8px;
+        font-size: 12px;
+    }
+}

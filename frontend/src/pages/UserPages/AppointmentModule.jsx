@@ -2,7 +2,6 @@ import NavbarUser from "../../components/user/NavbarUser/NavbarUser.jsx"
 import Hero from "../../components/Hero/Hero.jsx"
 import AppointmentMenu from "../../components/user/Appointments/AppointmentMenu/AppointmentMenu.jsx"
 import ScheduleAppointment from "../../components/user/Appointments/ScheduleAppointments/ScheduleAppointments.jsx"
-import MyAppointments from "../../components/user/Appointments/MyAppointments/MyAppointments.jsx"
 
 function AppointmentModule() {
     return (
@@ -15,7 +14,6 @@ function AppointmentModule() {
             />
             <AppointmentMenu />
             <ScheduleAppointment />
-            <MyAppointments />
         </div>
     );
 }
