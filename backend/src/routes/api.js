@@ -34,8 +34,8 @@ import {
 } from '../controllers/resultados.js';
 import {
   desvincularTarjeta,
-  leerYVincularTarjeta,
-  obtenerTarjeta
+  obtenerTarjeta,
+  vincularTarjeta
 } from '../controllers/nfc.js';
 import { obtenerSaldo, recargarSaldo } from '../controllers/wallet.js';
 import {
@@ -49,6 +49,7 @@ import {
 import * as sesiones from '../repositories/sesiones.js';
 import {
   cerrarSesionTunja,
+  iniciarSesionTarjeta,
   iniciarSesionTunja,
   obtenerUsuarioTunja,
   registrarEnTunja,
@@ -59,6 +60,7 @@ import { recibirComprobante } from '../middleware/recibirComprobante.js';
 const router = Router();
 
 router.post('/tunja/auth/register', recibirComprobante, registrarEnTunja);
+router.post('/tunja/auth/card-login', iniciarSesionTarjeta);
 router.post('/tunja/auth/login', iniciarSesionTunja);
 router.post('/tunja/auth/refresh', renovarSesionTunja);
 router.post('/tunja/auth/logout', cerrarSesionTunja);
@@ -74,7 +76,7 @@ router.post('/citas', autenticarUsuarioTunja, exigirTarjetaVinculada, crearCita)
 router.put('/citas/:id/cancelar', autenticarUsuarioTunja, cancelarCita);
 router.get('/resultados', autenticarUsuarioTunja, listarResultadosUsuario);
 router.get('/nfc/tarjeta', autenticarUsuarioTunja, obtenerTarjeta);
-router.post('/nfc/tarjeta', autenticarUsuarioTunja, leerYVincularTarjeta);
+router.post('/nfc/tarjeta', autenticarUsuarioTunja, vincularTarjeta);
 router.delete('/nfc/tarjeta', autenticarUsuarioTunja, desvincularTarjeta);
 router.get('/wallet', autenticarUsuarioTunja, exigirTarjetaVinculada, obtenerSaldo);
 router.post('/wallet/topup', autenticarUsuarioTunja, exigirTarjetaVinculada, recargarSaldo);

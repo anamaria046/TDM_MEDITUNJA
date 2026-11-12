@@ -3,7 +3,7 @@ import { ejecutar } from './sqlite.js';
 export async function buscarPorUsuario(usuarioId) {
   return ejecutar(
     'get',
-    `SELECT substr(uid, -4) AS identificador, vinculada_en
+    `SELECT uid, usuario_id, email, substr(uid, -4) AS identificador, vinculada_en
      FROM tarjetas_nfc WHERE usuario_id = ?`,
     [usuarioId]
   );
@@ -12,7 +12,7 @@ export async function buscarPorUsuario(usuarioId) {
 export async function buscarPorUid(uid) {
   return ejecutar(
     'get',
-    'SELECT usuario_id FROM tarjetas_nfc WHERE uid = ?',
+    'SELECT usuario_id, email FROM tarjetas_nfc WHERE uid = ?',
     [uid]
   );
 }

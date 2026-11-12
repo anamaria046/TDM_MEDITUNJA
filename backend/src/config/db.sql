@@ -96,6 +96,23 @@ CREATE TABLE IF NOT EXISTS tarjetas_nfc (
     vinculada_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS sesiones_tarjeta (
+    id_sesion INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id TEXT NOT NULL,
+    email VARCHAR(254) NOT NULL,
+    perfil TEXT NOT NULL,
+    descuento INTEGER NOT NULL DEFAULT 0 CHECK (descuento BETWEEN 0 AND 100),
+    token_hash TEXT NOT NULL UNIQUE,
+    refresco_hash TEXT NOT NULL UNIQUE,
+    creada_en INTEGER NOT NULL,
+    ultima_actividad INTEGER NOT NULL,
+    expira_en INTEGER NOT NULL,
+    revocada_en INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_sesiones_tarjeta_expiracion
+    ON sesiones_tarjeta (expira_en);
+
 CREATE TABLE IF NOT EXISTS solicitudes_transporte (
     id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario_id TEXT NOT NULL,

@@ -183,6 +183,18 @@ function AuthProvider({ children }) {
         return respuesta;
     }, []);
 
+    const iniciarSesionTarjeta = useCallback(async (uid) => {
+        const respuesta = await apiRequest("/tunja/auth/card-login", {
+            method: "POST",
+            body: JSON.stringify({ uid }),
+        });
+        const nuevaSesion = crearSesion(respuesta);
+        guardarSesion(nuevaSesion);
+        setSesion(nuevaSesion);
+        setErrorInicial("");
+        return respuesta;
+    }, []);
+
     const registrar = useCallback(async (datos) => {
         const respuesta = await apiRequest("/tunja/auth/register", {
             method: "POST",
@@ -231,11 +243,12 @@ function AuthProvider({ children }) {
             cargando,
             errorInicial,
             iniciarSesion,
+            iniciarSesionTarjeta,
             registrar,
             actualizarUsuario,
             cerrarSesion,
         }),
-        [sesion, cargando, errorInicial, iniciarSesion, registrar, actualizarUsuario, cerrarSesion],
+        [sesion, cargando, errorInicial, iniciarSesion, iniciarSesionTarjeta, registrar, actualizarUsuario, cerrarSesion],
     );
 
     return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

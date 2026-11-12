@@ -339,17 +339,81 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
 
     const fetchTunjaOriginal = globalThis.fetch;
     const peticionesTunja = [];
+    let tarjetaNuevaRegistrada = false;
+    let tarjetaNuevaActiva = true;
+    let usuarioTarjetaIdTunja = 99;
+    let correoTarjetaTunja = 'ana@example.com';
     globalThis.fetch = async (url, opciones) => {
       peticionesTunja.push({ url, opciones });
       if (url.endsWith('/auth/logout')) return new Response(null, { status: 204 });
+      if (url.endsWith('/auth/me') &&
+          !['Bearer tunja-access-token', 'Bearer otro-usuario-token']
+            .includes(opciones.headers?.Authorization)) {
+        return new Response(JSON.stringify({ error: 'token_expirado' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      if (url.endsWith('/cards/AABBCCDDEEFF') &&
+          opciones.method === 'DELETE') {
+        return new Response(null, { status: 204 });
+      }
+      if (url.endsWith('/cards/AABBCCDDEEFF') &&
+          opciones.method !== 'POST' &&
+          !tarjetaNuevaRegistrada) {
+        return new Response(JSON.stringify({ error: 'tarjeta_no_encontrada' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      if (url.endsWith('/cards') && opciones.method === 'POST') {
+        tarjetaNuevaRegistrada = true;
+        const tarjeta = JSON.parse(opciones.body);
+        return new Response(JSON.stringify({
+          uid: tarjeta.uid,
+          activa: true,
+          usuario: {
+            id: usuarioTarjetaIdTunja,
+            email: correoTarjetaTunja,
+            perfil: 'estudiante',
+            descuento: 10
+          }
+        }), { status: 201, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (url.endsWith('/cards/04A1B2C3D4E5F6') ||
+          url.endsWith('/cards/AABBCCDDEEFF')) {
+        return new Response(JSON.stringify({
+          uid: url.endsWith('/cards/04A1B2C3D4E5F6') ? '04A1B2C3D4E5F6' : 'AABBCCDDEEFF',
+          activa: tarjetaNuevaActiva,
+          usuario: {
+            id: usuarioTarjetaIdTunja,
+            email: correoTarjetaTunja,
+            perfil: 'estudiante',
+            descuento: 10
+          }
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (url.endsWith('/users/99/wallet')) {
+        return new Response(JSON.stringify({ usuario_id: 99, saldo: 42000, moneda: 'COP' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      if (url.endsWith('/users/99/wallet/topup')) {
+        return new Response(JSON.stringify({ operacion: 'recarga', monto: 1000, saldo: 43000 }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      const esOtroUsuario = opciones.headers?.Authorization === 'Bearer otro-usuario-token';
       const resultado = {
         usuario: {
-          id: 99,
-          nombre: 'Ana Pérez',
+          id: esOtroUsuario ? 100 : 99,
+          nombre: esOtroUsuario ? 'Otra Persona' : 'Ana Pérez',
           perfil: 'general',
           activo: true,
-          email: 'ana@example.com',
-          documento: '3040506071'
+          email: esOtroUsuario ? 'otra@example.com' : 'ana@example.com',
+          documento: esOtroUsuario ? '8888888888' : '3040506071'
         },
         acceso: 'tunja-access-token',
         refresco: 'tunja-refresh-token',
@@ -511,6 +575,200 @@ test('registro y sesiones cumplen controles de estado y confidencialidad', async
       assert.equal(tunjaMe.status, 200);
       assert.equal((await tunjaMe.json()).usuario.telefono, '3185777316');
       assert.equal(peticionesTunja.at(-1).opciones.headers.Authorization, 'Bearer tunja-access-token');
+
+      await ejecutar(
+        'run',
+        "UPDATE usuarios_tunja SET estado_afiliacion = 'aprobado' WHERE lower(email) = lower(?)",
+        ['ana@example.com']
+      );
+      const uidInvalido = await fetchLocal(`${baseUrl}/api/nfc/tarjeta`, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer tunja-access-token',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uid: 'not-a-uid' })
+      });
+      assert.equal(uidInvalido.status, 400);
+
+      const vinculacionNfc = await fetchLocal(`${baseUrl}/api/nfc/tarjeta`, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer tunja-access-token',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uid: '04a1b2c3d4e5f6' })
+      });
+      assert.equal(vinculacionNfc.status, 200);
+      assert.deepEqual((await vinculacionNfc.json()).data, {
+        vinculada: true,
+        identificador: 'E5F6'
+      });
+      const uidPersistido = await ejecutar(
+        'get',
+        'SELECT uid FROM tarjetas_nfc WHERE email = ?',
+        ['ana@example.com']
+      );
+      assert.equal(uidPersistido.uid, '04A1B2C3D4E5F6');
+
+      const loginConTarjeta = await post('/api/tunja/auth/card-login', {
+        uid: '04a1b2c3d4e5f6'
+      });
+      assert.equal(loginConTarjeta.status, 200);
+      const sesionTarjeta = await loginConTarjeta.json();
+      assert.equal(sesionTarjeta.usuario.email, 'ana@example.com');
+      assert.equal(sesionTarjeta.usuario.id, 99);
+      assert.equal(sesionTarjeta.usuario.estado_afiliacion, 'aprobado');
+      assert.equal(sesionTarjeta.expira_en, 900);
+      assert.equal(peticionesTunja.at(-1).url, 'https://tunja-api.test/api/v1/cards/04A1B2C3D4E5F6');
+      assert.equal(peticionesTunja.at(-1).opciones.headers['X-API-Key'], process.env.TUNJA_CLAVE);
+
+      const estadoTarjetaVinculada = await fetchLocal(`${baseUrl}/api/nfc/tarjeta`, {
+        headers: { Authorization: 'Bearer tunja-access-token' }
+      });
+      assert.equal(estadoTarjetaVinculada.status, 200);
+      const datosTarjetaVinculada = await estadoTarjetaVinculada.json();
+      const datosTarjetaLocal = await ejecutar(
+        'get',
+        'SELECT usuario_id, email FROM tarjetas_nfc WHERE uid = ?',
+        ['04A1B2C3D4E5F6']
+      );
+      assert.equal(datosTarjetaVinculada.data.habilitada, true, JSON.stringify({
+        respuesta: datosTarjetaVinculada,
+        local: datosTarjetaLocal,
+        tunja: { id: usuarioTarjetaIdTunja, email: correoTarjetaTunja }
+      }));
+
+      usuarioTarjetaIdTunja = 100;
+      correoTarjetaTunja = 'otra@example.com';
+      const estadoTarjetaInconsistente = await fetchLocal(`${baseUrl}/api/nfc/tarjeta`, {
+        headers: { Authorization: 'Bearer tunja-access-token' }
+      });
+      assert.equal(estadoTarjetaInconsistente.status, 200);
+      const datosTarjetaInconsistente = (await estadoTarjetaInconsistente.json()).data;
+      assert.equal(datosTarjetaInconsistente.vinculada, true);
+      assert.equal(datosTarjetaInconsistente.habilitada, false);
+      assert.equal(datosTarjetaInconsistente.estado, 'asociacion_inconsistente');
+
+      const loginTarjetaInconsistente = await post('/api/tunja/auth/card-login', {
+        uid: '04A1B2C3D4E5F6'
+      });
+      assert.equal(loginTarjetaInconsistente.status, 401);
+      assert.equal((await loginTarjetaInconsistente.json()).error, 'tarjeta_asociacion_inconsistente');
+      usuarioTarjetaIdTunja = 99;
+      correoTarjetaTunja = 'ana@example.com';
+
+      const usuarioSesionTarjeta = await fetchLocal(`${baseUrl}/api/tunja/auth/me`, {
+        headers: { Authorization: `Bearer ${sesionTarjeta.acceso}` }
+      });
+      assert.equal(usuarioSesionTarjeta.status, 200);
+      assert.equal((await usuarioSesionTarjeta.json()).email, 'ana@example.com');
+
+      const saldoSesionTarjeta = await fetchLocal(`${baseUrl}/api/wallet`, {
+        headers: { Authorization: `Bearer ${sesionTarjeta.acceso}` }
+      });
+      assert.equal(saldoSesionTarjeta.status, 200);
+      assert.equal((await saldoSesionTarjeta.json()).data.saldo, 42000);
+      assert.equal(peticionesTunja.at(-1).url, 'https://tunja-api.test/api/v1/users/99/wallet');
+      assert.equal(peticionesTunja.at(-1).opciones.headers['X-API-Key'], process.env.TUNJA_CLAVE);
+
+      const refrescoTarjeta = await post('/api/tunja/auth/refresh', {
+        refresco: sesionTarjeta.refresco
+      });
+      assert.equal(refrescoTarjeta.status, 200);
+      const sesionTarjetaRenovada = await refrescoTarjeta.json();
+      assert.notEqual(sesionTarjetaRenovada.acceso, sesionTarjeta.acceso);
+
+      const cierreTarjeta = await post('/api/tunja/auth/logout', {
+        refresco: sesionTarjetaRenovada.refresco
+      });
+      assert.equal(cierreTarjeta.status, 204);
+      const tokenTarjetaRevocado = await fetchLocal(`${baseUrl}/api/tunja/auth/me`, {
+        headers: { Authorization: `Bearer ${sesionTarjetaRenovada.acceso}` }
+      });
+      assert.equal(tokenTarjetaRevocado.status, 401);
+
+      const llamadasAntesDeUidDesconocido = peticionesTunja.length;
+      const uidDesconocido = await post('/api/tunja/auth/card-login', {
+        uid: 'AABBCCDDEEFF'
+      });
+      assert.equal(uidDesconocido.status, 401);
+      assert.equal(peticionesTunja.length, llamadasAntesDeUidDesconocido);
+
+      const uidLoginInvalido = await post('/api/tunja/auth/card-login', {
+        uid: 'uid-invalido'
+      });
+      assert.equal(uidLoginInvalido.status, 400);
+
+      await ejecutar(
+        'run',
+        `INSERT INTO usuarios_tunja (
+          tipo_documento, numero_documento, email, estado_afiliacion
+        ) VALUES ('CC', '8888888888', 'otra@example.com', 'aprobado')`
+      );
+      const uidDuplicado = await fetchLocal(`${baseUrl}/api/nfc/tarjeta`, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer otro-usuario-token',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uid: '04A1B2C3D4E5F6' })
+      });
+      assert.equal(uidDuplicado.status, 409, await uidDuplicado.clone().text());
+      assert.equal((await uidDuplicado.json()).error, 'tarjeta_ya_vinculada');
+      const tarjetaSinCambios = await ejecutar(
+        'get',
+        'SELECT usuario_id FROM tarjetas_nfc WHERE uid = ?',
+        ['04A1B2C3D4E5F6']
+      );
+      assert.equal(tarjetaSinCambios.usuario_id, '99');
+
+      const loginTarjetaAntesDeReemplazo = await post('/api/tunja/auth/card-login', {
+        uid: '04A1B2C3D4E5F6'
+      });
+      assert.equal(loginTarjetaAntesDeReemplazo.status, 200);
+      const vinculacionTarjetaNueva = await fetchLocal(`${baseUrl}/api/nfc/tarjeta`, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer tunja-access-token',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uid: 'AABBCCDDEEFF' })
+      });
+      assert.equal(vinculacionTarjetaNueva.status, 200);
+      const sesionTarjetaAnterior = await fetchLocal(`${baseUrl}/api/tunja/auth/me`, {
+        headers: { Authorization: `Bearer ${(await loginTarjetaAntesDeReemplazo.json()).acceso}` }
+      });
+      assert.equal(sesionTarjetaAnterior.status, 401);
+      const peticionCrearTarjeta = peticionesTunja.find(({ url, opciones }) =>
+        url.endsWith('/cards') && opciones.method === 'POST'
+      );
+      assert.deepEqual(JSON.parse(peticionCrearTarjeta.opciones.body), {
+        uid: 'AABBCCDDEEFF',
+        usuario_id: 99
+      });
+
+      const loginTarjetaNueva = await post('/api/tunja/auth/card-login', {
+        uid: 'AABBCCDDEEFF'
+      });
+      assert.equal(loginTarjetaNueva.status, 200);
+      const datosSesionTarjetaNueva = await loginTarjetaNueva.json();
+      tarjetaNuevaActiva = false;
+      const loginTarjetaDesactivada = await post('/api/tunja/auth/card-login', {
+        uid: 'AABBCCDDEEFF'
+      });
+      assert.equal(loginTarjetaDesactivada.status, 401);
+      tarjetaNuevaActiva = true;
+
+      const desvinculacionTarjeta = await fetchLocal(`${baseUrl}/api/nfc/tarjeta`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${datosSesionTarjetaNueva.acceso}` }
+      });
+      assert.equal(desvinculacionTarjeta.status, 200);
+      const sesionTrasDesvinculacion = await fetchLocal(`${baseUrl}/api/tunja/auth/me`, {
+        headers: { Authorization: `Bearer ${datosSesionTarjetaNueva.acceso}` }
+      });
+      assert.equal(sesionTrasDesvinculacion.status, 401);
 
       const tunjaRefresh = await post('/api/tunja/auth/refresh', {
         refresco: 'tunja-refresh-token'

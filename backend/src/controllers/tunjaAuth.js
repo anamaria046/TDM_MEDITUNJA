@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { administradoresEps } from '../config/administradoresEps.js';
 import { tunjaRequest } from '../services/tunjaApi.js';
 import * as usuariosTunja from '../repositories/usuariosTunja.js';
+import * as tarjetasNfc from '../repositories/tarjetasNfc.js';
+import * as sesionesTarjeta from '../repositories/sesionesTarjeta.js';
 
 const perfilesPermitidos = new Set(['general', 'estudiante', 'adulto_mayor', 'empleado']);
 const tiposDocumentoPermitidos = new Set(['CC', 'TI', 'CE', 'PAS']);
@@ -14,8 +16,46 @@ const carpetaComprobantes = path.resolve(
     ? path.join(path.dirname(path.resolve(process.env.DB_PATH)), 'afiliaciones-privadas')
     : path.join(path.dirname(fileURLToPath(import.meta.url)), '../../data/afiliaciones-privadas')
 );
+const duracionSesionTarjetaMs = 15 * 60 * 1000;
 const responderError = (res, status, error, mensaje) =>
   res.status(status).json({ error, mensaje });
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function crearUsuarioSesionTarjeta(sesion) {
+  return {
+    id: /^\d+$/.test(sesion.usuario_id) ? Number(sesion.usuario_id) : sesion.usuario_id,
+    email: sesion.email,
+    nombre: [sesion.nombres, sesion.apellidos].filter(Boolean).join(' ') || sesion.email,
+    nombres: sesion.nombres,
+    apellidos: sesion.apellidos,
+    tipo_documento: sesion.tipo_documento,
+    numero_documento: sesion.numero_documento,
+    telefono: sesion.telefono,
+    eps: sesion.eps,
+    estado_afiliacion: sesion.estado_afiliacion || 'pendiente',
+    perfil: sesion.perfil,
+    descuento: sesion.descuento
+  };
+}
+
+function crearTokensSesionTarjeta() {
+  return {
+    acceso: crypto.randomBytes(32).toString('hex'),
+    refresco: crypto.randomBytes(32).toString('hex')
+  };
+}
+
+function responderSesionTarjeta(res, usuario, tokens) {
+  return res.status(200).json({
+    usuario: crearUsuarioSesionTarjeta(usuario),
+    acceso: tokens.acceso,
+    refresco: tokens.refresco,
+    expira_en: duracionSesionTarjetaMs / 1000
+  });
+}
 
 function extensionComprobante(archivo) {
   const { buffer, mimetype } = archivo;
@@ -243,6 +283,85 @@ export async function registrarEnTunja(req, res) {
   }
 }
 
+export async function iniciarSesionTarjeta(req, res) {
+  const uid = typeof req.body?.uid === 'string'
+    ? req.body.uid.trim().toUpperCase()
+    : '';
+  if (!/^(?:[A-F0-9]{2}){2,20}$/.test(uid)) {
+    return responderError(res, 400, 'uid_invalido', 'El UID debe contener entre 4 y 40 caracteres hexadecimales.');
+  }
+
+  try {
+    const tarjetaLocal = await tarjetasNfc.buscarPorUid(uid);
+    if (!tarjetaLocal) {
+      return responderError(res, 401, 'tarjeta_no_valida', 'La tarjeta no está vinculada o no está activa.');
+    }
+
+    let tarjetaTunja;
+    try {
+      tarjetaTunja = await tunjaRequest(`/cards/${encodeURIComponent(uid)}`, { requiresKey: true });
+    } catch (error) {
+      if (error.status === 404) {
+        return responderError(res, 401, 'tarjeta_no_valida', 'La tarjeta no está vinculada o no está activa.');
+      }
+      return responderFalloTunja(res, error);
+    }
+
+    const usuarioTarjeta = tarjetaTunja?.usuario;
+    if (tarjetaTunja?.activa !== true) {
+      return responderError(res, 401, 'tarjeta_inactiva', 'La tarjeta está desactivada en TunjaAPI.');
+    }
+
+    const identidadValida = usuarioTarjeta &&
+      String(usuarioTarjeta.id) === String(tarjetaLocal.usuario_id) &&
+      typeof usuarioTarjeta.email === 'string' &&
+      usuarioTarjeta.email.trim().toLowerCase() === tarjetaLocal.email.trim().toLowerCase();
+    if (!identidadValida) {
+      return responderError(
+        res,
+        401,
+        'tarjeta_asociacion_inconsistente',
+        'TunjaAPI tiene esta tarjeta asociada a otra cuenta. Pide al administrador de TunjaAPI que corrija la asociación o vincula otra tarjeta.'
+      );
+    }
+
+    const solicitud = await usuariosTunja.buscarPorEmail(tarjetaLocal.email);
+    if (!solicitud || solicitud.estado_afiliacion === 'rechazado') {
+      return responderError(res, 403, 'cuenta_no_disponible', 'La cuenta no está habilitada para iniciar sesión.');
+    }
+
+    const descuento = usuarioTarjeta.descuento ?? 0;
+    if (!Number.isInteger(descuento) || descuento < 0 || descuento > 100) {
+      console.error('TunjaAPI devolvió un descuento inválido al validar la tarjeta.');
+      return responderError(res, 502, 'perfil_no_disponible', 'No fue posible verificar el perfil de la cuenta.');
+    }
+
+    const tokens = crearTokensSesionTarjeta();
+    const ahora = Date.now();
+    const usuarioSesion = {
+      id: String(tarjetaLocal.usuario_id),
+      email: tarjetaLocal.email.trim().toLowerCase(),
+      perfil: typeof usuarioTarjeta.perfil === 'string' ? usuarioTarjeta.perfil : 'general',
+      descuento
+    };
+    await sesionesTarjeta.crear(
+      usuarioSesion,
+      hashToken(tokens.acceso),
+      hashToken(tokens.refresco),
+      ahora,
+      ahora + duracionSesionTarjetaMs
+    );
+    return responderSesionTarjeta(res, {
+      ...usuarioSesion,
+      ...solicitud,
+      usuario_id: usuarioSesion.id
+    }, tokens);
+  } catch (error) {
+    console.error('Error al iniciar sesión con tarjeta NFC:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'error_interno', 'No fue posible iniciar sesión con la tarjeta.');
+  }
+}
+
 export async function iniciarSesionTunja(req, res) {
   const { tipo_documento, numero_documento, contrasena } = req.body || {};
   const tipoDocumento = typeof tipo_documento === 'string'
@@ -290,6 +409,17 @@ export async function renovarSesionTunja(req, res) {
     return responderError(res, 400, 'datos_invalidos', 'Se requiere un token de refresco válido.');
   }
 
+  const tokens = crearTokensSesionTarjeta();
+  const ahora = Date.now();
+  const sesionTarjeta = await sesionesTarjeta.renovarPorRefresco(
+    hashToken(refresco),
+    hashToken(tokens.acceso),
+    hashToken(tokens.refresco),
+    ahora,
+    ahora + duracionSesionTarjetaMs
+  );
+  if (sesionTarjeta) return responderSesionTarjeta(res, sesionTarjeta, tokens);
+
   try {
     const resultado = await tunjaRequest('/auth/refresh', {
       method: 'POST',
@@ -308,6 +438,9 @@ export async function cerrarSesionTunja(req, res) {
     return responderError(res, 400, 'datos_invalidos', 'Se requiere un token de refresco válido.');
   }
 
+  const revocada = await sesionesTarjeta.revocarPorRefresco(hashToken(refresco), Date.now());
+  if (revocada) return res.status(204).end();
+
   try {
     await tunjaRequest('/auth/logout', {
       method: 'POST',
@@ -324,6 +457,16 @@ export async function obtenerUsuarioTunja(req, res) {
   const coincidencia = /^Bearer\s+(\S+)$/i.exec(autorizacion);
   if (!coincidencia) {
     return responderError(res, 401, 'token_requerido', 'Inicia sesión para continuar.');
+  }
+
+  const ahora = Date.now();
+  const sesionTarjeta = await sesionesTarjeta.renovarPorToken(
+    hashToken(coincidencia[1]),
+    ahora,
+    ahora + duracionSesionTarjetaMs
+  );
+  if (sesionTarjeta) {
+    return res.status(200).json(crearUsuarioSesionTarjeta(sesionTarjeta));
   }
 
   try {

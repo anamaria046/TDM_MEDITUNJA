@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { CalendarDays } from "lucide-react";
 import { useAuth } from "../../../../auth/useAuth.js";
 import { apiRequest, mensajeError } from "../../../../auth/api.js";
 

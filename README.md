@@ -30,7 +30,8 @@ El backend escucha en `http://localhost:3001`; Vite suele usar
 
 ## Flujos conectados
 
-- Registro, inicio/cierre de sesión, renovación y perfil del paciente usan TunjaAPI.
+- El registro y el inicio de sesión con documento y contraseña usan TunjaAPI; el
+  acceso NFC consulta la tarjeta activa y abre una sesión MediTunja sin contraseña.
 - Disponibilidad, reserva, listado y cancelación de citas persisten en SQLite.
 - Los administradores consultan métricas, citas y solicitudes de transporte de su
   EPS, y gestionan afiliados, convenios y resultados desde la API. Pueden aceptar
@@ -39,9 +40,11 @@ El backend escucha en `http://localhost:3001`; Vite suele usar
   deshabilitadas en lugar de mostrar métricas de demostración.
 - Las solicitudes de transporte se asocian a una cita confirmada y quedan
   pendientes de confirmación operativa.
-- El ACR122U puede vincular una tarjeta al usuario autenticado desde
-  **Vinculación de tarjeta NFC**. La lectura se hace en el equipo donde corre el
-  backend, mediante PC/SC; consulta los requisitos en `backend/README.md`.
+- El ACR122U se integra mediante el puente local de `nfc-bridge/`. Ejecuta
+  `Puente.bat` una vez en el PC del lector; al entrar a **Vinculación de tarjeta
+  NFC**, la app solicita automáticamente una lectura y permite confirmar el UID
+  antes de enviarlo a la API. El navegador no puede iniciar el `.bat` por sí
+  solo; consulta `nfc-bridge/README.md`.
 
 ## Saldo y alcance del NFC
 
@@ -51,12 +54,14 @@ debe configurarse en `backend/.env`. Esta operación acredita saldo directamente
 no cobra una tarjeta bancaria, no procesa PSE y no genera una transacción de pago
 externo. Para cobrar fondos reales se debe integrar una pasarela de pago.
 
-El lector registra localmente el UID para vincular una tarjeta. Ese identificador
-no es una credencial criptográfica ni se sincroniza con las tarjetas de
-TunjaAPI; la recarga acredita el saldo de la billetera del usuario y no confirma
-que ese saldo esté disponible en la tarjeta física. TunjaAPI autentica con correo
-y contraseña. En MediTunja, la tarjeta NFC debe estar vinculada para consultar o
-recargar el saldo, reservar citas o solicitar transporte.
+La API registra el UID para vincular una tarjeta. Se puede iniciar sesión con
+el UID vinculado, como en un torniquete: al acercar una tarjeta activa se abre
+una sesión MediTunja de 15 minutos, renovada mientras se usa la aplicación. La
+cuenta debe estar aprobada y la tarjeta registrada en TunjaAPI. El UID es una
+credencial copiable y no es criptográfico;
+bloquea o desvincula tarjetas perdidas inmediatamente. MediTunja registra la
+tarjeta en TunjaAPI y verifica su estado allí. La recarga acredita el saldo de
+la billetera y no confirma que esté disponible en la tarjeta física.
 
 ## Pruebas
 

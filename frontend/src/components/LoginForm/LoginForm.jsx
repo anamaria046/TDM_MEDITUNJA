@@ -7,8 +7,10 @@ import { mensajeError } from "../../auth/api.js";
 
 import styles from "./Login.module.css";
 
+const PUENTE_NFC_URL = "http://127.0.0.1:8765";
+
 function LoginForm() {
-    const { sesion, iniciarSesion } = useAuth();
+    const { sesion, iniciarSesion, iniciarSesionTarjeta } = useAuth();
     const { usuario, iniciarSesion: iniciarSesionAdmin } = useAdminAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -18,6 +20,9 @@ function LoginForm() {
     const [enviando, setEnviando] = useState(false);
     const [esperaReintento, setEsperaReintento] = useState(0);
     const [mostrarContrasena, setMostrarContrasena] = useState(false);
+    const [modoTarjeta, setModoTarjeta] = useState(false);
+    const [uidTarjeta, setUidTarjeta] = useState("");
+    const [leyendoTarjeta, setLeyendoTarjeta] = useState(false);
 
     useEffect(() => {
         if (esperaReintento <= 0) return undefined;
@@ -46,17 +51,23 @@ function LoginForm() {
         setEnviando(true);
 
         const datos = new FormData(event.currentTarget);
-        const credenciales = {
-            tipo_documento: tipoDocumento,
-            numero_documento: datos.get("numeroDocumento").trim(),
-            contrasena: datos.get("contrasena"),
-        };
         try {
-            if (tipoDocumento === "NIT") {
-                await iniciarSesionAdmin(credenciales);
+            if (modoTarjeta) {
+                await iniciarSesionTarjeta(uidTarjeta.trim());
+                navigate(location.state?.from?.pathname || "/home", { replace: true });
+            } else if (tipoDocumento === "NIT") {
+                await iniciarSesionAdmin({
+                    tipo_documento: tipoDocumento,
+                    numero_documento: datos.get("numeroDocumento").trim(),
+                    contrasena: datos.get("contrasena"),
+                });
                 navigate(location.state?.from?.pathname || "/perfilAdministrador", { replace: true });
             } else {
-                await iniciarSesion(credenciales);
+                await iniciarSesion({
+                    tipo_documento: tipoDocumento,
+                    numero_documento: datos.get("numeroDocumento").trim(),
+                    contrasena: datos.get("contrasena"),
+                });
                 navigate(location.state?.from?.pathname || "/home", { replace: true });
             }
         } catch (errorSolicitud) {
@@ -74,6 +85,71 @@ function LoginForm() {
         }
     }
 
+    async function iniciarSesionConUid(uid) {
+        setError("");
+        setEnviando(true);
+        try {
+            await iniciarSesionTarjeta(uid);
+            navigate(location.state?.from?.pathname || "/home", { replace: true });
+        } catch (errorSolicitud) {
+            setError(mensajeError(errorSolicitud));
+            const segundos = Number(errorSolicitud?.retryAfter);
+            if (errorSolicitud?.status === 429 && Number.isFinite(segundos) && segundos > 0) {
+                setEsperaReintento(Math.ceil(segundos));
+            }
+        } finally {
+            setEnviando(false);
+        }
+    }
+
+    async function leerUidTarjeta() {
+        setError("");
+        setUidTarjeta("");
+        setLeyendoTarjeta(true);
+        try {
+            const estado = await fetch(`${PUENTE_NFC_URL}/health`);
+            if (!estado.ok) {
+                throw new Error("El puente NFC no está disponible. Abre nfc-bridge/Puente.bat e inténtalo de nuevo.");
+            }
+            const respuesta = await fetch(`${PUENTE_NFC_URL}/scan`, {
+                signal: AbortSignal.timeout(35000),
+            });
+            const datos = await respuesta.json();
+            if (!respuesta.ok) {
+                throw new Error(datos.error || "No fue posible leer la tarjeta NFC.");
+            }
+            if (typeof datos.uid !== "string" || !/^(?:[A-F0-9]{2}){2,20}$/i.test(datos.uid)) {
+                throw new Error("El puente devolvió un identificador NFC inválido.");
+            }
+            const uid = datos.uid.toUpperCase();
+            setUidTarjeta(uid);
+            setLeyendoTarjeta(false);
+            await iniciarSesionConUid(uid);
+        } catch (errorLectura) {
+            if (errorLectura instanceof TypeError) {
+                setError("No se pudo conectar al puente NFC. Abre nfc-bridge/Puente.bat en este equipo.");
+            } else if (errorLectura.name === "TimeoutError") {
+                setError("La lectura tardó demasiado. Acerca la tarjeta e inténtalo de nuevo.");
+            } else {
+                setError(errorLectura instanceof Error ? errorLectura.message : "No fue posible leer la tarjeta NFC.");
+            }
+        } finally {
+            setLeyendoTarjeta(false);
+        }
+    }
+
+    function cambiarModoTarjeta() {
+        setError("");
+        if (modoTarjeta) {
+            setModoTarjeta(false);
+            setUidTarjeta("");
+            return;
+        }
+        if (tipoDocumento === "NIT") return;
+        setModoTarjeta(true);
+        leerUidTarjeta();
+    }
+
     return (
         <main className={styles.Login}>
             <h4 className={styles.subtitle}>Inicio de sesión</h4>
@@ -82,7 +158,36 @@ function LoginForm() {
                 <p role="status">{location.state.notice || location.state.mensaje}</p>
             )}
             <form onSubmit={handleSubmit}>
-                <div className={styles.documentRow}>
+                {modoTarjeta ? (
+                    <div className={styles.formGroup}>
+                        <label htmlFor="uid-tarjeta-login">Identificador de la tarjeta (UID)</label>
+                        <input
+                            type="text"
+                            id="uid-tarjeta-login"
+                            name="uid"
+                            autoComplete="off"
+                            value={uidTarjeta}
+                            onChange={(event) => setUidTarjeta(event.target.value.replace(/[^a-f\d]/gi, "").toUpperCase())}
+                            maxLength={40}
+                            pattern="([A-Fa-f0-9]{2}){2,20}"
+                            placeholder="Acerca tu tarjeta o ingresa el UID"
+                            aria-describedby="ayuda-uid-tarjeta-login"
+                            required
+                        />
+                        <small className={styles.fieldHint} id="ayuda-uid-tarjeta-login">
+                            Acerca una tarjeta activa para ingresar; también puedes escribir el UID.
+                        </small>
+                        <button
+                            type="button"
+                            className={styles.readCardButton}
+                            onClick={leerUidTarjeta}
+                            disabled={leyendoTarjeta || enviando || esperaReintento > 0}
+                        >
+                            {leyendoTarjeta ? "Acerca la tarjeta al lector..." : "Leer tarjeta NFC"}
+                        </button>
+                    </div>
+                ) : (
+                    <div className={styles.documentRow}>
                     <div className={`${styles.formGroup} ${styles.documentType}`}>
                         <label htmlFor="tipo-documento">Tipo de documento</label>
                         <select
@@ -150,48 +255,50 @@ function LoginForm() {
                         </small>
                     </div>
                 </div>
+                )}
 
-                <div className={styles.formGroup}>
-                    <label htmlFor="contrasena">Contraseña</label>
-                    <div className={styles.passwordWrapper}>
-                        <input
-                            type={mostrarContrasena ? "text" : "password"}
-                            id="contrasena"
-                            name="contrasena"
-                            autoComplete="current-password"
-                            maxLength="128"
-                            placeholder="Ingresa tu contraseña"
-                            required
-                        />
-                        <button
-                            className={styles.passwordToggle}
-                            type="button"
-                            aria-label={
-                            mostrarContrasena
-                                ? "Ocultar contraseña"
-                                : "Mostrar contraseña"
-                            }
-                            aria-pressed={mostrarContrasena}
-                            onClick={() => setMostrarContrasena((actual) => !actual)}
-                        >
-                            {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
-                        </button>
+                {!modoTarjeta && (
+                    <div className={styles.formGroup}>
+                        <label htmlFor="contrasena">Contraseña</label>
+                        <div className={styles.passwordWrapper}>
+                            <input
+                                type={mostrarContrasena ? "text" : "password"}
+                                id="contrasena"
+                                name="contrasena"
+                                autoComplete="current-password"
+                                maxLength="128"
+                                placeholder="Ingresa tu contraseña"
+                                required
+                            />
+                            <button
+                                className={styles.passwordToggle}
+                                type="button"
+                                aria-label={
+                                    mostrarContrasena
+                                        ? "Ocultar contraseña"
+                                        : "Mostrar contraseña"
+                                }
+                                aria-pressed={mostrarContrasena}
+                                onClick={() => setMostrarContrasena((actual) => !actual)}
+                            >
+                                {mostrarContrasena ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                     </div>
-                    
-                </div>
+                )}
 
                 {error && <p role="alert">{error}</p>}
 
                 <button
                     type="submit"
-                    disabled={enviando || esperaReintento > 0}
+                    disabled={enviando || leyendoTarjeta || esperaReintento > 0}
                     className={styles.btn}
                 >
                     {enviando
                         ? "Iniciando sesión..."
                         : esperaReintento > 0
                             ? `Intenta de nuevo en ${esperaReintento} s`
-                            : "Iniciar sesión"}
+                            : modoTarjeta ? "Ingresar con tarjeta" : "Iniciar sesión"}
                 </button>
             </form>
 
@@ -200,16 +307,17 @@ function LoginForm() {
             <button
                 type="button"
                 className={styles.nfcButton}
-                disabled
-                title="El inicio de sesión NFC requiere soporte de autenticación de TunjaAPI."
+                onClick={cambiarModoTarjeta}
+                disabled={tipoDocumento === "NIT" || enviando}
+                aria-pressed={modoTarjeta}
             >
                 <span className={styles.nfcIcon}>
                     <Nfc size={28} />
                 </span>
                 <span>
-                    <strong>Inicio de sesión NFC no disponible</strong>
+                    <strong>{modoTarjeta ? "Volver al inicio con documento" : "Ingresar con tarjeta NFC"}</strong>
                     <br />
-                    <small>TunjaAPI aún no ofrece autenticación con tarjeta</small>
+                    <small>{modoTarjeta ? "Volver al acceso con documento y contraseña" : "Acerca la tarjeta para iniciar sesión sin contraseña"}</small>
                 </span>
             </button>
             <p className={styles.registerLink}>

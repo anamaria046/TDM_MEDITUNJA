@@ -4,20 +4,18 @@ Las rutas de administración usan la base SQLite del backend, requieren una sesi
 
 ## Integraciones de la aplicación
 
-- Registro, inicio/cierre de sesión, renovación y consulta del perfil de paciente se realizan mediante TunjaAPI.
+- El registro y el inicio de sesión con documento y contraseña se realizan mediante TunjaAPI. El acceso con tarjeta consulta TunjaAPI y crea una sesión MediTunja.
 - Citas: `GET /api/citas/disponibilidad`, `GET/POST /api/citas` y `PUT /api/citas/:id/cancelar`.
 - Solicitudes de transporte: `GET/POST /api/transporte`; deben corresponder a una cita confirmada del usuario. La respuesta queda en estado `solicitada`. No existe gestión administrativa de estas solicitudes.
 - Administración de citas: `GET /api/admin/resumen`, `GET /api/admin/citas`, `PUT /api/admin/citas/:id/reprogramar` y `PUT /api/admin/citas/:id/cancelar`. Las operaciones comprueban la EPS del afiliado y guardan el motivo administrativo.
 - Administración de afiliados, convenios y resultados usa rutas `/api/admin/*` y verifica el rol y la EPS en el servidor.
 - Recargas administrativas: `GET /api/admin/recargas/afiliados` lista las afiliaciones aprobadas de la EPS que están activas en TunjaAPI y tienen una tarjeta NFC vinculada; `POST /api/admin/recargas/afiliados/:id` acredita una recarga en ventanilla usando `POST /users/:id/wallet/topup` de TunjaAPI. El administrador debe enviar un `monto` entero entre 100 y 500.000 y uno de los medios simulados (`nequi`, `daviplata`, `tarjeta`, `pse`). La clave de TunjaAPI solo se usa desde el backend y cada recarga vuelve a validar la afiliación, la EPS y la tarjeta vinculada.
 
-## Lector ACR122U
+## Vinculación de tarjeta NFC
 
-La vinculación de tarjeta usa `nfc-pcsc` y PC/SC para leer el UID de una tarjeta con el ACR122U. El lector debe estar conectado al mismo equipo que ejecuta el backend; no se comunica directamente con el navegador. Las rutas `/api/nfc/tarjeta` requieren un usuario autenticado y con afiliación aprobada.
+En `/vinculacionNFC`, la interfaz solicita el UID al puente local de Windows (`nfc-bridge/Puente.bat`) y permite confirmar la vinculación mediante `POST /api/nfc/tarjeta`. La ruta registra la tarjeta tanto en la tabla local como en TunjaAPI mediante `POST /cards`, con la clave conservada en el backend. El ACR122U debe estar conectado al mismo PC que tiene abierto el navegador y el puente debe estar en ejecución; el navegador no puede arrancarlo automáticamente.
 
-`nfc-pcsc` es una dependencia opcional porque necesita compilar un módulo nativo. En Windows, instala Python y Visual Studio Build Tools con la carga de trabajo de C++ antes de instalar las dependencias del backend para activar el lector. Si el módulo o el lector no están disponibles, la API devuelve un error y no finge una lectura.
-
-El UID solo se usa para vincular la tarjeta al perfil. No es una prueba criptográfica de identidad y no debe usarse por sí solo para iniciar sesión, autorizar pagos o acceder a información médica.
+El inicio de sesión NFC funciona como un torniquete: `POST /api/tunja/auth/card-login` recibe el UID, el servidor consulta `GET /cards/:uid` en TunjaAPI y comprueba que la tarjeta esté activa, asociada al mismo usuario que la vinculación local y que la afiliación esté habilitada. Si pasa esas comprobaciones, MediTunja crea una sesión local de 15 minutos, sin contraseña; se renueva durante el uso, y el cierre la revoca. La billetera usa las rutas `/users/:id/wallet` con la clave del servidor; nunca se expone la clave al navegador. El UID es copiable y no es una prueba criptográfica de identidad; bloquea o desvincula tarjetas perdidas. Las rutas `/api/nfc/tarjeta` requieren autenticación; la vinculación requiere afiliación aprobada.
 
 ## Pagos y recargas
 
@@ -51,4 +49,4 @@ El registro público crea la cuenta en TunjaAPI y guarda localmente la solicitud
 
 Las nuevas cuentas pueden iniciar sesión mientras la solicitud está pendiente, pero solo pueden consultar su perfil y cerrar sesión. La administración puede aprobar o rechazar solicitudes; únicamente las cuentas aprobadas acceden a citas y a los demás módulos. Las cuentas anteriores que no tengan una solicitud local permanecen restringidas hasta completar el proceso de afiliación.
 
-TunjaAPI autentica actualmente con correo. La aplicación conserva localmente la relación entre tipo/número de documento y correo para permitir que el inicio de sesión público siga solicitando el documento.
+TunjaAPI autentica con correo y contraseña para el inicio de sesión tradicional. En el acceso por tarjeta no se envía contraseña: la aplicación verifica el UID activo contra TunjaAPI y emite una sesión propia de MediTunja. La tarjeta debe estar vinculada tanto localmente como en TunjaAPI.

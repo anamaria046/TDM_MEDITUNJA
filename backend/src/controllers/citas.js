@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { ejecutar } from '../repositories/sqlite.js';
 import * as usuariosTunja from '../repositories/usuariosTunja.js';
+import * as sesionesTarjeta from '../repositories/sesionesTarjeta.js';
 import { tunjaRequest } from '../services/tunjaApi.js';
 
 const horarios = ['08:00', '09:30', '11:00'];
@@ -16,6 +17,7 @@ const serviciosPermitidos = new Map([
   ['radio', { nombre: 'Radiología', costo: 120000 }]
 ]);
 const modalidadesPermitidas = new Set(['presencial', 'telemedicina']);
+const duracionSesionTarjetaMs = 15 * 60 * 1000;
 const condicionMismaEpsCita = `(
   lower(trim(u.eps)) = lower(trim(?)) OR
   lower(trim(u.eps)) = lower('EPS ' || trim(?)) OR
@@ -80,6 +82,40 @@ export async function autenticarUsuarioTunja(req, res, next) {
   const coincidencia = /^Bearer\s+(\S+)$/i.exec(autorizacion);
   if (!coincidencia) {
     return responderError(res, 401, 'token_requerido', 'Inicia sesión para agendar y consultar tus citas.');
+  }
+
+  try {
+    const ahora = Date.now();
+    const hashToken = crypto.createHash('sha256').update(coincidencia[1]).digest('hex');
+    const sesionTarjeta = await sesionesTarjeta.renovarPorToken(
+      hashToken,
+      ahora,
+      ahora + duracionSesionTarjetaMs
+    );
+    if (sesionTarjeta) {
+      if (sesionTarjeta.estado_afiliacion !== 'aprobado') {
+        const rechazado = sesionTarjeta.estado_afiliacion === 'rechazado';
+        return responderError(
+          res,
+          403,
+          rechazado ? 'afiliacion_rechazada' : 'afiliacion_pendiente',
+          rechazado
+            ? 'Tu afiliación fue rechazada. Contacta al administrador de tu EPS.'
+            : 'Tu cuenta debe ser activada por el administrador de tu EPS antes de usar este módulo.'
+        );
+      }
+
+      req.usuarioCitas = {
+        id: sesionTarjeta.usuario_id,
+        email: sesionTarjeta.email,
+        descuento: sesionTarjeta.descuento
+      };
+      req.sesionTarjeta = true;
+      return next();
+    }
+  } catch (error) {
+    console.error('Error al validar sesión local de tarjeta:', error.code || 'ERROR_INTERNO');
+    return responderError(res, 500, 'error_interno', 'No fue posible validar la sesión.');
   }
 
   try {

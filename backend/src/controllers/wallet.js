@@ -61,10 +61,12 @@ export function responderFalloTunja(res, error) {
 
 export async function obtenerSaldo(req, res) {
   try {
-    const respuesta = await tunjaRequest('/wallet', {
-      accessToken: obtenerToken(req),
-      requiresKey: true
-    });
+    const ruta = req.sesionTarjeta
+      ? `/users/${encodeURIComponent(req.usuarioCitas.id)}/wallet`
+      : '/wallet';
+    const respuesta = await tunjaRequest(ruta, req.sesionTarjeta
+      ? { requiresKey: true }
+      : { accessToken: obtenerToken(req), requiresKey: true });
     const saldo = extraerSaldo(respuesta);
     if (saldo === undefined) {
       console.error('TunjaAPI devolvió una billetera sin un saldo válido.');
@@ -94,9 +96,12 @@ export async function recargarSaldo(req, res) {
   }
 
   try {
-    const movimiento = await tunjaRequest('/wallet/topup', {
+    const ruta = req.sesionTarjeta
+      ? `/users/${encodeURIComponent(req.usuarioCitas.id)}/wallet/topup`
+      : '/wallet/topup';
+    const movimiento = await tunjaRequest(ruta, {
       method: 'POST',
-      accessToken: obtenerToken(req),
+      ...(req.sesionTarjeta ? {} : { accessToken: obtenerToken(req) }),
       requiresKey: true,
       body: {
         monto,
