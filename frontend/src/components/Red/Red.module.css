@@ -29,7 +29,7 @@
 
 .badge {
     background-color: var(--color-secundary);
-    color: var(--color-text);
+    color: var(--marca-azul);
     font-family: var(--sm);
     font-size: 12px;
     font-weight: 700;
@@ -183,7 +183,7 @@
 
 .statusPill {
     background-color: rgba(38, 255, 240, 0.16);
-    color: var(--color-secundary);
+    color: var(--color-bg);
     font-family: var(--sm);
     font-size: 12px;
     font-weight: 600;
@@ -264,7 +264,7 @@
     font-family: var(--heading);
     font-size: 16px;
     font-weight: 600;
-    color: var(--color-bg);
+    color: var(--marca-blanco);
     line-height: 1.35;
 }
 

@@ -9,15 +9,15 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import AppointmentPaymentModule from "./pages/UserPages/AppointmentPaymentModule.jsx";
 import TransportModule from "./pages/UserPages/TransportModule.jsx";
-import ProcedureResults from "./components/user/resultados_procedimientos.jsx";
-import ResultadosAdministrador from "./components/administrator/resultados_administrador.jsx";
+import ProcedureResults from "./components/user/resultados_procedimientos/resultados_procedimientos.jsx";
+import ResultadosAdministrador from "./components/administrator/resultados_administrador/resultados_administrador.jsx";
 import AppointmentModule from "./pages/UserPages/AppointmentModule.jsx";
 import MyAppoitmentModule from "./pages/UserPages/MyAppointmentModule.jsx";
 import ProfileUser from "./pages/UserPages/ProfileUser.jsx";
 import RechargeBalanceModule from "./pages/UserPages/RechargeBalanceModule.jsx";
 import ProfileAdministrador from "./pages/AdministratorPages/ProfileAdministrator.jsx";
 import AppointmentManagementModule from "./pages/AdministratorPages/AppointmentManagementModule.jsx";
-import AdminRechargeModule from "./pages/AdministratorPages/AdminRechargeModule.jsx";
+import AdminRechargeModule from "./components/administrator/AdminRechargeModule/AdminRechargeModule.jsx";
 import AdminNfcCardsModule from "./pages/AdministratorPages/AdminNfcCardsModule.jsx";
 import AdminLayout from "./components/administrator/AdminLayout/AdminLayout.jsx";
 import UserGestor from "./components/administrator/UserGestor/UserGestor.jsx";
@@ -52,8 +52,6 @@ function App() {
                 <Route element={<RequireAdmin />}>
                     <Route element={<AdminLayout />}>
                         <Route path="/admin" element={<BienvenidaAdminModule />} />
-                        <Route path="/inicioAdmin" element={<BienvenidaAdminModule />} />
-                        <Route path="/admin/inicio" element={<BienvenidaAdminModule />} />
                         <Route path="/resultados-administrador" element={<ResultadosAdministrador />} />
                         <Route path="/admin/recargas" element={<AdminRechargeModule />} />
                         <Route path="/admin/tarjetas-nfc" element={<AdminNfcCardsModule />} />

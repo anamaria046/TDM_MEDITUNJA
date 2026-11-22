@@ -1,0 +1,358 @@
+.adminResults {
+    --resultado-error-fondo: #fff1f2;
+    --resultado-error-texto: #9f1239;
+    display: flex;
+    width: min(100%, 1240px);
+    flex-direction: column;
+    gap: 22px;
+    margin: 0 auto;
+    padding: 32px 32px 96px;
+    color: var(--color-text);
+    font-family: var(--text);
+}
+
+:global([data-theme="dark"]) .adminResults {
+    --resultado-error-fondo: #3b2029;
+    --resultado-error-texto: #fda4af;
+}
+
+.adminResults > header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0 10px;
+}
+
+.adminResults > header a {
+    display: none;
+}
+
+.adminResults > header p:first-of-type {
+    color: var(--color-primary);
+    font-family: var(--sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.adminResults > header h1 {
+    color: var(--color-text);
+    font-family: var(--heading);
+    font-size: clamp(1.7rem, 3.5vw, 2.5rem);
+    line-height: 1.2;
+}
+
+.adminResults > header p:last-child {
+    color: var(--color-text-secundary);
+    line-height: 1.6;
+}
+
+.adminResults > section {
+    min-width: 0;
+    padding: clamp(20px, 3vw, 34px);
+    border: 1px solid var(--color-border);
+    border-radius: 26px;
+    background: var(--color-bg-card);
+    box-shadow: 0 16px 40px var(--color-shadow);
+}
+
+.adminResults > section[aria-label="Alcance de los resultados"] {
+    padding: 16px 20px;
+    background: var(--hover-secundary);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+.adminResults > section h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-family: var(--heading);
+    font-size: clamp(1.15rem, 2vw, 1.5rem);
+    line-height: 1.35;
+}
+
+.adminResults > section[aria-labelledby="acciones-resultados"] > button, 
+.adminResults form > button[type="submit"] {
+    min-height: 46px;
+    margin-top: 18px;
+    padding: 11px 18px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    background: var(--color-primary);
+    color: var(--color-bg);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.adminResults > section[aria-labelledby="acciones-resultados"] > button:hover,
+.adminResults form > button[type="submit"]:hover:not(:disabled) {
+    background: var(--hover-primary);
+    transform: translateY(-1px);
+}
+
+.adminResults form > button[type="submit"]:disabled {
+    cursor: progress;
+    opacity: 0.65;
+}
+
+.adminResults form fieldset {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    min-width: 0;
+    margin-top: 22px;
+    padding: 20px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.adminResults form legend {
+    grid-column: 1 / -1;
+    position: relative;
+    inset-block-start: 30px;
+    margin-block-end: 10px;
+    padding: 0 8px;
+    color: var(--color-text);
+    font-family: var(--heading);
+    font-weight: 700;
+}
+
+.adminResults form .formGrid, .adminResults form .singleColumnGrid {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: 16px;
+    min-width: 0;
+}
+
+.adminResults form .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.adminResults form .singleColumnGrid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.adminResults form .formGrid > div, .adminResults form .singleColumnGrid > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.adminResults form fieldset > legend + .formGrid, .adminResults form fieldset > legend + .singleColumnGrid {
+    margin: 35px 10px 10px 8px;
+}
+
+.adminResults form .formGrid > div:has(textarea) {
+    grid-column: 1 / -1;
+}
+
+.adminResults form label {
+    color: var(--color-text);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.adminResults form input, .adminResults form select, .adminResults form textarea {
+    width: 100%;
+    min-height: 48px;
+    padding: 11px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 11px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+}
+
+.adminResults form input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 9px 14px;
+    border: 1px solid var(--color-primary);
+    border-radius: 9px;
+    background: var(--color-primary);
+    color: var(--color-bg);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.adminResults form input[type="file"]::file-selector-button:hover {
+    background: var(--hover-primary);
+    transform: translateY(-1px);
+}
+
+.adminResults form textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.adminResults form input:focus-visible, .adminResults form select:focus-visible,
+.adminResults form textarea:focus-visible, .adminResults button:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-primary) 38%, transparent);
+    outline-offset: 2px;
+}
+
+.adminResults > section[aria-labelledby="listado-resultados"] > section {
+    margin-top: 18px;
+    border-color: var(--color-border);
+    background: var(--color-bg);
+    box-shadow: none;
+}
+
+.adminResults > section[aria-labelledby="listado-resultados"] > div:has(table) {
+    width: 100%;
+    margin-top: 18px;
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    scrollbar-width: thin;
+}
+
+.adminResults table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.adminResults caption {
+    padding: 12px 16px;
+    color: var(--color-text-secundary);
+    text-align: left;
+}
+
+.adminResults th, .adminResults td {
+    padding: 13px 15px;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+}
+
+.adminResults th {
+    background: var(--hover-secundary);
+    color: var(--color-text);
+    font-family: var(--heading);
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.adminResults tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.adminResults tbody tr:hover {
+    background: var(--color-bg-elevated);
+}
+
+.adminResults td:nth-child(6) {
+    color: var(--color-primary);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.adminResults td:nth-child(7) {
+    min-width: 220px;
+    overflow-wrap: anywhere;
+}
+
+.adminResults td button {
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid var(--resultado-error-texto);
+    border-radius: 9px;
+    background: var(--resultado-error-fondo);
+    color: var(--resultado-error-texto);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.adminResults td button:hover:not(:disabled) {
+    filter: brightness(0.94);
+}
+
+.adminResults td .publishResult {
+    margin-block-end: 6px;
+    border-color: var(--marca-violeta);
+    background: var(--marca-violeta);
+    color: var(--marca-blanco);
+}
+
+.adminResults td .publishResult:hover:not(:disabled) {
+    background: var(--marca-azul);
+}
+
+.adminResults td button:disabled {
+    cursor: progress;
+    opacity: 0.6;
+}
+
+.adminResults [role="status"], .adminResults [role="alert"] {
+    padding: 14px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--hover-secundary);
+    color: var(--color-text);
+    line-height: 1.55;
+}
+
+.adminResults [role="alert"] {
+    border-left: 4px solid var(--resultado-error-texto);
+    background: var(--resultado-error-fondo);
+    color: var(--resultado-error-texto);
+}
+
+.adminResults div[role="status"] {
+    margin-top: 18px;
+}
+
+.adminResults div[role="status"] h3 {
+    margin-bottom: 6px;
+    color: var(--color-text);
+    font-family: var(--heading);
+}
+
+.adminResults div[role="status"] p {
+    color: var(--color-text-secundary);
+}
+
+@media (max-width: 700px) {
+    .adminResults {
+        gap: 16px;
+        padding: 24px 16px 80px;
+    }
+
+    .adminResults > section {
+        padding: 20px 16px;
+        border-radius: 20px;
+    }
+
+    .adminResults form fieldset {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 16px;
+    }
+
+    .adminResults form .formGrid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .adminResults form .formGrid > div:has(textarea) {
+        grid-column: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .adminResults *, .adminResults *::before, .adminResults *::after {
+        transition-duration: 0.01ms !important;
+    }
+}

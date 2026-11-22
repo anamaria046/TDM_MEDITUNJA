@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiBaseUrl, apiRequest, mensajeError } from "../../../auth/api.js";
 import { useAdminAuth } from "../../../auth/useAdminAuth.js";
+import styles from "./UserGestor.module.css";
 
 const etiquetasEstado = {
     pendiente: "Pendiente",
@@ -11,6 +12,11 @@ const etiquetasCuenta = {
     activa: "Activa",
     inactiva: "Inactiva",
     sin_coincidencia: "Sin coincidencia",
+};
+const clasesEstado = {
+    pendiente: styles.statusPendiente,
+    aprobado: styles.statusAprobado,
+    rechazado: styles.statusRechazado,
 };
 
 function UserGestor() {
@@ -103,22 +109,22 @@ function UserGestor() {
     }
 
     return (
-        <main className="user-gestor">
-            <header className="user-gestor__header">
-                <p className="user-gestor__eyebrow">MediTunja · Administración</p>
+        <main className={styles.userGestor}>
+            <header className={styles.header}>
+                <p className={styles.eyebrow}>MediTunja · Administración</p>
                 <h1>Gestión de afiliados</h1>
                 <p>Administra las solicitudes y datos de afiliados de {usuario.eps}.</p>
             </header>
 
-            <aside className="user-gestor__notice">
+            <aside className={styles.notice}>
                 Los cambios se guardan en la base de datos y se limitan a la EPS asignada
                 a tu cuenta.
             </aside>
 
-            <section className="user-gestor__panel" aria-labelledby="titulo-filtros">
+            <section className={styles.panel} aria-labelledby="titulo-filtros">
                 <h2 id="titulo-filtros">Buscar y filtrar afiliados</h2>
-                <div className="user-gestor__filters">
-                    <div className="user-gestor__field user-gestor__field--wide">
+                <div className={styles.filters}>
+                    <div className={`${styles.field} ${styles.fieldWide}`}>
                         <label htmlFor="busqueda-usuario">Nombre o número de documento</label>
                         <input
                             id="busqueda-usuario"
@@ -128,7 +134,7 @@ function UserGestor() {
                             placeholder="Ej.: Valentina o 1000000001"
                         />
                     </div>
-                    <div className="user-gestor__field">
+                    <div className={styles.field}>
                         <label htmlFor="filtro-estado">Estado de solicitud</label>
                         <select id="filtro-estado" value={estadoFiltro} onChange={(event) => setEstadoFiltro(event.target.value)}>
                             <option value="todos">Todos</option>
@@ -140,10 +146,10 @@ function UserGestor() {
                 </div>
             </section>
 
-            {mensaje && <p className="user-gestor__message" role="status">{mensaje}</p>}
+            {mensaje && <p className={styles.message} role="status">{mensaje}</p>}
 
-            <section className="user-gestor__panel" aria-labelledby="titulo-solicitudes-tunja">
-                <div className="user-gestor__list-heading">
+            <section className={styles.panel} aria-labelledby="titulo-solicitudes-tunja">
+                <div className={styles.listHeading}>
                     <div>
                         <h2 id="titulo-solicitudes-tunja">Afiliaciones de {usuario.eps}</h2>
                     </div>
@@ -153,10 +159,10 @@ function UserGestor() {
                 ) : errorTunja ? (
                     <p role="alert">{errorTunja}</p>
                 ) : solicitudesVisibles.length === 0 ? (
-                    <p className="user-gestor__empty">No hay solicitudes de afiliación para esta EPS.</p>
+                    <p className={styles.empty}>No hay solicitudes de afiliación para esta EPS.</p>
                 ) : (
-                    <div className="user-gestor__table-wrap">
-                        <table className="user-gestor__table">
+                    <div className={styles.tableWrap}>
+                        <table className={styles.table}>
                             <thead>
                                 <tr>
                                     <th scope="col">Afiliado</th>
@@ -172,13 +178,13 @@ function UserGestor() {
                                     <tr key={`${solicitud.tipo_documento}-${solicitud.numero_documento}`}>
                                         <td>
                                             <strong>{solicitud.nombres} {solicitud.apellidos}</strong>
-                                            <span className="user-gestor__secondary">{solicitud.email}</span>
+                                            <span className={styles.secondary}>{solicitud.email}</span>
                                         </td>
                                         <td>{solicitud.tipo_documento} {solicitud.numero_documento}</td>
                                         <td>
                                             <button
                                                 type="button"
-                                                className="user-gestor__button user-gestor__button--secondary"
+                                                className={`${styles.button} ${styles.buttonSecondary}`}
                                                 onClick={() => descargarComprobante(solicitud)}
                                                 disabled={!solicitud.comprobante_tipo}
                                             >
@@ -186,24 +192,24 @@ function UserGestor() {
                                             </button>
                                         </td>
                                         <td>
-                                            <span className={`user-gestor__status user-gestor__status--${solicitud.estado_afiliacion}`}>
+                                            <span className={`${styles.status} ${clasesEstado[solicitud.estado_afiliacion] || ""}`}>
                                                 {etiquetasEstado[solicitud.estado_afiliacion]}
                                             </span>
                                         </td>
                                         <td>{etiquetasCuenta[solicitud.estado_cuenta] || "—"}</td>
                                         <td>
                                             {solicitud.estado_afiliacion === "pendiente" && (
-                                                <div className="user-gestor__actions">
+                                                <div className={styles.actions}>
                                                     <button
                                                         type="button"
-                                                        className="user-gestor__button user-gestor__button--approve"
+                                                        className={`${styles.button} ${styles.buttonApprove}`}
                                                         onClick={() => actualizarEstadoSolicitud(solicitud, "aprobado")}
                                                     >
                                                         Aprobar
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        className="user-gestor__button user-gestor__button--reject"
+                                                        className={`${styles.button} ${styles.buttonReject}`}
                                                         onClick={() => actualizarEstadoSolicitud(solicitud, "rechazado")}
                                                     >
                                                         Rechazar

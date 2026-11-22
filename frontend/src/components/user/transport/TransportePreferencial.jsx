@@ -98,9 +98,7 @@ function TransportePreferencial({ citaId }) {
         </p>
         <nav aria-label="Opciones de la cita" className={styles.navFlujo}>
           <Link to="/mis-citas" className={styles.enlaceVolver}>Ver mis citas</Link>
-          <Link to={rutaPagos} className={styles.enlaceSaltarPagos}>
-            Ir a pagos sin transporte
-          </Link>
+          <Link to={rutaPagos} className={styles.enlaceSaltarPagos}> Ir a pagos sin transporte</Link>
         </nav>
       </header>
 
