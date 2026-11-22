@@ -58,17 +58,6 @@ function PersonalDataAdministrador() {
                 </fieldset>
 
                 <fieldset>
-                    <h3>Datos de contacto</h3>
-
-                    <div className={styles.profileGrid}>
-                        <div className={styles.dataGroup}>
-                            <label>Correo electrónico</label>
-                            <p>{usuario?.email || "—"}</p>
-                        </div>
-                    </div>
-                </fieldset>
-
-                <fieldset>
                     <h3>Preferencia de tema</h3>
 
                     <div className={styles.themeSection}>

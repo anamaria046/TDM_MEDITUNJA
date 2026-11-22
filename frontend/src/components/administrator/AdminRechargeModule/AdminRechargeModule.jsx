@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { apiRequest, mensajeError } from "../../auth/api.js";
-import { useAdminAuth } from "../../auth/useAdminAuth.js";
-import Filter from "../../components/Filter/Filter.jsx";
+import { apiRequest, mensajeError } from "../../../auth/api.js";
+import { useAdminAuth } from "../../../auth/useAdminAuth.js";
+import Filter from "../../Filter/Filter.jsx";
 import styles from "./AdminRechargeModule.module.css";
 
 const montosSugeridos = [10000, 20000, 50000, 100000];

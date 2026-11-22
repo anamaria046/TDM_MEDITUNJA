@@ -7,15 +7,17 @@ p {
 .appointmentContainer {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-    gap: 30px;
+    gap: 16px;
     align-items: start;
     width: 100%;
     min-width: 0;
+    padding: 26px;
 }
 
 .form {
     width: 100%;
     min-width: 0;
+    padding-left: 12px;
 }
 
 .summary {
@@ -234,10 +236,10 @@ p {
         width: 100%;
         padding: 0 16px;
         box-sizing: border-box;
+        padding-bottom: 90px;
     }
 
-    .form,
-    .summary {
+    .form, .summary {
         width: 100%;
         min-width: 0;
     }

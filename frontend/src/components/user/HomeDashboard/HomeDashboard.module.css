@@ -218,6 +218,10 @@
         gap: 22px;
     }
 
+    .welcomeCopy {
+        padding: 14px 30px;
+    }
+
     .securityBadge {
         align-self: stretch;
     }

@@ -229,15 +229,16 @@ function NFCVinculation() {
                         </button>
                     </form>
 
-                    <button className={styles.secondaryButton} type="button" onClick={leerTarjeta} disabled={leyendo || procesando || cargando}>
-                        {leyendo ? "Leyendo tarjeta..." : "Leer tarjeta nuevamente"}
-                    </button>
-
-                    {tarjeta && (
-                        <button className={styles.secondaryButton} type="button" onClick={desvincularTarjeta} disabled={procesando}>
-                            Desvincular tarjeta
+                    <div className={styles.secondaryActions}>
+                        <button className={styles.secondaryButton} type="button" onClick={leerTarjeta} disabled={leyendo || procesando || cargando}>
+                            {leyendo ? "Leyendo tarjeta..." : "Leer tarjeta nuevamente"}
                         </button>
-                    )}
+                        {tarjeta && (
+                            <button className={styles.secondaryButton} type="button" onClick={desvincularTarjeta} disabled={procesando}>
+                                Desvincular tarjeta
+                            </button>
+                        )}
+                    </div>
                     {mensaje && <p className={styles.successMessage} role="status">{mensaje}</p>}
                     {error && <p className={styles.errorMessage} role="alert">{error}</p>}
                 </section>

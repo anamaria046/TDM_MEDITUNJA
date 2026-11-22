@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiRequest, mensajeError } from "../../auth/api.js";
-import { useAdminAuth } from "../../auth/useAdminAuth.js";
-import Filter from "../Filter/Filter.jsx";
-import { descargarArchivo } from "../../auth/descargarArchivo.js";
+import { apiRequest, mensajeError } from "../../../auth/api.js";
+import { useAdminAuth } from "../../../auth/useAdminAuth.js";
+import Filter from "../../Filter/Filter.jsx";
+import { descargarArchivo } from "../../../auth/descargarArchivo.js";
+import styles from "./ResultadosAdministrador.module.css";
 
 function ResultadosAdministrador() {
     const { token } = useAdminAuth();
@@ -171,7 +172,7 @@ function ResultadosAdministrador() {
     }
 
     return (
-        <main>
+        <main className={styles.adminResults}>
             <header>
                 <p>MediTunja · Administración</p>
                 <h1>Gestión de resultados de procedimientos</h1>
@@ -209,75 +210,79 @@ function ResultadosAdministrador() {
                     <form id="formulario-resultado" onSubmit={handleSubmit}>
                         <fieldset>
                             <legend>Afiliado</legend>
-                            <div>
-                                <label htmlFor="afiliado-resultado">Afiliado de la EPS</label>
-                                <select id="afiliado-resultado" name="afiliado" defaultValue="" required disabled={!afiliados?.length}>
-                                    <option value="" disabled>Selecciona un afiliado</option>
-                                    {afiliados?.map(({ tipoDocumento, numeroDocumento, nombre }) => (
-                                        <option key={`${tipoDocumento}:${numeroDocumento}`} value={`${tipoDocumento}:${numeroDocumento}`}>
-                                            {nombre} · {tipoDocumento} {numeroDocumento}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errorAfiliados && <p role="alert">{errorAfiliados}</p>}
-                                {!errorAfiliados && !afiliados && <p role="status">Cargando afiliados…</p>}
-                                {afiliados?.length === 0 && <p>No hay afiliados aprobados en esta EPS.</p>}
+                            <div className={styles.singleColumnGrid}>
+                                <div>
+                                    <label htmlFor="afiliado-resultado">Afiliado de la EPS</label>
+                                    <select id="afiliado-resultado" name="afiliado" defaultValue="" required disabled={!afiliados?.length}>
+                                        <option value="" disabled>Selecciona un afiliado</option>
+                                        {afiliados?.map(({ tipoDocumento, numeroDocumento, nombre }) => (
+                                            <option key={`${tipoDocumento}:${numeroDocumento}`} value={`${tipoDocumento}:${numeroDocumento}`}>
+                                                {nombre} · {tipoDocumento} {numeroDocumento}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errorAfiliados && <p role="alert">{errorAfiliados}</p>}
+                                    {!errorAfiliados && !afiliados && <p role="status">Cargando afiliados…</p>}
+                                    {afiliados?.length === 0 && <p>No hay afiliados aprobados en esta EPS.</p>}
+                                </div>
                             </div>
                         </fieldset>
 
                         <fieldset>
                             <legend>Información del procedimiento</legend>
-                            <div>
-                                <label htmlFor="nombre-procedimiento">Procedimiento</label>
-                                <input
-                                    id="nombre-procedimiento"
-                                    name="procedure"
-                                    type="text"
-                                    maxLength={120}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="fecha-procedimiento">Fecha de realización</label>
-                                <input
-                                    id="fecha-procedimiento"
-                                    name="date"
-                                    type="date"
-                                    max={new Date().toISOString().slice(0, 10)}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="ips-procedimiento">IPS prestadora</label>
-                                <select id="ips-procedimiento" name="provider" defaultValue="" required disabled={!ipsDisponibles.length}>
-                                    <option value="" disabled>Selecciona una IPS</option>
-                                    {ipsDisponibles.map(({ id, nombre, sede }) => (
-                                        <option key={id} value={`${nombre}${sede ? ` - ${sede}` : ""}`}>{nombre}{sede ? ` - ${sede}` : ""}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="estado-resultado">Estado del resultado</label>
-                                <select id="estado-resultado" name="status" defaultValue="En proceso">
-                                    <option value="En proceso">En proceso</option>
-                                    <option value="Disponible">Disponible</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="informe-resultado">Informe o nota del resultado</label>
-                                <textarea
-                                    id="informe-resultado"
-                                    name="report"
-                                    rows="5"
-                                    maxLength={10000}
-                                    placeholder="Registra el informe proporcionado por la IPS."
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="adjunto-resultado">Archivo adjunto (opcional)</label>
-                                <input id="adjunto-resultado" name="adjunto" type="file" aria-describedby="ayuda-adjunto-resultado" />
-                                <small id="ayuda-adjunto-resultado">Un archivo de hasta 10 MB.</small>
+                            <div className={styles.formGrid}>
+                                <div>
+                                    <label htmlFor="nombre-procedimiento">Procedimiento</label>
+                                    <input
+                                        id="nombre-procedimiento"
+                                        name="procedure"
+                                        type="text"
+                                        maxLength={120}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="fecha-procedimiento">Fecha de realización</label>
+                                    <input
+                                        id="fecha-procedimiento"
+                                        name="date"
+                                        type="date"
+                                        max={new Date().toISOString().slice(0, 10)}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="ips-procedimiento">IPS prestadora</label>
+                                    <select id="ips-procedimiento" name="provider" defaultValue="" required disabled={!ipsDisponibles.length}>
+                                        <option value="" disabled>Selecciona una IPS</option>
+                                        {ipsDisponibles.map(({ id, nombre, sede }) => (
+                                            <option key={id} value={`${nombre}${sede ? ` - ${sede}` : ""}`}>{nombre}{sede ? ` - ${sede}` : ""}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="estado-resultado">Estado del resultado</label>
+                                    <select id="estado-resultado" name="status" defaultValue="En proceso">
+                                        <option value="En proceso">En proceso</option>
+                                        <option value="Disponible">Disponible</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="informe-resultado">Informe o nota del resultado</label>
+                                    <textarea
+                                        id="informe-resultado"
+                                        name="report"
+                                        rows="5"
+                                        maxLength={10000}
+                                        placeholder="Registra el informe proporcionado por la IPS."
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="adjunto-resultado">Archivo adjunto (opcional)</label>
+                                    <input id="adjunto-resultado" name="adjunto" type="file" aria-describedby="ayuda-adjunto-resultado" />
+                                    <small id="ayuda-adjunto-resultado">Un archivo de hasta 10 MB.</small>
+                                </div>
                             </div>
                         </fieldset>
                         <button type="submit" disabled={saving || !afiliados?.length || !ipsDisponibles.length}>
@@ -346,7 +351,7 @@ function ResultadosAdministrador() {
                                         </td>
                                         <td>
                                             {result.status === "En proceso" && (
-                                                <button type="button" className="resultado-publicar" onClick={() => publicarResultado(result)}
+                                                <button type="button" className={styles.publishResult} onClick={() => publicarResultado(result)}
                                                     disabled={publishingId !== null || deletingId !== null}>
                                                     {publishingId === result.id ? "Publicando…" : "Publicar resultado"}
                                                 </button>

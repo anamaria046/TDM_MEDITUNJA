@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { FileSearch, Info, MoveLeft } from "lucide-react";
+import { FileSearch } from "lucide-react";
 import { Link } from "react-router-dom";
-import { apiRequest } from "../../auth/api.js";
-import { descargarArchivo } from "../../auth/descargarArchivo.js";
-import { useAuth } from "../../auth/useAuth.js";
-import Hero from "../Hero/Hero.jsx";
-import NavbarUser from "./NavbarUser/NavbarUser.jsx";
+import { apiRequest } from "../../../auth/api.js";
+import { descargarArchivo } from "../../../auth/descargarArchivo.js";
+import { useAuth } from "../../../auth/useAuth.js";
+import Hero from "../../Hero/Hero.jsx";
+import NavbarUser from "../NavbarUser/NavbarUser.jsx";
 import styles from "./ResultadosProcedimientos.module.css";
 
 function ResultadosProcedimientos() {
@@ -53,11 +53,6 @@ function ResultadosProcedimientos() {
             />
 
             <main className={styles.resultsPage}>
-                <Link className={styles.backLink} to="/citas">
-                    <MoveLeft size={18} aria-hidden="true" />
-                    Volver a mis citas
-                </Link>
-
                 <section className={styles.resultsSection} aria-labelledby="listado-titulo">
                     <div className={styles.sectionHeading}>
                         <div>

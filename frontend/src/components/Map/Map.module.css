@@ -322,6 +322,10 @@
 }
 
 @media (max-width: 800px) {
+    main {
+        padding-bottom: 20px;
+    }
+
     .mapSection {
         grid-template-columns: minmax(0, 1fr);
         gap: 12px;

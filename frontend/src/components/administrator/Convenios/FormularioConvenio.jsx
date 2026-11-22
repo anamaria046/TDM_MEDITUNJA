@@ -1,7 +1,3 @@
-// Subcomponente de Formulario de Formalización de Convenio
-// MediTunja - Módulo de Convenios (Gestión Administrativa)
-// Maquetación limpia en HTML semántico dentro de JSX con CSS Modules
-
 import styles from "./Convenios.module.css";
 import { nombreIpsComoEnMapa } from "./ipsNombresMapa.js";
 

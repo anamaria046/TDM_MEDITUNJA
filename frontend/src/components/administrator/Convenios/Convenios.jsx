@@ -1,7 +1,3 @@
-// Componente Principal del Módulo de Convenios
-// MediTunja - Gestión Administrativa y Convenios de Salud en Tunja
-// Código estructurado en HTML semántico dentro de JSX con CSS Modules
-
 import styles from "./Convenios.module.css";
 import { useConvenios } from "./hooks/useConvenios";
 import FormularioConvenio from "./FormularioConvenio";
