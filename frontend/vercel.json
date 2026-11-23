@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://tdm-meditunja.vercel.app/api/:path*"
+      "destination": "https://tdm-meditunja.vercel.app*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
