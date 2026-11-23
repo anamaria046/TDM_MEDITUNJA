@@ -1,13 +1,16 @@
 // Incrementa la versión cuando cambie el shell de la aplicación.
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE_PREFIX = "meditunja-";
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${VERSION}`;
 const SHELL_ASSETS = [
   "/",
   "/index.html",
   "/offline.html",
+  "/offline.css",
   "/manifest.webmanifest",
-  "/logo-meditunja.png"
+  "/logo-meditunja.png",
+  "/fonts/Sora.ttf",
+  "/fonts/Roboto-Regular.ttf"
 ];
 
 self.addEventListener("install", (event) => {

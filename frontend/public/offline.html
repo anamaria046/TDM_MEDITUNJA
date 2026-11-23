@@ -1,27 +1,19 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#6045f4" />
+    <link rel="stylesheet" href="offline.css" />
     <title>Sin conexión | MediTunja</title>
-    <style>
-      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-      body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #f6f7fb; color: #101b49; }
-      main { width: min(90%, 28rem); padding: 2rem; border: 1px solid #e1e4ed; border-radius: 1rem; background: #fff; text-align: center; }
-      img { width: 5rem; height: 5rem; object-fit: contain; }
-      h1 { margin: 1rem 0 .5rem; font-size: 1.5rem; }
-      p { color: #586174; line-height: 1.6; }
-      button { margin-top: 1rem; padding: .8rem 1.2rem; border: 0; border-radius: .6rem; background: #6045f4; color: white; font: inherit; font-weight: 700; cursor: pointer; }
-      @media (prefers-color-scheme: dark) { body { background: #101321; color: #f5f5fb; } main { border-color: #303447; background: #191d2d; } p { color: #c0c5d3; } }
-    </style>
   </head>
   <body>
-    <main>
-      <img src="/logo-meditunja.png" alt="MediTunja" />
-      <h1>No hay conexión a internet</h1>
-      <p>Vuelve a conectarte para consultar tu información y continuar usando MediTunja.</p>
-      <button type="button" onclick="location.reload()">Intentar de nuevo</button>
+    <main class="offline-card" aria-labelledby="offline-title">
+      <img class="brand-logo" src="logo-meditunja.png" alt="MediTunja" />
+      <p class="eyebrow">MediTunja · Agenda con un solo toque</p>
+      <h1 id="offline-title">No hay conexión a internet</h1>
+      <p class="message">Conéctate a internet para consultar tu información y continuar usando MediTunja.</p>
+      <button class="retry-button" type="button" onclick="location.reload()">Intentar de nuevo</button>
     </main>
   </body>
 </html>

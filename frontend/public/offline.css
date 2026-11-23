@@ -1,0 +1,142 @@
+@font-face {
+    font-family: "Sora";
+    src: url("/fonts/Sora.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: url("/fonts/Roboto-Regular.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+:root {
+    color-scheme: light dark;
+    --offline-brand: #6045f4;
+    --offline-brand-dark: #000f54;
+    --offline-text: #000f54;
+    --offline-muted: #717171;
+    --offline-background: #fafaff;
+    --offline-card: #ffffff;
+    --offline-border: #dbdbdb;
+    font-family: "Roboto", sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    display: grid;
+    min-width: 320px;
+    min-height: 100vh;
+    min-height: 100svh;
+    place-items: center;
+    margin: 0;
+    padding: 24px;
+    background:
+        radial-gradient(ellipse at 50% 0, rgba(96, 69, 244, 0.1), transparent 55%),
+        var(--offline-background);
+    color: var(--offline-text);
+}
+
+.offline-card {
+    width: min(100%, 480px);
+    padding: clamp(28px, 7vw, 48px);
+    border: 1px solid var(--offline-border);
+    border-radius: 24px;
+    background: var(--offline-card);
+    box-shadow: 0 16px 40px rgba(0, 15, 84, 0.1);
+    text-align: center;
+}
+
+.brand-logo {
+    display: block;
+    width: 88px;
+    height: 88px;
+    margin: 0 auto 22px;
+    object-fit: contain;
+}
+
+.eyebrow {
+    margin: 0 0 12px;
+    color: var(--offline-brand);
+    font-family: "Sora", sans-serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+h1 {
+    margin: 0;
+    color: var(--offline-brand-dark);
+    font-family: "Sora", sans-serif;
+    font-size: clamp(1.5rem, 5vw, 1.9rem);
+    line-height: 1.3;
+}
+
+.message {
+    margin: 14px 0 0;
+    color: var(--offline-muted);
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.retry-button {
+    min-height: 48px;
+    margin-top: 26px;
+    padding: 12px 22px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--offline-brand);
+    color: #fff;
+    font: 700 0.95rem "Sora", sans-serif;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.retry-button:hover {
+    background: #300ef1;
+    transform: translateY(-1px);
+}
+
+.retry-button:focus-visible {
+    outline: 3px solid rgba(96, 69, 244, 0.35);
+    outline-offset: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --offline-text: #fcfcfc;
+        --offline-muted: #b4b7d0;
+        --offline-background: #141429;
+        --offline-card: #1b1b35;
+        --offline-border: #2a2a4a;
+    }
+
+    .eyebrow {
+        color: #9b87ff;
+    }
+
+    h1 {
+        color: var(--offline-text);
+    }
+
+    .retry-button:hover {
+        background: #9b7fff;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
