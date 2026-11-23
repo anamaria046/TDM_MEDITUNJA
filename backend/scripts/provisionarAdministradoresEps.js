@@ -3,6 +3,8 @@ import { promisify } from 'node:util';
 import { administradoresEps } from '../src/config/administradoresEps.js';
 import { ready } from '../src/config/db.js';
 import { ejecutar } from '../src/repositories/sqlite.js';
+import { tunjaRequest } from '../src/services/tunjaApi.js';
+import { listarUsuariosTunja } from '../src/services/tunjaUsuarios.js';
 
 const scrypt = promisify(crypto.scrypt);
 
@@ -10,6 +12,55 @@ async function crearHash(contrasena) {
   const sal = crypto.randomBytes(16).toString('hex');
   const derivada = await scrypt(contrasena, sal, 64);
   return `${sal}:${derivada.toString('hex')}`;
+}
+
+function slugEps(eps) {
+  return eps.toLocaleLowerCase('es')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '');
+}
+
+async function sincronizarCuentaTunja(eps, nit, contrasena) {
+  const email = `admin.${slugEps(eps)}@meditunja.com`;
+  const cuentas = await listarUsuariosTunja();
+  const documentoSinSeparador = nit.replace('-', '');
+  const coincidencias = cuentas.filter((cuenta) =>
+    cuenta?.email?.trim().toLowerCase() === email ||
+    [nit, documentoSinSeparador].includes(cuenta?.documento || cuenta?.numero_documento)
+  );
+  const coincidencia = coincidencias.find((cuenta) =>
+    cuenta?.email?.trim().toLowerCase() === email &&
+    [nit, documentoSinSeparador].includes(cuenta?.documento || cuenta?.numero_documento)
+  );
+
+  if (coincidencias.length > 0) {
+    if (!coincidencia || coincidencia.activo !== true ||
+        !Number.isSafeInteger(coincidencia.id)) {
+      throw new Error(`TunjaAPI tiene una cuenta incompatible o inactiva para ${eps}; no se modificó esa cuenta.`);
+    }
+    return { email, id: coincidencia.id };
+  }
+
+  const registro = await tunjaRequest('/auth/register', {
+    method: 'POST',
+    requiresKey: true,
+    body: {
+      email,
+      contrasena,
+      nombre: `Administrador ${eps}`,
+      documento: nit,
+      tipo_documento: 'NIT',
+      numero_documento: nit,
+      perfil: 'general',
+      descuento: 0
+    }
+  });
+  const id = registro.usuario?.id || registro.id;
+  if (!Number.isSafeInteger(id) || id < 1) {
+    throw new Error(`TunjaAPI no confirmó la cuenta administradora de ${eps}.`);
+  }
+  return { email, id };
 }
 
 async function aprovisionar() {
@@ -23,10 +74,24 @@ async function aprovisionar() {
     if (typeof nit !== 'string' || !/^\d{9}-\d$/.test(nit)) {
       throw new Error(`Define ${nitEnv} en backend/.env con el NIT y dígito de verificación.`);
     }
+    const contrasena = process.env[claveEnv];
+    if (typeof contrasena !== 'string' || contrasena.length < 12 || contrasena.length > 128) {
+      throw new Error(`Define ${claveEnv} en backend/.env con una contraseña de 12 a 128 caracteres.`);
+    }
+    const cuentaTunja = await sincronizarCuentaTunja(eps, nit, contrasena);
+    const cuentaTunjaVerificada = await tunjaRequest(
+      `/users/${cuentaTunja.id}`,
+      { requiresKey: true }
+    );
+    if (cuentaTunjaVerificada.activo !== true ||
+        cuentaTunjaVerificada.email?.trim().toLowerCase() !== cuentaTunja.email ||
+        ![nit, nit.replace('-', '')].includes(cuentaTunjaVerificada.documento || cuentaTunjaVerificada.numero_documento)) {
+      throw new Error(`TunjaAPI no confirmó una cuenta activa compatible para ${eps}.`);
+    }
 
     const usuario = await ejecutar(
       'get',
-      `SELECT id_usuario, nombres, rol, eps, activo, estado_registro
+      `SELECT id_usuario, nombres, email, rol, eps, activo, estado_registro
        FROM usuarios
        WHERE tipo_documento = 'NIT' AND numero_documento = ?`,
       [nit]
@@ -39,6 +104,13 @@ async function aprovisionar() {
         usuario.eps !== eps
       ) {
         throw new Error(`El NIT de ${eps} ya existe con datos incompatibles; no se modificó esa cuenta.`);
+      }
+      if (usuario.email !== cuentaTunja.email) {
+        await ejecutar(
+          'run',
+          `UPDATE usuarios SET email = ? WHERE id_usuario = ?`,
+          [cuentaTunja.email, usuario.id_usuario]
+        );
       }
       if (usuario.activo !== 1 || usuario.estado_registro !== 'aprobado') {
         await ejecutar(
@@ -57,20 +129,14 @@ async function aprovisionar() {
       continue;
     }
 
-    const contrasena = process.env[claveEnv];
-    if (typeof contrasena !== 'string' || contrasena.length < 12 || contrasena.length > 128) {
-      throw new Error(`Define ${claveEnv} en backend/.env con una contraseña de 12 a 128 caracteres.`);
-    }
-
     const passwordHash = await crearHash(contrasena);
-    const correoInterno = `administrador+${nit.replace('-', '')}@meditunja.invalid`;
     await ejecutar(
       'run',
       `INSERT INTO usuarios (
         tipo_documento, numero_documento, nombres, apellidos, email, eps,
         rol, password_hash, activo, estado_registro
       ) VALUES ('NIT', ?, ?, 'Administración', ?, ?, 'administrador', ?, 1, 'aprobado')`,
-      [nit, eps, correoInterno, eps, passwordHash]
+      [nit, eps, cuentaTunja.email, eps, passwordHash]
     );
     creados += 1;
     console.log(`Cuenta administradora creada para ${eps}.`);
