@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CreditCard, Nfc } from "lucide-react";
 import { apiRequest, mensajeError } from "../../auth/api.js";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
+import Filter from "../../components/Filter/Filter.jsx";
 import styles from "./AdminNfcCardsModule.module.css";
 
 function AdminNfcCardsModule() {
     const { token, usuario } = useAdminAuth();
     const [afiliados, setAfiliados] = useState([]);
     const [afiliadoId, setAfiliadoId] = useState("");
+    const [busquedaAfiliado, setBusquedaAfiliado] = useState("");
+    const [filtroTarjeta, setFiltroTarjeta] = useState("todos");
     const [uid, setUid] = useState("");
     const [cargando, setCargando] = useState(true);
     const [procesando, setProcesando] = useState(false);
@@ -59,6 +62,22 @@ function AdminNfcCardsModule() {
         (afiliado) => String(afiliado.id) === afiliadoId
     );
     const disponibles = afiliados.filter((afiliado) => !afiliado.tarjetaIdentificador);
+    const afiliadosVisibles = useMemo(() => {
+        const termino = busquedaAfiliado.trim().toLocaleLowerCase("es");
+        return afiliados.filter((afiliado) => {
+            const coincideBusqueda = !termino || [
+                afiliado.nombre,
+                afiliado.tipoDocumento,
+                afiliado.numeroDocumento,
+                afiliado.email,
+            ].join(" ").toLocaleLowerCase("es").includes(termino);
+            const tieneTarjeta = Boolean(afiliado.tarjetaIdentificador);
+            const coincideEstado = filtroTarjeta === "todos" ||
+                (filtroTarjeta === "sin-tarjeta" && !tieneTarjeta) ||
+                (filtroTarjeta === "con-tarjeta" && tieneTarjeta);
+            return coincideBusqueda && coincideEstado;
+        });
+    }, [afiliados, busquedaAfiliado, filtroTarjeta]);
 
     async function vincularMiTarjeta(evento) {
         evento.preventDefault();
@@ -214,28 +233,66 @@ function AdminNfcCardsModule() {
 
                 {!cargando && afiliados.length > 0 && (
                     <>
-                        <label className={styles.label} htmlFor="afiliado-tarjeta-nfc">Afiliado</label>
-                        <select
-                            id="afiliado-tarjeta-nfc"
-                            className={styles.input}
-                            value={afiliadoId}
-                            onChange={(evento) => {
-                                setAfiliadoId(evento.target.value);
-                                setError("");
-                                setMensaje("");
+                        <Filter
+                            id="tarjetas-nfc-afiliados"
+                            searchValue={busquedaAfiliado}
+                            onSearchChange={(valor) => {
+                                setBusquedaAfiliado(valor);
+                                setAfiliadoId("");
                             }}
-                            disabled={procesando}
-                        >
-                            <option value="">Selecciona un afiliado</option>
-                            {afiliados.map((afiliado) => (
-                                <option key={afiliado.id} value={afiliado.id} disabled={Boolean(afiliado.tarjetaIdentificador)}>
-                                    {afiliado.nombre} · {afiliado.tipoDocumento} {afiliado.numeroDocumento}
-                                    {afiliado.tarjetaIdentificador
-                                        ? ` · Tarjeta vinculada •••• ${afiliado.tarjetaIdentificador}`
-                                        : ""}
-                                </option>
-                            ))}
-                        </select>
+                            searchLabel="Buscar afiliado"
+                            searchPlaceholder="Nombre, documento o correo"
+                            filterValue={filtroTarjeta}
+                            onFilterChange={(valor) => {
+                                setFiltroTarjeta(valor);
+                                setAfiliadoId("");
+                            }}
+                            filterLabel="Filtrar por tarjeta"
+                            filterOptions={[
+                                { value: "todos", label: "Todos los afiliados" },
+                                { value: "sin-tarjeta", label: "Sin tarjeta vinculada" },
+                                { value: "con-tarjeta", label: "Con tarjeta vinculada" },
+                            ]}
+                            variant="embedded"
+                        />
+                        {afiliadosVisibles.length === 0 && (
+                            <p className={styles.notice} role="status">
+                                No hay afiliados que coincidan con la búsqueda o el filtro seleccionados.
+                            </p>
+                        )}
+                        {afiliadosVisibles.length > 0 && (
+                            <ul className={styles.affiliateList} aria-label="Afiliados encontrados">
+                                {afiliadosVisibles.map((afiliado) => {
+                                    const tieneTarjeta = Boolean(afiliado.tarjetaIdentificador);
+                                    const seleccionado = String(afiliado.id) === afiliadoId;
+                                    return (
+                                        <li key={afiliado.id}>
+                                            <button
+                                                type="button"
+                                                className={`${styles.affiliateOption} ${seleccionado ? styles.affiliateOptionSelected : ""}`}
+                                                aria-pressed={seleccionado}
+                                                disabled={procesando || tieneTarjeta}
+                                                onClick={() => {
+                                                    setAfiliadoId(String(afiliado.id));
+                                                    setError("");
+                                                    setMensaje("");
+                                                }}
+                                            >
+                                                <span>
+                                                    <strong>{afiliado.nombre}</strong>
+                                                    <small>{afiliado.tipoDocumento} {afiliado.numeroDocumento}</small>
+                                                </span>
+                                                <span className={styles.affiliateStatus}>
+                                                    {tieneTarjeta
+                                                        ? `Tarjeta vinculada •••• ${afiliado.tarjetaIdentificador}`
+                                                        : seleccionado ? "Seleccionado" : "Disponible"}
+                                                </span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
 
                         {disponibles.length > 0 ? (
                             <form className={styles.form} onSubmit={vincularTarjeta}>

@@ -10,9 +10,10 @@ function Filter({
     onFilterChange,
     filterLabel,
     filterOptions,
+    variant,
 }) {
     return (
-        <section className={styles.container}>
+        <section className={`${styles.container} ${variant ? styles[variant] : ""}`}>
             <div className={styles.formFilter}>
                 <div className={styles.field}>
                     <label htmlFor={`${id}-search`}>{searchLabel}</label>

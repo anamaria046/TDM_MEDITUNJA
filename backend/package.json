@@ -10,8 +10,7 @@
     "test": "node --test",
     "start": "node --env-file-if-exists=.env server.js",
     "provision:admins": "node --env-file-if-exists=.env scripts/provisionarAdministradoresEps.js",
-    "provision:superadmin": "node --env-file-if-exists=.env scripts/provisionarSuperadministrador.js",
-    "provision:admins:api": "node --env-file-if-exists=.env scripts/crearAdminsTunjaApi.js"
+    "provision:superadmin": "node --env-file-if-exists=.env scripts/provisionarSuperadministrador.js"
   },
   "keywords": [],
   "author": "",
